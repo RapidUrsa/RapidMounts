@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenLocal()
+    maven { url = 'https://repo.runelite.net' }
+    mavenCentral()
+}
+
+def runeLiteVersion = 'latest.release'
+
+dependencies {
+    compileOnly group: 'net.runelite', name: 'client', version: runeLiteVersion
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    testImplementation group: 'net.runelite', name: 'client', version: runeLiteVersion
+    testImplementation group: 'net.runelite', name: 'jshell', version: runeLiteVersion
+}
+
+group = 'com.rapidursa.mounts'
+version = '1.3.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 11
+}
+
+// src/test contains the RuneLite development launcher, not a JUnit suite.
+// Gradle 9 fails empty test suites by default unless this is made explicit.
+tasks.named('test', Test) {
+    failOnNoDiscoveredTests = false
+}
+
+tasks.register('runClient', JavaExec) {
+    group = 'application'
+    description = 'Runs RuneLite with Rapid Mounts loaded'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.rapidursa.mounts.RapidUrsaMountsPluginTest'
+    jvmArgs = ['-ea']
+    args = ['--developer-mode']
+}
+
+tasks.register('shadowJar', Jar) {
+    archiveClassifier = 'shaded'
+    from sourceSets.main.output
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
