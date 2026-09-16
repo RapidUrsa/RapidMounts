@@ -4,7 +4,8 @@ public enum MountType
 {
     BLACK_UNICORN("Black unicorn"),
     TERRORBIRD("Terrorbird"),
-    LAVA_DRAGON("Lava dragon");
+    LAVA_DRAGON("Lava dragon"),
+    GRYPHON("Gryphon");
 
     private final String displayName;
 

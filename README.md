@@ -1,11 +1,12 @@
 # Rapid Mounts
 
 Rapid Mounts is a visual-only RuneLite plugin that lets your local player ride
-three animated cosmetic mounts:
+four animated cosmetic mounts:
 
 - Black unicorn
 - Terrorbird
 - Lava dragon
+- Gryphon
 
 The plugin changes only what is drawn by your own RuneLite client. Other
 players cannot see the mount, and it does not change movement, pathing, speed,
@@ -13,7 +14,7 @@ clicks, combat, or any other gameplay.
 
 ## Features
 
-- Animated idle and walking cycles for all three mounts.
+- Animated idle and walking cycles for all four mounts.
 - A reconstructed rider that keeps the local player's equipment and appearance.
 - Selectable Standard and Wide riding poses, tuned independently for every mount.
 - Weapons and shields are hidden from the cosmetic rider by default for a cleaner seated pose.
@@ -105,6 +106,21 @@ no network functionality and writes no files at runtime.
 - Stride follow: -3
 - Seat bounce: 2
 - Seat sway: -2
+
+### Gryphon
+
+- Scale: 100%
+- Standard pose rider height: 45
+- Wide pose rider height: 39
+- Rider forward/back: 5
+- Rider sideways: 0
+- Idle animation: 12547
+- Walk animation: 12549
+- Idle bounce: 2
+- Walk height adjustment: 0
+- Walk forward adjustment: 0
+- Seat sway: 5
+- Left/right sway: 4
 
 ## Compatibility and safety
 

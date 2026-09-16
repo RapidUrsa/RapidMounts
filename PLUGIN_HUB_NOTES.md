@@ -13,6 +13,10 @@ Rapid Mounts is a visual-only cosmetic plugin.
   rider; it never modifies the real `PlayerComposition` or equipment.
 - Temporarily removes the cosmetics while the real player performs an action.
 - The overlay button and optional hotkey only toggle local cosmetic state.
+- Includes four selectable mounts: black unicorn, terrorbird, lava dragon, and
+  gryphon, with independently tuned Standard and Wide riding poses.
+- Uses bundled classpath images for the Mount Stable previews and RuneLite's
+  item image service for the movable mount button icons.
 
 ## Fixed content
 
@@ -54,8 +58,8 @@ commit=YOUR-40-CHARACTER-COMMIT-HASH
 
 Suggested pull-request description:
 
-> Adds Rapid Mounts, a visual-only cosmetic plugin that renders an animated
-> black unicorn, terrorbird, or lava dragon beneath the local player. It does
-> not alter movement, input, menus, gameplay, or server-visible state. The
-> original player is restored during actions and whenever cosmetic rendering
-> is unavailable.
+> Updates Rapid Mounts to v1.6.0 with a fourth mount: the normal gryphon. The
+> gryphon has native idle/walking animation switching, tuned Standard and Wide
+> riding poses, synchronized rider sway, a Mount Stable preview, and a Gull
+> item graphic for its movable mount button. The plugin remains visual-only and
+> does not alter movement, input, menus, gameplay, or server-visible state.

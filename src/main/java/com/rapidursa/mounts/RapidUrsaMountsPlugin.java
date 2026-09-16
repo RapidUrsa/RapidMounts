@@ -43,13 +43,14 @@ import net.runelite.client.util.HotkeyListener;
 @PluginDescriptor(
     name = "Rapid Mounts",
     description = "Ride client-side cosmetic mounts",
-    tags = {"mount", "unicorn", "terrorbird", "dragon", "cosmetic", "transmog"}
+    tags = {"mount", "unicorn", "terrorbird", "dragon", "gryphon", "cosmetic", "transmog"}
 )
 public class RapidUrsaMountsPlugin extends Plugin
 {
     private static final int BLACK_UNICORN_NPC_ID = 2849;
     private static final int TERRORBIRD_NPC_ID = 2064;
     private static final int LAVA_DRAGON_NPC_ID = 6593;
+    private static final int GRYPHON_NPC_ID = 14857;
     private static final int RIDER_ANIMATION_ID = 4107;
     private static final int WIDE_RIDER_ANIMATION_ID = 7536;
     private static final int WIDE_RIDER_FRAME = 32;
@@ -57,6 +58,8 @@ public class RapidUrsaMountsPlugin extends Plugin
     private static final int TERRORBIRD_WALK_ANIMATION_ID = 6796;
     private static final int LAVA_DRAGON_IDLE_ANIMATION_ID = 90;
     private static final int LAVA_DRAGON_WALK_ANIMATION_ID = 79;
+    private static final int GRYPHON_IDLE_ANIMATION_ID = 12547;
+    private static final int GRYPHON_WALK_ANIMATION_ID = 12549;
     private static final int FALLBACK_BODY_MODEL = 25754;
     private static final int FALLBACK_DETAILS_MODEL = 25756;
 
@@ -108,6 +111,7 @@ public class RapidUrsaMountsPlugin extends Plugin
     private NavigationButton stableNavigation;
 
     private RuneLiteObject unicorn;
+    private final List<RuneLiteObject> mountParts = new ArrayList<>();
     private RuneLiteObject rider;
     private int builtScale = -1;
     private MountType builtMountType;
@@ -212,7 +216,8 @@ public class RapidUrsaMountsPlugin extends Plugin
         else if ("mountType".equals(event.getKey())
             || "mountScale".equals(event.getKey())
             || "terrorbirdScale".equals(event.getKey())
-            || "lavaDragonScale".equals(event.getKey()))
+            || "lavaDragonScale".equals(event.getKey())
+            || "gryphonScale".equals(event.getKey()))
         {
             despawn();
         }
@@ -303,6 +308,12 @@ public class RapidUrsaMountsPlugin extends Plugin
         unicorn.setLocation(playerPoint, plane);
         unicorn.setZ(terrainZ);
         unicorn.setOrientation(orientation);
+        for (RuneLiteObject part : mountParts)
+        {
+            part.setLocation(playerPoint, plane);
+            part.setZ(terrainZ);
+            part.setOrientation(orientation);
+        }
 
         boolean moving = player.getPoseAnimation() != player.getIdlePoseAnimation();
         if (config.animateUnicorn())
@@ -310,13 +321,21 @@ public class RapidUrsaMountsPlugin extends Plugin
             int wantedAnimation = currentWalkOrIdleAnimation(moving);
             if (wantedAnimation != activeUnicornAnimation)
             {
-                unicorn.setAnimationController(loopingAnimation(wantedAnimation));
+                unicorn.setAnimationController(loopingMountAnimation(wantedAnimation));
+                for (RuneLiteObject part : mountParts)
+                {
+                    part.setAnimationController(loopingAnimation(wantedAnimation));
+                }
                 activeUnicornAnimation = wantedAnimation;
             }
         }
         else if (activeUnicornAnimation != -1)
         {
             unicorn.setAnimationController(null);
+            for (RuneLiteObject part : mountParts)
+            {
+                part.setAnimationController(null);
+            }
             activeUnicornAnimation = -1;
         }
 
@@ -344,7 +363,7 @@ public class RapidUrsaMountsPlugin extends Plugin
                     playerPoint,
                     orientation,
                     riderForward,
-                    currentRiderSideways());
+                    currentRiderSideways() + (moving ? currentLateralSway() : 0));
                 rider.setLocation(riderPoint, plane);
                 rider.setZ(Perspective.getTileHeight(client, riderPoint, plane) - riderHeight);
                 rider.setOrientation(orientation);
@@ -379,6 +398,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
 
         activate(unicorn);
+        for (RuneLiteObject part : mountParts)
+        {
+            activate(part);
+        }
         if (riderReady)
         {
             activate(rider);
@@ -438,7 +461,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
 
         despawn();
-        Model unicornModel = buildMountModel();
+        List<Model> separateModels = null;
+        Model unicornModel = config.mountType() == MountType.GRYPHON
+            ? buildUnscaledGryphonModel()
+            : buildMountModel();
         if (unicornModel == null)
         {
             return false;
@@ -456,6 +482,23 @@ public class RapidUrsaMountsPlugin extends Plugin
         unicorn.setRenderMode(Renderable.RENDERMODE_SORTED_NO_DEPTH);
         unicorn.setDrawFrontTilesFirst(true);
 
+        if (separateModels != null)
+        {
+            for (int i = 1; i < separateModels.size(); i++)
+            {
+                RuneLiteObject part = client.createRuneLiteObject();
+                if (part == null)
+                {
+                    despawn();
+                    return false;
+                }
+                part.setModel(separateModels.get(i));
+                part.setRenderMode(Renderable.RENDERMODE_SORTED_NO_DEPTH);
+                part.setDrawFrontTilesFirst(true);
+                mountParts.add(part);
+            }
+        }
+
         rider.setRenderMode(Renderable.RENDERMODE_SORTED_NO_DEPTH);
         rider.setDrawFrontTilesFirst(true);
 
@@ -464,6 +507,93 @@ public class RapidUrsaMountsPlugin extends Plugin
         activeUnicornAnimation = -1;
         activeRiderAnimation = -1;
         return true;
+    }
+
+    private Model buildUnscaledGryphonModel()
+    {
+        NPCComposition composition = client.getNpcDefinition(GRYPHON_NPC_ID);
+        int[] ids = composition == null ? null : composition.getModels();
+        if (ids == null || ids.length == 0)
+        {
+            return null;
+        }
+
+        ModelData[] parts = new ModelData[ids.length];
+        int count = 0;
+        for (int id : ids)
+        {
+            ModelData part = client.loadModelData(id);
+            if (part != null)
+            {
+                parts[count++] = part;
+            }
+        }
+        if (count == 0)
+        {
+            return null;
+        }
+
+        ModelData[] loaded = new ModelData[count];
+        System.arraycopy(parts, 0, loaded, 0, count);
+        ModelData merged = count == 1 ? loaded[0] : client.mergeModels(loaded);
+        if (merged == null)
+        {
+            return null;
+        }
+
+        if (composition.getColorToReplace() != null
+            && composition.getColorToReplaceWith() != null)
+        {
+            merged = merged.cloneColors();
+            short[] from = composition.getColorToReplace();
+            short[] to = composition.getColorToReplaceWith();
+            for (int i = 0; i < Math.min(from.length, to.length); i++)
+            {
+                merged.recolor(from[i], to[i]);
+            }
+        }
+        return merged.light(AMBIENT, CONTRAST, LIGHT_X, LIGHT_Y, LIGHT_Z);
+    }
+
+    private List<Model> buildSeparateMountModels(int npcId)
+    {
+        NPCComposition composition = client.getNpcDefinition(npcId);
+        int[] ids = composition == null ? null : composition.getModels();
+        if (ids == null || ids.length == 0)
+        {
+            return null;
+        }
+
+        List<Model> models = new ArrayList<>();
+        int widthBase = composition.getWidthScale();
+        int heightBase = composition.getHeightScale();
+        int mountScale = currentMountScale();
+        int widthScale = Math.max(1, widthBase * mountScale / 100);
+        int heightScale = Math.max(1, heightBase * mountScale / 100);
+
+        for (int id : ids)
+        {
+            ModelData data = client.loadModelData(id);
+            if (data == null)
+            {
+                continue;
+            }
+            if (composition.getColorToReplace() != null
+                && composition.getColorToReplaceWith() != null)
+            {
+                data = data.cloneColors();
+                short[] from = composition.getColorToReplace();
+                short[] to = composition.getColorToReplaceWith();
+                for (int i = 0; i < Math.min(from.length, to.length); i++)
+                {
+                    data.recolor(from[i], to[i]);
+                }
+            }
+            data = data.cloneVertices();
+            data.scale(widthScale, heightScale, widthScale);
+            models.add(data.light(AMBIENT, CONTRAST, LIGHT_X, LIGHT_Y, LIGHT_Z));
+        }
+        return models.isEmpty() ? null : models;
     }
 
     private Model buildMountModel()
@@ -476,6 +606,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         else if (config.mountType() == MountType.LAVA_DRAGON)
         {
             npcId = LAVA_DRAGON_NPC_ID;
+        }
+        else if (config.mountType() == MountType.GRYPHON)
+        {
+            npcId = GRYPHON_NPC_ID;
         }
         NPCComposition composition = client.getNpcDefinition(npcId);
         int[] ids = null;
@@ -553,12 +687,37 @@ public class RapidUrsaMountsPlugin extends Plugin
                 ? LAVA_DRAGON_WALK_ANIMATION_ID
                 : LAVA_DRAGON_IDLE_ANIMATION_ID;
         }
+        if (config.mountType() == MountType.GRYPHON)
+        {
+            return moving
+                ? GRYPHON_WALK_ANIMATION_ID
+                : GRYPHON_IDLE_ANIMATION_ID;
+        }
         return moving ? AnimationID.UNICORN_REWORK_WALK : AnimationID.UNICORN_REWORK_READY;
     }
 
     private AnimationController loopingAnimation(int animationId)
     {
         AnimationController controller = new AnimationController(client, animationId);
+        controller.setOnFinished(AnimationController::reset);
+        return controller;
+    }
+
+    private AnimationController loopingMountAnimation(int animationId)
+    {
+        if (config.mountType() != MountType.GRYPHON)
+        {
+            return loopingAnimation(animationId);
+        }
+
+        NPCComposition composition = client.getNpcDefinition(GRYPHON_NPC_ID);
+        int widthBase = composition == null ? 128 : composition.getWidthScale();
+        int heightBase = composition == null ? 128 : composition.getHeightScale();
+        int mountScale = currentMountScale();
+        int widthScale = Math.max(1, widthBase * mountScale / 100);
+        int heightScale = Math.max(1, heightBase * mountScale / 100);
+        AnimationController controller = new PostScaleAnimationController(
+            client, animationId, widthScale, heightScale, widthScale);
         controller.setOnFinished(AnimationController::reset);
         return controller;
     }
@@ -585,6 +744,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentStrideFollow()
     {
+        if (config.mountType() == MountType.GRYPHON)
+        {
+            return 0;
+        }
         int amount;
         if (isWidePose())
         {
@@ -611,6 +774,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentSeatBounce()
     {
+        if (config.mountType() == MountType.GRYPHON)
+        {
+            return 0;
+        }
         int amount;
         if (isWidePose())
         {
@@ -628,6 +795,12 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentSeatSway()
     {
+        if (config.mountType() == MountType.GRYPHON)
+        {
+            int amount = config.gryphonSeatSway();
+            double phase = currentStridePhase();
+            return phase < 0 ? 0 : (int) Math.round(amount * Math.sin(phase));
+        }
         int amount;
         if (isWidePose())
         {
@@ -643,6 +816,18 @@ public class RapidUrsaMountsPlugin extends Plugin
         return phase < 0 ? 0 : (int) Math.round(amount * Math.sin(phase));
     }
 
+    private int currentLateralSway()
+    {
+        if (config.mountType() != MountType.GRYPHON)
+        {
+            return 0;
+        }
+        double phase = currentStridePhase();
+        return phase < 0
+            ? 0
+            : (int) Math.round(config.gryphonLateralSway() * Math.sin(phase));
+    }
+
     private int currentIdleBounce()
     {
         int amount;
@@ -653,6 +838,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         else if (config.mountType() == MountType.LAVA_DRAGON)
         {
             amount = config.lavaDragonIdleBounce();
+        }
+        else if (config.mountType() == MountType.GRYPHON)
+        {
+            amount = config.gryphonIdleBounce();
         }
         else
         {
@@ -680,6 +869,10 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (isWidePose())
         {
+            if (config.mountType() == MountType.GRYPHON)
+            {
+                return config.gryphonScale();
+            }
             return config.mountType() == MountType.BLACK_UNICORN ? 109 : 100;
         }
         if (config.mountType() == MountType.TERRORBIRD)
@@ -689,6 +882,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (config.mountType() == MountType.LAVA_DRAGON)
         {
             return config.lavaDragonScale();
+        }
+        if (config.mountType() == MountType.GRYPHON)
+        {
+            return config.gryphonScale();
         }
         return config.mountScale();
     }
@@ -705,6 +902,10 @@ public class RapidUrsaMountsPlugin extends Plugin
             {
                 return 48;
             }
+            if (config.mountType() == MountType.GRYPHON)
+            {
+                return config.gryphonWideRiderHeight();
+            }
             return 45;
         }
         if (config.mountType() == MountType.TERRORBIRD)
@@ -714,6 +915,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (config.mountType() == MountType.LAVA_DRAGON)
         {
             return config.lavaDragonRiderHeight();
+        }
+        if (config.mountType() == MountType.GRYPHON)
+        {
+            return config.gryphonRiderHeight();
         }
         return config.riderHeight();
     }
@@ -730,6 +935,10 @@ public class RapidUrsaMountsPlugin extends Plugin
             {
                 return -81;
             }
+            if (config.mountType() == MountType.GRYPHON)
+            {
+                return config.gryphonRiderForward();
+            }
             return 10;
         }
         if (config.mountType() == MountType.TERRORBIRD)
@@ -740,6 +949,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             return config.lavaDragonRiderForward();
         }
+        if (config.mountType() == MountType.GRYPHON)
+        {
+            return config.gryphonRiderForward();
+        }
         return config.riderForward();
     }
 
@@ -747,6 +960,10 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (isWidePose())
         {
+            if (config.mountType() == MountType.GRYPHON)
+            {
+                return config.gryphonRiderSideways();
+            }
             return config.mountType() == MountType.LAVA_DRAGON ? 6 : 0;
         }
         if (config.mountType() == MountType.TERRORBIRD)
@@ -757,6 +974,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             return config.lavaDragonRiderSideways();
         }
+        if (config.mountType() == MountType.GRYPHON)
+        {
+            return config.gryphonRiderSideways();
+        }
         return config.riderSideways();
     }
 
@@ -764,7 +985,15 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (isWidePose())
         {
+            if (config.mountType() == MountType.GRYPHON)
+            {
+                return config.gryphonWalkHeightAdjustment();
+            }
             return config.mountType() == MountType.LAVA_DRAGON ? -10 : 0;
+        }
+        if (config.mountType() == MountType.GRYPHON)
+        {
+            return config.gryphonWalkHeightAdjustment();
         }
         return config.mountType() == MountType.TERRORBIRD
             ? config.terrorbirdWalkHeightAdjustment()
@@ -775,7 +1004,15 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (isWidePose())
         {
+            if (config.mountType() == MountType.GRYPHON)
+            {
+                return config.gryphonWalkForwardAdjustment();
+            }
             return config.mountType() == MountType.TERRORBIRD ? 25 : -12;
+        }
+        if (config.mountType() == MountType.GRYPHON)
+        {
+            return config.gryphonWalkForwardAdjustment();
         }
         return config.mountType() == MountType.TERRORBIRD
             ? config.terrorbirdWalkForwardAdjustment()
@@ -910,6 +1147,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         mountedRenderReady = false;
         deactivate(rider);
         deactivate(unicorn);
+        for (RuneLiteObject part : mountParts)
+        {
+            deactivate(part);
+        }
     }
 
     private void clearEffects()
@@ -925,6 +1166,11 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         deactivate(rider);
         deactivate(unicorn);
+        for (RuneLiteObject part : mountParts)
+        {
+            deactivate(part);
+        }
+        mountParts.clear();
         rider = null;
         unicorn = null;
         builtRiderOutfit = null;

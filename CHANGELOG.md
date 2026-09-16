@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.6.0
+
+- Added the normal gryphon as a fourth animated mount.
+- Added native idle and walking animation switching for the gryphon.
+- Added support for the gryphon's newer skeletal animation format while
+  preserving its proportions at configurable scales.
+- Added separately tuned Standard and Wide rider heights for the gryphon.
+- Added configurable forward/back and left/right rider sway synchronized with
+  the gryphon's walking cycle.
+- Added independent gryphon scale and rider-position controls.
+- Added a low-poly gryphon preview to the Mount Stable.
+- Added the Gull pet item graphic as the gryphon mount button icon.
+
 ## 1.5.0
 
 - Added a RuneLite sidebar button and Mount Stable panel.

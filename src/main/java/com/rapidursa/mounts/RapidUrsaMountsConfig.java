@@ -16,6 +16,7 @@ public interface RapidUrsaMountsConfig extends Config
     String UNICORN = "unicorn";
     String TERRORBIRD = "terrorbird";
     String LAVA_DRAGON = "lavaDragon";
+    String GRYPHON = "gryphon";
 
     @ConfigSection(name = "General", description = "Mount controls and behaviour", position = 0)
     String generalSection = GENERAL;
@@ -31,6 +32,9 @@ public interface RapidUrsaMountsConfig extends Config
 
     @ConfigSection(name = "Lava dragon", description = "Lava dragon appearance and motion tuning", position = 4, closedByDefault = true)
     String lavaDragonSection = LAVA_DRAGON;
+
+    @ConfigSection(name = "Gryphon", description = "Normal gryphon appearance and motion tuning", position = 5, closedByDefault = true)
+    String gryphonSection = GRYPHON;
 
     @ConfigItem(
         keyName = "mountType",
@@ -418,6 +422,126 @@ public interface RapidUrsaMountsConfig extends Config
     default int lavaDragonSeatSway()
     {
         return -2;
+    }
+
+    @Range(min = 60, max = 160)
+    @ConfigItem(
+        keyName = "gryphonScale",
+        name = "Gryphon scale (%)",
+        description = "Resize the normal gryphon model",
+        section = GRYPHON
+    )
+    default int gryphonScale()
+    {
+        return 100;
+    }
+
+    @Range(min = 0, max = 300)
+    @ConfigItem(
+        keyName = "gryphonRiderHeight",
+        name = "Standard pose rider height",
+        description = "Raise or lower the rider when using the Standard riding pose",
+        section = GRYPHON
+    )
+    default int gryphonRiderHeight()
+    {
+        return 45;
+    }
+
+    @Range(min = 0, max = 300)
+    @ConfigItem(
+        keyName = "gryphonWideRiderHeight",
+        name = "Wide pose rider height",
+        description = "Raise or lower the rider when using the Wide riding pose",
+        section = GRYPHON
+    )
+    default int gryphonWideRiderHeight()
+    {
+        return 39;
+    }
+
+    @Range(min = -160, max = 160)
+    @ConfigItem(
+        keyName = "gryphonRiderForward",
+        name = "Gryphon forward/back",
+        description = "Move the rider along the direction the gryphon faces",
+        section = GRYPHON
+    )
+    default int gryphonRiderForward()
+    {
+        return 5;
+    }
+
+    @Range(min = -128, max = 128)
+    @ConfigItem(
+        keyName = "gryphonRiderSideways",
+        name = "Gryphon sideways",
+        description = "Move the rider sideways relative to the gryphon",
+        section = GRYPHON
+    )
+    default int gryphonRiderSideways()
+    {
+        return 0;
+    }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(
+        keyName = "gryphonWalkHeightAdjustment",
+        name = "Gryphon walk height adjust",
+        description = "Change rider height only while the gryphon is moving",
+        section = GRYPHON
+    )
+    default int gryphonWalkHeightAdjustment()
+    {
+        return 0;
+    }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(
+        keyName = "gryphonWalkForwardAdjustment",
+        name = "Gryphon walk forward adjust",
+        description = "Move the rider forward or backward only while the gryphon is moving",
+        section = GRYPHON
+    )
+    default int gryphonWalkForwardAdjustment()
+    {
+        return 0;
+    }
+
+    @Range(min = 0, max = 12)
+    @ConfigItem(
+        keyName = "gryphonIdleBounce",
+        name = "Gryphon idle bounce",
+        description = "Subtle rider lift synchronized to the gryphon's idle animation",
+        section = GRYPHON
+    )
+    default int gryphonIdleBounce()
+    {
+        return 2;
+    }
+
+    @Range(min = -30, max = 30)
+    @ConfigItem(
+        keyName = "gryphonSeatSway",
+        name = "Gryphon seat sway",
+        description = "Move the rider forward and backward in time with the gryphon's walking stride",
+        section = GRYPHON
+    )
+    default int gryphonSeatSway()
+    {
+        return 5;
+    }
+
+    @Range(min = -30, max = 30)
+    @ConfigItem(
+        keyName = "gryphonLateralSway",
+        name = "Gryphon left/right sway",
+        description = "Move the rider from side to side in time with the gryphon's walking stride",
+        section = GRYPHON
+    )
+    default int gryphonLateralSway()
+    {
+        return 4;
     }
 
     @Range(min = 24, max = 96)

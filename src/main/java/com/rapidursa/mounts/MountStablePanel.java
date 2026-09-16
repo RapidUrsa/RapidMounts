@@ -57,6 +57,7 @@ final class MountStablePanel extends PluginPanel
         BufferedImage unicorn = loadPreview("black-unicorn-preview.png");
         BufferedImage terrorbird = loadPreview("terrorbird-preview.png");
         BufferedImage lavaDragon = loadPreview("lava-dragon-preview.png");
+        BufferedImage gryphon = loadPreview("gryphon-preview.png");
         sidebarIcon = createHorseshoeSidebarIcon();
 
         setLayout(new BorderLayout());
@@ -85,6 +86,7 @@ final class MountStablePanel extends PluginPanel
         cards.add(createMountButton(MountType.BLACK_UNICORN, unicorn));
         cards.add(createMountButton(MountType.TERRORBIRD, terrorbird));
         cards.add(createMountButton(MountType.LAVA_DRAGON, lavaDragon));
+        cards.add(createMountButton(MountType.GRYPHON, gryphon));
         content.add(cards);
         content.add(Box.createRigidArea(new Dimension(0, 14)));
 

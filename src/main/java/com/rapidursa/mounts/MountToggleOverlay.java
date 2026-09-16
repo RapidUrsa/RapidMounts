@@ -29,6 +29,7 @@ final class MountToggleOverlay extends Overlay implements MouseListener
     private final BufferedImage unicornIcon;
     private final BufferedImage terrorbirdIcon;
     private final BufferedImage lavaDragonIcon;
+    private final BufferedImage gryphonIcon;
 
     @Inject
     MountToggleOverlay(
@@ -41,6 +42,7 @@ final class MountToggleOverlay extends Overlay implements MouseListener
         this.unicornIcon = itemManager.getImage(ItemID.BLACK_TOY_HORSEY);
         this.terrorbirdIcon = itemManager.getImage(ItemID.STRIPY_FEATHER);
         this.lavaDragonIcon = itemManager.getImage(ItemID.LAVA_DRAGON_BONES);
+        this.gryphonIcon = itemManager.getImage(net.runelite.api.gameval.ItemID.GRYPHONBOSSPET);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
         setPosition(OverlayPosition.TOP_LEFT);
     }
@@ -69,6 +71,10 @@ final class MountToggleOverlay extends Overlay implements MouseListener
         else if (config.mountType() == MountType.LAVA_DRAGON)
         {
             icon = lavaDragonIcon;
+        }
+        else if (config.mountType() == MountType.GRYPHON)
+        {
+            icon = gryphonIcon;
         }
 
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
