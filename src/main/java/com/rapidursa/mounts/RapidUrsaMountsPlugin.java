@@ -36,6 +36,8 @@ import net.runelite.client.input.MouseManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.HotkeyListener;
 
 @PluginDescriptor(
@@ -97,6 +99,14 @@ public class RapidUrsaMountsPlugin extends Plugin
     @Inject
     private MountToggleOverlay mountButton;
 
+    @Inject
+    private ClientToolbar clientToolbar;
+
+    @Inject
+    private MountStablePanel mountStablePanel;
+
+    private NavigationButton stableNavigation;
+
     private RuneLiteObject unicorn;
     private RuneLiteObject rider;
     private int builtScale = -1;
@@ -144,6 +154,14 @@ public class RapidUrsaMountsPlugin extends Plugin
         hooks.registerRenderableDrawListener(drawListener);
         mounted = true;
         mountButton.bind(this);
+        mountStablePanel.bind(this);
+        stableNavigation = NavigationButton.builder()
+            .tooltip("Rapid Mounts")
+            .icon(mountStablePanel.getSidebarIcon())
+            .priority(7)
+            .panel(mountStablePanel)
+            .build();
+        clientToolbar.addNavigation(stableNavigation);
         overlayManager.add(mountButton);
         mouseManager.registerMouseListener(mountButton);
         keyManager.registerKeyListener(mountHotkey);
@@ -154,6 +172,12 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         mountedRenderReady = false;
         hooks.unregisterRenderableDrawListener(drawListener);
+        if (stableNavigation != null)
+        {
+            clientToolbar.removeNavigation(stableNavigation);
+            stableNavigation = null;
+        }
+        mountStablePanel.unbind();
         keyManager.unregisterKeyListener(mountHotkey);
         mouseManager.unregisterMouseListener(mountButton);
         overlayManager.remove(mountButton);
@@ -208,6 +232,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             actionResumeTicks = 0;
         }
+        mountStablePanel.refresh();
     }
 
     @Subscribe
@@ -227,6 +252,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             despawn();
         }
+        mountStablePanel.refresh();
     }
 
     boolean isMounted()

@@ -15,6 +15,6 @@ final class FrozenAnimationController extends AnimationController
     @Override
     public void tick(int ticks)
     {
-        // The Wide riding pose deliberately holds one animation frame.
+        // The Wide riding pose deliberately holds frame 32.
     }
 }

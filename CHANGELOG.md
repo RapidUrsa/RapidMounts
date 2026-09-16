@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.5.0
+
+- Added a RuneLite sidebar button and Mount Stable panel.
+- Added visual selection cards for the black unicorn, terrorbird, and lava dragon.
+- Added bundled low-poly mount previews to each stable selection card.
+- Recoloured the terrorbird preview to match its green, yellow, and red in-game palette.
+- Kept the Wide pose locked to its clean, correctly seated frame 32.
+- Added active-mount highlighting, Standard/Wide pose selection, and a
+  mount/dismount control to the panel.
+- Kept the movable in-game mount button available and synchronized.
+- Added a bundled curved steel-grey horseshoe icon that is available immediately when
+  RuneLite constructs the sidebar.
+
 ## 1.4.0
 
 - Added selectable Standard and Wide riding poses.

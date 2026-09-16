@@ -37,19 +37,18 @@ RuneLite client APIs and Java only.
 
 ## Submission checklist
 
-- Publish this project in a public GitHub repository, ideally named
-  `rapid-mounts`.
+- Publish the release commit to `https://github.com/RapidUrsa/RapidMounts`.
 - Confirm `gradlew.bat clean test` and `gradlew.bat clean runClient` succeed on
   the final public commit.
 - Test mount/dismount, actions, teleporting, logout/login, and world hopping.
-- Copy the final 40-character commit hash into `plugins/rapid-mounts` in a fork
-  of the RuneLite Plugin Hub repository.
+- Update `plugins/rapid-mounts` in the RuneLite Plugin Hub fork to the final
+  40-character release commit hash.
 - Keep the Plugin Hub pull request limited to that single manifest file.
 
 Suggested manifest:
 
 ```properties
-repository=https://github.com/YOUR-GITHUB-USERNAME/rapid-mounts.git
+repository=https://github.com/RapidUrsa/RapidMounts.git
 commit=YOUR-40-CHARACTER-COMMIT-HASH
 ```
 

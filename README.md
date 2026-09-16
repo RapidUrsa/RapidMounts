@@ -19,6 +19,8 @@ clicks, combat, or any other gameplay.
 - Weapons and shields are hidden from the cosmetic rider by default for a cleaner seated pose.
 - Individually tuned scale, seat position, idle bounce, and walking motion.
 - A movable mount/dismount button with a mount-specific icon.
+- A Mount Stable sidebar panel for selecting mounts, choosing the riding pose,
+  and mounting or dismounting.
 - Optional keyboard shortcut for mounting and dismounting.
 - A cosmetic dark-smoke effect when mounting or dismounting.
 - Automatic action pause, revealing the normal player during combat, skilling,
@@ -28,11 +30,11 @@ clicks, combat, or any other gameplay.
 
 ## Controls
 
-1. Select a mount in the **General** settings section.
-2. Left-click the on-screen button to mount or dismount.
-3. Hold **Alt** and drag the button to reposition it.
-4. Optionally assign a **Mount/dismount hotkey**.
-5. Choose **Standard** or **Wide** under **Rider → Riding pose**.
+1. Open the horseshoe button in the RuneLite sidebar.
+2. Select a mount and choose **Standard** or **Wide**.
+3. Use the panel or the on-screen button to mount or dismount.
+4. Hold **Alt** and drag the on-screen button to reposition it.
+5. Optionally assign a **Mount/dismount hotkey** in the plugin settings.
 
 The tested positions are supplied as defaults. Advanced rider and mount-specific
 tuning is available in collapsed settings sections.
@@ -56,9 +58,8 @@ weapon, and shield return normally whenever the mount is hidden or paused.
 
 4. Enable **Rapid Mounts** in the developer RuneLite plugin list.
 
-RuneLite does not support installing an unpublished Plugin Hub plugin by copying
-its JAR into the normal client. Until accepted into the Plugin Hub, Rapid Mounts
-must be run through the development client.
+These instructions are intended for local development and release testing. The
+published version can be installed normally through RuneLite's Plugin Hub.
 
 ## Privacy
 
