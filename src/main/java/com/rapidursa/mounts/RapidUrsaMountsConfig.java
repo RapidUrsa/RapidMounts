@@ -121,6 +121,17 @@ public interface RapidUrsaMountsConfig extends Config
         return true;
     }
 
+    @ConfigItem(
+        keyName = "ridingPose",
+        name = "Riding pose",
+        description = "Choose the standard saddle pose or the wider straddled riding pose",
+        section = RIDER
+    )
+    default RidingPose ridingPose()
+    {
+        return RidingPose.STANDARD;
+    }
+
     @Range(min = 0, max = 200)
     @ConfigItem(
         keyName = "riderHeight",
@@ -190,7 +201,7 @@ public interface RapidUrsaMountsConfig extends Config
     )
     default int terrorbirdRiderHeight()
     {
-        return 39;
+        return 43;
     }
 
     @Range(min = -96, max = 96)
@@ -202,7 +213,7 @@ public interface RapidUrsaMountsConfig extends Config
     )
     default int terrorbirdRiderForward()
     {
-        return 2;
+        return -2;
     }
 
     @Range(min = -96, max = 96)

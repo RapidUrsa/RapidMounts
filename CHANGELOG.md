@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.0
+
+- Added selectable Standard and Wide riding poses.
+- Added a purpose-built frozen wide riding stance using animation 7536, frame 32.
+- Added independently tuned Wide positioning and motion for the black unicorn,
+  terrorbird, and lava dragon.
+- Kept existing tuning controls and behaviour unchanged in Standard mode.
+- Refined the default Standard Terrorbird seat position.
+
 ## 1.3.0
 
 - Added black unicorn, terrorbird, and lava dragon mounts.

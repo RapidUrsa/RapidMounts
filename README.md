@@ -15,6 +15,7 @@ clicks, combat, or any other gameplay.
 
 - Animated idle and walking cycles for all three mounts.
 - A reconstructed rider that keeps the local player's equipment and appearance.
+- Selectable Standard and Wide riding poses, tuned independently for every mount.
 - Weapons and shields are hidden from the cosmetic rider by default for a cleaner seated pose.
 - Individually tuned scale, seat position, idle bounce, and walking motion.
 - A movable mount/dismount button with a mount-specific icon.
@@ -31,9 +32,14 @@ clicks, combat, or any other gameplay.
 2. Left-click the on-screen button to mount or dismount.
 3. Hold **Alt** and drag the button to reposition it.
 4. Optionally assign a **Mount/dismount hotkey**.
+5. Choose **Standard** or **Wide** under **Rider → Riding pose**.
 
 The tested positions are supplied as defaults. Advanced rider and mount-specific
 tuning is available in collapsed settings sections.
+
+The Standard pose continues to use the advanced position controls. The Wide
+pose uses separately tuned positions and motion for each mount so changing pose
+does not overwrite the Standard setup.
 
 **Hide held equipment** affects only the cosmetic rider. The real player,
 weapon, and shield return normally whenever the mount is hidden or paused.
@@ -72,8 +78,8 @@ no network functionality and writes no files at runtime.
 ### Terrorbird
 
 - Scale: 100%
-- Rider height: 39
-- Rider forward/back: 2
+- Rider height: 43
+- Rider forward/back: -2
 - Rider sideways: 0
 - Idle animation: 6793
 - Walk animation: 6796

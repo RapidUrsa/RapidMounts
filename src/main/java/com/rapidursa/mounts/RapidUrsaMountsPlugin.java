@@ -49,6 +49,8 @@ public class RapidUrsaMountsPlugin extends Plugin
     private static final int TERRORBIRD_NPC_ID = 2064;
     private static final int LAVA_DRAGON_NPC_ID = 6593;
     private static final int RIDER_ANIMATION_ID = 4107;
+    private static final int WIDE_RIDER_ANIMATION_ID = 7536;
+    private static final int WIDE_RIDER_FRAME = 32;
     private static final int TERRORBIRD_IDLE_ANIMATION_ID = 6793;
     private static final int TERRORBIRD_WALK_ANIMATION_ID = 6796;
     private static final int LAVA_DRAGON_IDLE_ANIMATION_ID = 90;
@@ -101,6 +103,7 @@ public class RapidUrsaMountsPlugin extends Plugin
     private MountType builtMountType;
     private int activeUnicornAnimation = -1;
     private int activeRiderAnimation = -1;
+    private int activeRiderFrame = -1;
     private Outfit builtRiderOutfit;
     private Model builtRiderModel;
     private boolean mountedRenderReady;
@@ -194,10 +197,12 @@ public class RapidUrsaMountsPlugin extends Plugin
             unicorn.setAnimationController(null);
             activeUnicornAnimation = -1;
         }
-        else if ("useRidingPose".equals(event.getKey()) && rider != null)
+        else if (("useRidingPose".equals(event.getKey())
+            || "ridingPose".equals(event.getKey())) && rider != null)
         {
             rider.setAnimationController(null);
             activeRiderAnimation = -1;
+            activeRiderFrame = -1;
         }
         else if ("pauseForActions".equals(event.getKey()) && !config.pauseForActions())
         {
@@ -320,17 +325,28 @@ public class RapidUrsaMountsPlugin extends Plugin
 
                 if (config.useRidingPose())
                 {
-                    int wantedRiderAnimation = RIDER_ANIMATION_ID;
-                    if (wantedRiderAnimation != activeRiderAnimation)
+                    int wantedRiderAnimation = config.ridingPose() == RidingPose.WIDE
+                        ? WIDE_RIDER_ANIMATION_ID
+                        : RIDER_ANIMATION_ID;
+                    int wantedRiderFrame = config.ridingPose() == RidingPose.WIDE
+                        ? WIDE_RIDER_FRAME
+                        : -1;
+                    if (wantedRiderAnimation != activeRiderAnimation
+                        || wantedRiderFrame != activeRiderFrame)
                     {
-                        rider.setAnimationController(loopingAnimation(wantedRiderAnimation));
+                        AnimationController controller = config.ridingPose() == RidingPose.WIDE
+                            ? frozenAnimation(wantedRiderAnimation, wantedRiderFrame)
+                            : loopingAnimation(wantedRiderAnimation);
+                        rider.setAnimationController(controller);
                         activeRiderAnimation = wantedRiderAnimation;
+                        activeRiderFrame = wantedRiderFrame;
                     }
                 }
                 else if (activeRiderAnimation != -1)
                 {
                     rider.setAnimationController(null);
                     activeRiderAnimation = -1;
+                    activeRiderFrame = -1;
                 }
                 riderReady = true;
             }
@@ -380,6 +396,7 @@ public class RapidUrsaMountsPlugin extends Plugin
             }
             rider.setAnimationController(null);
             activeRiderAnimation = -1;
+            activeRiderFrame = -1;
         }
         return builtRiderModel;
     }
@@ -520,11 +537,39 @@ public class RapidUrsaMountsPlugin extends Plugin
         return controller;
     }
 
+    private AnimationController frozenAnimation(int animationId, int requestedFrame)
+    {
+        Animation animation = client.loadAnimation(animationId);
+        if (animation == null)
+        {
+            return null;
+        }
+
+        int frameCount = animation.isMayaAnim()
+            ? animation.getDuration()
+            : animation.getNumFrames();
+        if (frameCount <= 0)
+        {
+            return null;
+        }
+
+        int frame = Math.max(0, Math.min(requestedFrame, frameCount - 1));
+        return new FrozenAnimationController(client, animation, frame);
+    }
+
     private int currentStrideFollow()
     {
-        int amount = config.mountType() == MountType.TERRORBIRD
-            ? config.terrorbirdStrideFollow()
-            : config.lavaDragonStrideFollow();
+        int amount;
+        if (isWidePose())
+        {
+            amount = config.mountType() == MountType.TERRORBIRD ? -6 : -3;
+        }
+        else
+        {
+            amount = config.mountType() == MountType.TERRORBIRD
+                ? config.terrorbirdStrideFollow()
+                : config.lavaDragonStrideFollow();
+        }
         AnimationController controller = unicorn == null ? null : unicorn.getAnimationController();
         Animation animation = controller == null ? null : controller.getAnimation();
         if (amount == 0 || animation == null || animation.getNumFrames() < 2)
@@ -540,18 +585,34 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentSeatBounce()
     {
-        int amount = config.mountType() == MountType.TERRORBIRD
-            ? config.terrorbirdSeatBounce()
-            : config.lavaDragonSeatBounce();
+        int amount;
+        if (isWidePose())
+        {
+            amount = config.mountType() == MountType.TERRORBIRD ? 0 : 4;
+        }
+        else
+        {
+            amount = config.mountType() == MountType.TERRORBIRD
+                ? config.terrorbirdSeatBounce()
+                : config.lavaDragonSeatBounce();
+        }
         double phase = currentStridePhase();
         return phase < 0 ? 0 : (int) Math.round(amount * (0.5 - 0.5 * Math.cos(phase)));
     }
 
     private int currentSeatSway()
     {
-        int amount = config.mountType() == MountType.TERRORBIRD
-            ? config.terrorbirdSeatSway()
-            : config.lavaDragonSeatSway();
+        int amount;
+        if (isWidePose())
+        {
+            amount = config.mountType() == MountType.TERRORBIRD ? 3 : -4;
+        }
+        else
+        {
+            amount = config.mountType() == MountType.TERRORBIRD
+                ? config.terrorbirdSeatSway()
+                : config.lavaDragonSeatSway();
+        }
         double phase = currentStridePhase();
         return phase < 0 ? 0 : (int) Math.round(amount * Math.sin(phase));
     }
@@ -591,6 +652,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentMountScale()
     {
+        if (isWidePose())
+        {
+            return config.mountType() == MountType.BLACK_UNICORN ? 109 : 100;
+        }
         if (config.mountType() == MountType.TERRORBIRD)
         {
             return config.terrorbirdScale();
@@ -604,6 +669,18 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderHeight()
     {
+        if (isWidePose())
+        {
+            if (config.mountType() == MountType.TERRORBIRD)
+            {
+                return 43;
+            }
+            if (config.mountType() == MountType.LAVA_DRAGON)
+            {
+                return 48;
+            }
+            return 45;
+        }
         if (config.mountType() == MountType.TERRORBIRD)
         {
             return config.terrorbirdRiderHeight();
@@ -617,6 +694,18 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderForward()
     {
+        if (isWidePose())
+        {
+            if (config.mountType() == MountType.TERRORBIRD)
+            {
+                return 11;
+            }
+            if (config.mountType() == MountType.LAVA_DRAGON)
+            {
+                return -81;
+            }
+            return 10;
+        }
         if (config.mountType() == MountType.TERRORBIRD)
         {
             return config.terrorbirdRiderForward();
@@ -630,6 +719,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderSideways()
     {
+        if (isWidePose())
+        {
+            return config.mountType() == MountType.LAVA_DRAGON ? 6 : 0;
+        }
         if (config.mountType() == MountType.TERRORBIRD)
         {
             return config.terrorbirdRiderSideways();
@@ -643,6 +736,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentWalkHeightAdjustment()
     {
+        if (isWidePose())
+        {
+            return config.mountType() == MountType.LAVA_DRAGON ? -10 : 0;
+        }
         return config.mountType() == MountType.TERRORBIRD
             ? config.terrorbirdWalkHeightAdjustment()
             : config.lavaDragonWalkHeightAdjustment();
@@ -650,9 +747,18 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentWalkForwardAdjustment()
     {
+        if (isWidePose())
+        {
+            return config.mountType() == MountType.TERRORBIRD ? 25 : -12;
+        }
         return config.mountType() == MountType.TERRORBIRD
             ? config.terrorbirdWalkForwardAdjustment()
             : config.lavaDragonWalkForwardAdjustment();
+    }
+
+    private boolean isWidePose()
+    {
+        return config.useRidingPose() && config.ridingPose() == RidingPose.WIDE;
     }
 
     private void playMountEffect()
@@ -801,6 +907,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         builtMountType = null;
         activeUnicornAnimation = -1;
         activeRiderAnimation = -1;
+        activeRiderFrame = -1;
         actionResumeTicks = 0;
         mountedRenderReady = false;
     }
