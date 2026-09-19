@@ -38,6 +38,7 @@ final class MountStablePanel extends PluginPanel
     private final ClientThread clientThread;
     private final Map<MountType, JButton> mountButtons = new EnumMap<>(MountType.class);
     private final JComboBox<RidingPose> poseSelector = new JComboBox<>(RidingPose.values());
+    private final JButton saddleButton = new JButton();
     private final JButton mountedButton = new JButton();
     private final BufferedImage sidebarIcon;
     private RapidUrsaMountsPlugin plugin;
@@ -112,6 +113,29 @@ final class MountStablePanel extends PluginPanel
             }
         });
         content.add(poseSelector);
+        content.add(Box.createRigidArea(new Dimension(0, 8)));
+
+        saddleButton.setFont(FontManager.getRunescapeBoldFont());
+        saddleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+        saddleButton.setAlignmentX(LEFT_ALIGNMENT);
+        saddleButton.setFocusPainted(false);
+        saddleButton.addActionListener(event ->
+        {
+            MountType selected = config.mountType();
+            if (selected == MountType.BLACK_UNICORN)
+            {
+                clientThread.invokeLater(() -> configManager.setConfiguration(
+                    RapidUrsaMountsConfig.GROUP, "showSaddleAndReins",
+                    !config.showSaddleAndReins()));
+            }
+            else if (selected == MountType.GRYPHON)
+            {
+                clientThread.invokeLater(() -> configManager.setConfiguration(
+                    RapidUrsaMountsConfig.GROUP, "showGryphonSaddle",
+                    !config.showGryphonSaddle()));
+            }
+        });
+        content.add(saddleButton);
         content.add(Box.createRigidArea(new Dimension(0, 14)));
 
         mountedButton.setFont(FontManager.getRunescapeBoldFont());
@@ -182,6 +206,19 @@ final class MountStablePanel extends PluginPanel
                 BorderFactory.createEmptyBorder(active ? 5 : 6, 8, active ? 5 : 6, 8)));
         }
         poseSelector.setSelectedItem(config.ridingPose());
+        boolean supportsSaddle = selected == MountType.BLACK_UNICORN
+            || selected == MountType.GRYPHON;
+        boolean saddleEnabled = selected == MountType.BLACK_UNICORN
+            ? config.showSaddleAndReins()
+            : selected == MountType.GRYPHON && config.showGryphonSaddle();
+        saddleButton.setEnabled(supportsSaddle);
+        saddleButton.setText(supportsSaddle
+            ? "Saddle & reins: " + (saddleEnabled ? "On" : "Off")
+            : "Saddle & reins: Unavailable");
+        saddleButton.setBackground(saddleEnabled
+            ? new Color(104, 73, 42)
+            : ColorScheme.DARKER_GRAY_COLOR);
+        saddleButton.setForeground(supportsSaddle ? Color.WHITE : Color.GRAY);
         boolean mounted = plugin != null && plugin.isMounted();
         mountedButton.setText(mounted ? "Dismount" : "Mount");
         mountedButton.setBackground(mounted ? new Color(104, 73, 42) : new Color(48, 93, 58));

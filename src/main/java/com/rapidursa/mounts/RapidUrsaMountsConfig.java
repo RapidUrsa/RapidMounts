@@ -17,6 +17,9 @@ public interface RapidUrsaMountsConfig extends Config
     String TERRORBIRD = "terrorbird";
     String LAVA_DRAGON = "lavaDragon";
     String GRYPHON = "gryphon";
+    // Keep the existing constant as an alias so saved saddle keys retain
+    // their identity while the controls live inside Black unicorn settings.
+    String SADDLE = UNICORN;
 
     @ConfigSection(name = "General", description = "Mount controls and behaviour", position = 0)
     String generalSection = GENERAL;
@@ -35,6 +38,326 @@ public interface RapidUrsaMountsConfig extends Config
 
     @ConfigSection(name = "Gryphon", description = "Normal gryphon appearance and motion tuning", position = 5, closedByDefault = true)
     String gryphonSection = GRYPHON;
+
+    @ConfigItem(
+        keyName = "showSaddleAndReins",
+        name = "Show saddle and reins",
+        description = "Show the fitted saddle and animated reins when riding the Black unicorn in Wide pose",
+        section = SADDLE
+    )
+    default boolean showSaddleAndReins()
+    {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "showSaddlePrototype",
+        name = "Show saddle prototype",
+        description = "Show the experimental saddle part on the Black unicorn",
+        section = SADDLE,
+        hidden = true
+    )
+    default boolean showSaddlePrototype()
+    {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "useCustomSaddle",
+        name = "Use custom saddle",
+        description = "Use the purpose-built low-poly saddle instead of a donor NPC model",
+        section = SADDLE,
+        hidden = true
+    )
+    default boolean useCustomSaddle()
+    {
+        return true;
+    }
+
+    @ConfigItem(
+        keyName = "saddleSource",
+        name = "Saddle source",
+        description = "Choose the mounted NPC whose model parts will be inspected",
+        section = SADDLE,
+        hidden = true
+    )
+    default SaddleSource saddleSource()
+    {
+        return SaddleSource.CART_CAMEL;
+    }
+
+    @Range(min = 0, max = 30000)
+    @ConfigItem(
+        keyName = "bankBuffaloNpcId",
+        name = "Bank buffalo NPC ID",
+        description = "Enter the Bank Buffalo ID shown by RuneLite Developer Tools",
+        section = SADDLE,
+        hidden = true
+    )
+    default int bankBuffaloNpcId()
+    {
+        return 13128;
+    }
+
+    @Range(min = 0, max = 30000)
+    @ConfigItem(
+        keyName = "cartCamelNpcId",
+        name = "Cart camel NPC ID",
+        description = "Enter the Cart camel ID shown by RuneLite Developer Tools",
+        section = SADDLE,
+        hidden = true
+    )
+    default int cartCamelNpcId()
+    {
+        return 18960;
+    }
+
+    @Range(min = -1, max = 20)
+    @ConfigItem(
+        keyName = "saddleSourcePart",
+        name = "Source model part",
+        description = "Use -1 for the whole source model, then cycle individual parts from 0 upward",
+        section = SADDLE,
+        hidden = true
+    )
+    default int saddleSourcePart()
+    {
+        return -1;
+    }
+
+    @Range(min = 20, max = 200)
+    @ConfigItem(
+        keyName = "saddleScale",
+        name = "Saddle scale (%)",
+        description = "Resize the saddle prototype",
+        section = SADDLE,
+        hidden = true
+    )
+    default int saddleScale()
+    {
+        return 64;
+    }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(
+        keyName = "saddleForward",
+        name = "Saddle forward/back",
+        description = "Move the saddle along the direction the unicorn faces",
+        section = SADDLE,
+        hidden = true
+    )
+    default int saddleForward()
+    {
+        return 7;
+    }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(
+        keyName = "saddleSideways",
+        name = "Saddle sideways",
+        description = "Move the saddle sideways across the unicorn",
+        section = SADDLE,
+        hidden = true
+    )
+    default int saddleSideways()
+    {
+        return 0;
+    }
+
+    @Range(min = -100, max = 200)
+    @ConfigItem(
+        keyName = "saddleHeight",
+        name = "Saddle height",
+        description = "Raise or lower the saddle prototype",
+        section = SADDLE,
+        hidden = true
+    )
+    default int saddleHeight()
+    {
+        return 132;
+    }
+
+    @Range(min = 60, max = 400)
+    @ConfigItem(
+        keyName = "reinLength",
+        name = "Reins length",
+        description = "Extend or shorten the reins towards the unicorn's head",
+        section = SADDLE,
+        hidden = true
+    )
+    default int reinLength()
+    {
+        return 205;
+    }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(
+        keyName = "reinEndHeight",
+        name = "Reins end height",
+        description = "Raise or lower the head end of the reins",
+        section = SADDLE,
+        hidden = true
+    )
+    default int reinEndHeight()
+    {
+        return 30;
+    }
+
+    @Range(min = -20, max = 40)
+    @ConfigItem(
+        keyName = "reinSpread",
+        name = "Reins spread",
+        description = "Move the pair of reins closer together or farther apart",
+        section = SADDLE,
+        hidden = true
+    )
+    default int reinSpread()
+    {
+        return 15;
+    }
+
+    @Range(min = 0, max = 20)
+    @ConfigItem(
+        keyName = "reinHeadBob",
+        name = "Reins head bob",
+        description = "How far the mouth end follows the unicorn's vertical head movement",
+        section = SADDLE,
+        hidden = true
+    )
+    default int reinHeadBob()
+    {
+        return 6;
+    }
+
+    @Range(min = -20, max = 20)
+    @ConfigItem(
+        keyName = "reinHeadSway",
+        name = "Reins head forward/back",
+        description = "How far the mouth end follows the unicorn's forward and backward head movement",
+        section = SADDLE,
+        hidden = true
+    )
+    default int reinHeadSway()
+    {
+        return 6;
+    }
+
+    @Range(min = 10, max = 100)
+    @ConfigItem(
+        keyName = "reinMotionSizePercent",
+        name = "Reins motion size (%)",
+        description = "Shrink or enlarge the oval followed by the mouth end of the reins",
+        section = SADDLE,
+        hidden = true
+    )
+    default int reinMotionSizePercent()
+    {
+        return 39;
+    }
+
+    @Range(min = 25, max = 400)
+    @ConfigItem(
+        keyName = "reinBobSpeedPercent",
+        name = "Reins bob speed (%)",
+        description = "Fine-tune the rein movement speed to match the unicorn's head bob",
+        section = SADDLE,
+        hidden = true
+    )
+    default int reinBobSpeedPercent()
+    {
+        return 200;
+    }
+
+    @Range(min = -31, max = 31)
+    @ConfigItem(
+        keyName = "reinBobTiming",
+        name = "Reins bob timing",
+        description = "Fine-tune the rein cycle so its high and low points match the head; negative values delay it",
+        section = SADDLE,
+        hidden = true
+    )
+    default int reinBobTiming()
+    {
+        return 18;
+    }
+
+    @Range(min = -80, max = 80)
+    @ConfigItem(
+        keyName = "leftReinHandForward",
+        name = "Left rein hand forward/back",
+        description = "Move the rider end of the left rein forward or backward",
+        section = SADDLE,
+        hidden = true
+    )
+    default int leftReinHandForward()
+    {
+        return 41;
+    }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(
+        keyName = "leftReinHandHeight",
+        name = "Left rein hand height",
+        description = "Raise or lower the rider end of the left rein",
+        section = SADDLE,
+        hidden = true
+    )
+    default int leftReinHandHeight()
+    {
+        return 82;
+    }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(
+        keyName = "leftReinHandSideways",
+        name = "Left rein hand sideways",
+        description = "Move the rider end of the left rein sideways into the hand",
+        section = SADDLE,
+        hidden = true
+    )
+    default int leftReinHandSideways()
+    {
+        return 7;
+    }
+
+    @Range(min = -80, max = 80)
+    @ConfigItem(
+        keyName = "rightReinHandForward",
+        name = "Right rein hand forward/back",
+        description = "Move the rider end of the right rein forward or backward",
+        section = SADDLE,
+        hidden = true
+    )
+    default int rightReinHandForward()
+    {
+        return 45;
+    }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(
+        keyName = "rightReinHandHeight",
+        name = "Right rein hand height",
+        description = "Raise or lower the rider end of the right rein",
+        section = SADDLE,
+        hidden = true
+    )
+    default int rightReinHandHeight()
+    {
+        return 44;
+    }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(
+        keyName = "rightReinHandSideways",
+        name = "Right rein hand sideways",
+        description = "Move the rider end of the right rein sideways into the hand",
+        section = SADDLE,
+        hidden = true
+    )
+    default int rightReinHandSideways()
+    {
+        return 0;
+    }
 
     @ConfigItem(
         keyName = "mountType",
@@ -101,6 +424,41 @@ public interface RapidUrsaMountsConfig extends Config
     default boolean hideHeldEquipment()
     {
         return true;
+    }
+
+    @ConfigItem(
+        keyName = "hideCape",
+        name = "Hide cape while mounted",
+        description = "Remove the cape from the cosmetic rider when it clips badly; the real player's cape is unchanged",
+        section = RIDER
+    )
+    default boolean hideCape()
+    {
+        return false;
+    }
+
+    @Range(min = -40, max = 40)
+    @ConfigItem(
+        keyName = "capeBackwardOffset",
+        name = "Cape backward offset",
+        description = "Move the mounted rider's cape backward or forward to reduce clipping",
+        section = RIDER
+    )
+    default int capeBackwardOffset()
+    {
+        return 0;
+    }
+
+    @Range(min = -40, max = 40)
+    @ConfigItem(
+        keyName = "capeHeightOffset",
+        name = "Cape height offset",
+        description = "Raise or lower the mounted rider's cape",
+        section = RIDER
+    )
+    default int capeHeightOffset()
+    {
+        return 0;
     }
 
     @ConfigItem(
@@ -433,7 +791,148 @@ public interface RapidUrsaMountsConfig extends Config
     )
     default int gryphonScale()
     {
-        return 100;
+        return 98;
+    }
+
+    @ConfigItem(
+        keyName = "showGryphonSaddle",
+        name = "Show gryphon saddle",
+        description = "Show the ivory-and-gold Skybound saddle on the gryphon",
+        section = GRYPHON
+    )
+    default boolean showGryphonSaddle()
+    {
+        return true;
+    }
+
+    @Range(min = 40, max = 180)
+    @ConfigItem(
+        keyName = "gryphonSaddleScale",
+        name = "Gryphon saddle scale (%)",
+        description = "Resize the gryphon saddle while fitting it",
+        section = GRYPHON,
+        hidden = true
+    )
+    default int gryphonSaddleScale()
+    {
+        return 64;
+    }
+
+    @Range(min = -120, max = 120)
+    @ConfigItem(
+        keyName = "gryphonSaddleForward",
+        name = "Gryphon saddle forward/back",
+        description = "Move the gryphon saddle along the direction the gryphon faces",
+        section = GRYPHON,
+        hidden = true
+    )
+    default int gryphonSaddleForward()
+    {
+        return 22;
+    }
+
+    @Range(min = -120, max = 180)
+    @ConfigItem(
+        keyName = "gryphonSaddleHeight",
+        name = "Gryphon saddle height",
+        description = "Raise or lower the gryphon saddle",
+        section = GRYPHON,
+        hidden = true
+    )
+    default int gryphonSaddleHeight()
+    {
+        return 123;
+    }
+
+    @Range(min = -80, max = 80)
+    @ConfigItem(
+        keyName = "gryphonSaddleSideways",
+        name = "Gryphon saddle sideways",
+        description = "Move the gryphon saddle sideways",
+        section = GRYPHON,
+        hidden = true
+    )
+    default int gryphonSaddleSideways()
+    {
+        return 0;
+    }
+
+    @Range(min = -100, max = 140)
+    @ConfigItem(
+        keyName = "gryphonLeftReinHandForward",
+        name = "Left rein hand forward/back",
+        description = "Move the rider end of the left gryphon rein forward or backward",
+        section = GRYPHON,
+        hidden = true
+    )
+    default int gryphonLeftReinHandForward()
+    {
+        return 56;
+    }
+
+    @Range(min = -80, max = 160)
+    @ConfigItem(
+        keyName = "gryphonLeftReinHandHeight",
+        name = "Left rein hand height",
+        description = "Raise or lower the rider end of the left gryphon rein",
+        section = GRYPHON,
+        hidden = true
+    )
+    default int gryphonLeftReinHandHeight()
+    {
+        return 42;
+    }
+
+    @Range(min = -80, max = 80)
+    @ConfigItem(
+        keyName = "gryphonLeftReinHandSideways",
+        name = "Left rein hand sideways",
+        description = "Move the rider end of the left gryphon rein sideways into the hand",
+        section = GRYPHON,
+        hidden = true
+    )
+    default int gryphonLeftReinHandSideways()
+    {
+        return -15;
+    }
+
+    @Range(min = -100, max = 140)
+    @ConfigItem(
+        keyName = "gryphonRightReinHandForward",
+        name = "Right rein hand forward/back",
+        description = "Move the rider end of the right gryphon rein forward or backward",
+        section = GRYPHON,
+        hidden = true
+    )
+    default int gryphonRightReinHandForward()
+    {
+        return 50;
+    }
+
+    @Range(min = -80, max = 160)
+    @ConfigItem(
+        keyName = "gryphonRightReinHandHeight",
+        name = "Right rein hand height",
+        description = "Raise or lower the rider end of the right gryphon rein",
+        section = GRYPHON,
+        hidden = true
+    )
+    default int gryphonRightReinHandHeight()
+    {
+        return 36;
+    }
+
+    @Range(min = -80, max = 80)
+    @ConfigItem(
+        keyName = "gryphonRightReinHandSideways",
+        name = "Right rein hand sideways",
+        description = "Move the rider end of the right gryphon rein sideways into the hand",
+        section = GRYPHON,
+        hidden = true
+    )
+    default int gryphonRightReinHandSideways()
+    {
+        return 24;
     }
 
     @Range(min = 0, max = 300)
@@ -445,7 +944,7 @@ public interface RapidUrsaMountsConfig extends Config
     )
     default int gryphonRiderHeight()
     {
-        return 45;
+        return 44;
     }
 
     @Range(min = 0, max = 300)
@@ -457,7 +956,7 @@ public interface RapidUrsaMountsConfig extends Config
     )
     default int gryphonWideRiderHeight()
     {
-        return 39;
+        return 34;
     }
 
     @Range(min = -160, max = 160)
@@ -469,7 +968,7 @@ public interface RapidUrsaMountsConfig extends Config
     )
     default int gryphonRiderForward()
     {
-        return 5;
+        return 15;
     }
 
     @Range(min = -128, max = 128)

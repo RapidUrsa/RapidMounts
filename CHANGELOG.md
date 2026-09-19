@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.7.0
+
+- Added fitted, animation-synchronised saddles and reins for the Black unicorn
+  and normal gryphon.
+- Added a curved black-and-red unicorn saddle, deep-red reins and a steel-grey
+  mouth bit tuned to follow the unicorn's full idle and walking motion.
+- Added the ivory-and-gold Skybound gryphon saddle, layered wing guards and an
+  Armadyl shield mounted to its tall backrest.
+- Anchored the gryphon's curved reins and rounded gold mouth bit to animated
+  beak vertices so they follow the gryphon's head movement.
+- Locked the unicorn tack to the Wide pose and gryphon tack to the Standard pose
+  for their fitted rider positions.
+- Added a Saddle & reins toggle directly beneath the pose selector in the Mount
+  Stable, with matching options in each supported mount's settings section.
+- Added mounted cape visibility and position controls to reduce clipping without
+  changing the real player's equipment.
+- Linked each saddle, reins and rider to the mount-specific idle and walking
+  motion for a cohesive seated animation.
+
 ## 1.6.0
 
 - Added the normal gryphon as a fourth animated mount.

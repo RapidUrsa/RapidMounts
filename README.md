@@ -17,7 +17,10 @@ clicks, combat, or any other gameplay.
 - Animated idle and walking cycles for all four mounts.
 - A reconstructed rider that keeps the local player's equipment and appearance.
 - Selectable Standard and Wide riding poses, tuned independently for every mount.
+- Fitted, animated saddles and reins for the Black unicorn and Gryphon.
+- A sidebar toggle for showing or hiding supported saddle-and-reins sets.
 - Weapons and shields are hidden from the cosmetic rider by default for a cleaner seated pose.
+- Optional cape hiding and position adjustments to reduce clipping while mounted.
 - Individually tuned scale, seat position, idle bounce, and walking motion.
 - A movable mount/dismount button with a mount-specific icon.
 - A Mount Stable sidebar panel for selecting mounts, choosing the riding pose,
@@ -33,9 +36,11 @@ clicks, combat, or any other gameplay.
 
 1. Open the horseshoe button in the RuneLite sidebar.
 2. Select a mount and choose **Standard** or **Wide**.
-3. Use the panel or the on-screen button to mount or dismount.
-4. Hold **Alt** and drag the on-screen button to reposition it.
-5. Optionally assign a **Mount/dismount hotkey** in the plugin settings.
+3. For the Black unicorn or Gryphon, use **Saddle & reins** to show or hide the
+   fitted tack. The unicorn set uses Wide pose and the gryphon set uses Standard.
+4. Use the panel or the on-screen button to mount or dismount.
+5. Hold **Alt** and drag the on-screen button to reposition it.
+6. Optionally assign a **Mount/dismount hotkey** in the plugin settings.
 
 The tested positions are supplied as defaults. Advanced rider and mount-specific
 tuning is available in collapsed settings sections.
@@ -109,10 +114,10 @@ no network functionality and writes no files at runtime.
 
 ### Gryphon
 
-- Scale: 100%
-- Standard pose rider height: 45
-- Wide pose rider height: 39
-- Rider forward/back: 5
+- Scale: 98%
+- Standard pose rider height: 44
+- Wide pose rider height: 34
+- Rider forward/back: 15
 - Rider sideways: 0
 - Idle animation: 12547
 - Walk animation: 12549
@@ -121,6 +126,10 @@ no network functionality and writes no files at runtime.
 - Walk forward adjustment: 0
 - Seat sway: 5
 - Left/right sway: 4
+- Saddle scale: 64%
+- Saddle forward/back: 22
+- Saddle height: 123
+- Saddle sideways: 0
 
 ## Compatibility and safety
 

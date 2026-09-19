@@ -87,6 +87,8 @@ public class AppearanceComposer
 	private float adjustX;
 	private float adjustY;
 	private float adjustZ;
+	private float capeY;
+	private float capeZ;
 
 	public void setItemAdjustment(int itemId, float x, float y, float z)
 	{
@@ -101,6 +103,17 @@ public class AppearanceComposer
 		return adjustItemId < 0 ? "none"
 			: "item " + adjustItemId + " by x=" + adjustX
 				+ " y=" + adjustY + " z=" + adjustZ;
+	}
+
+	/**
+	 * Moves only the cosmetic rider's cape before the appearance parts are merged.
+	 * Model-space Y is inverted, so a positive UI height becomes a negative Y
+	 * translation. Z follows the player's forward/back axis.
+	 */
+	public void setCapeAdjustment(float height, float backward)
+	{
+		capeY = -height;
+		capeZ = backward;
 	}
 
 	@Inject
@@ -170,6 +183,16 @@ public class AppearanceComposer
 				{
 					ModelData nudged = parts.get(i).cloneVertices();
 					translate(nudged, adjustX, adjustY, adjustZ);
+					parts.set(i, nudged);
+				}
+			}
+
+			if (slot == KitType.CAPE && (capeY != 0 || capeZ != 0))
+			{
+				for (int i = before; i < parts.size(); i++)
+				{
+					ModelData nudged = parts.get(i).cloneVertices();
+					translate(nudged, 0, capeY, capeZ);
 					parts.set(i, nudged);
 				}
 			}
