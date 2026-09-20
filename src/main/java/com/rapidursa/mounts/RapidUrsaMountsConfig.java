@@ -17,6 +17,8 @@ public interface RapidUrsaMountsConfig extends Config
     String TERRORBIRD = "terrorbird";
     String LAVA_DRAGON = "lavaDragon";
     String GRYPHON = "gryphon";
+    String BATTLE_TURTLE = "battleTurtle";
+    String ARTIO = "artio";
     // Keep the existing constant as an alias so saved saddle keys retain
     // their identity while the controls live inside Black unicorn settings.
     String SADDLE = UNICORN;
@@ -39,10 +41,16 @@ public interface RapidUrsaMountsConfig extends Config
     @ConfigSection(name = "Gryphon", description = "Normal gryphon appearance and motion tuning", position = 5, closedByDefault = true)
     String gryphonSection = GRYPHON;
 
+    @ConfigSection(name = "Battle turtle", description = "Battle turtle model, animation, and rider fitting", position = 6, closedByDefault = true)
+    String battleTurtleSection = BATTLE_TURTLE;
+
+    @ConfigSection(name = "Battle Bear", description = "Battle Bear model, animation, motion, and rider fitting", position = 7, closedByDefault = true)
+    String artioSection = ARTIO;
+
     @ConfigItem(
         keyName = "showSaddleAndReins",
         name = "Show saddle and reins",
-        description = "Show the fitted saddle and animated reins when riding the Black unicorn in Wide pose",
+        description = "Show the fitted saddle and animated reins when riding the Black unicorn in Wide or Cross-legged pose",
         section = SADDLE
     )
     default boolean showSaddleAndReins()
@@ -52,8 +60,8 @@ public interface RapidUrsaMountsConfig extends Config
 
     @ConfigItem(
         keyName = "showSaddlePrototype",
-        name = "Show saddle prototype",
-        description = "Show the experimental saddle part on the Black unicorn",
+        name = "Show unicorn saddle",
+        description = "Show the fitted saddle on the Black unicorn",
         section = SADDLE,
         hidden = true
     )
@@ -129,7 +137,7 @@ public interface RapidUrsaMountsConfig extends Config
     @ConfigItem(
         keyName = "saddleScale",
         name = "Saddle scale (%)",
-        description = "Resize the saddle prototype",
+        description = "Resize the fitted unicorn saddle",
         section = SADDLE,
         hidden = true
     )
@@ -168,7 +176,7 @@ public interface RapidUrsaMountsConfig extends Config
     @ConfigItem(
         keyName = "saddleHeight",
         name = "Saddle height",
-        description = "Raise or lower the saddle prototype",
+        description = "Raise or lower the fitted unicorn saddle",
         section = SADDLE,
         hidden = true
     )
@@ -486,12 +494,116 @@ public interface RapidUrsaMountsConfig extends Config
     @ConfigItem(
         keyName = "ridingPose",
         name = "Riding pose",
-        description = "Choose the standard saddle pose or the wider straddled riding pose",
+        description = "Choose the Standard, Wide, Extra Wide, or Cross-legged riding pose",
         section = RIDER
     )
     default RidingPose ridingPose()
     {
         return RidingPose.STANDARD;
+    }
+
+    @Range(min = 0, max = 30000)
+    @ConfigItem(
+        keyName = "extraWideIdleAnimationId",
+        name = "Extra Wide idle animation ID",
+        description = "Player animation used by Extra Wide while stationary",
+        section = RIDER,
+        hidden = true
+    )
+    default int extraWideIdleAnimationId()
+    {
+        return 146;
+    }
+
+    @Range(min = 0, max = 30000)
+    @ConfigItem(
+        keyName = "extraWideWalkAnimationId",
+        name = "Extra Wide moving animation ID",
+        description = "Player animation used by Extra Wide while moving",
+        section = RIDER,
+        hidden = true
+    )
+    default int extraWideWalkAnimationId()
+    {
+        return 8653;
+    }
+
+    @Range(min = 0, max = 20000)
+    @ConfigItem(
+        keyName = "crossLeggedAnimationId",
+        name = "Cross-legged animation ID",
+        description = "Advanced override for the player animation used by the Cross-legged pose",
+        section = RIDER,
+        hidden = true
+    )
+    default int crossLeggedAnimationId()
+    {
+        return 10061;
+    }
+
+    @Range(min = 0, max = 300)
+    @ConfigItem(
+        keyName = "crossLeggedLoopStartFrame",
+        name = "Cross-legged loop start",
+        description = "First settled Sit-emote frame used by the Cross-legged loop",
+        section = RIDER,
+        hidden = true
+    )
+    default int crossLeggedLoopStartFrame()
+    {
+        return 9;
+    }
+
+    @Range(min = 1, max = 300)
+    @ConfigItem(
+        keyName = "crossLeggedLoopEndFrame",
+        name = "Cross-legged loop end",
+        description = "Last settled Sit-emote frame before returning to the loop start",
+        section = RIDER,
+        hidden = true
+    )
+    default int crossLeggedLoopEndFrame()
+    {
+        return 32;
+    }
+
+    @Range(min = 0, max = 200)
+    @ConfigItem(
+        keyName = "crossLeggedRiderHeight",
+        name = "Cross-legged rider height",
+        description = "Raise or lower the rider only when using the Cross-legged pose",
+        section = RIDER,
+        hidden = true
+    )
+    default int crossLeggedRiderHeight()
+    {
+        return 80;
+    }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(
+        keyName = "crossLeggedRiderForward",
+        name = "Cross-legged forward/back",
+        description = "Move the Cross-legged rider forward or backward on the mount",
+        section = RIDER,
+        hidden = true
+    )
+    default int crossLeggedRiderForward()
+    {
+        return 10;
+    }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(
+        keyName = "crossLeggedRiderSideways",
+        name = "Cross-legged sideways",
+        description = "Move the Cross-legged rider left or right on the mount",
+        section = RIDER,
+        hidden = true
+    )
+    default int crossLeggedRiderSideways()
+    {
+        return 0;
     }
 
     @Range(min = 0, max = 200)
@@ -529,6 +641,30 @@ public interface RapidUrsaMountsConfig extends Config
     {
         return 0;
     }
+
+    @Range(min = 0, max = 200)
+    @ConfigItem(keyName = "unicornCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the black unicorn", section = UNICORN)
+    default int unicornCrossLeggedRiderHeight() { return 132; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "unicornCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the black unicorn", section = UNICORN)
+    default int unicornCrossLeggedRiderForward() { return 9; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "unicornCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the black unicorn", section = UNICORN)
+    default int unicornCrossLeggedRiderSideways() { return 0; }
+
+    @Range(min = -100, max = 250)
+    @ConfigItem(keyName = "unicornExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the black unicorn", section = UNICORN)
+    default int unicornExtraWideRiderHeight() { return 132; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "unicornExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the black unicorn", section = UNICORN)
+    default int unicornExtraWideRiderForward() { return 9; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "unicornExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the black unicorn", section = UNICORN)
+    default int unicornExtraWideRiderSideways() { return 0; }
 
     @Range(min = 0, max = 12)
     @ConfigItem(
@@ -589,6 +725,30 @@ public interface RapidUrsaMountsConfig extends Config
     {
         return 0;
     }
+
+    @Range(min = 0, max = 200)
+    @ConfigItem(keyName = "terrorbirdCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the terrorbird", section = TERRORBIRD)
+    default int terrorbirdCrossLeggedRiderHeight() { return 115; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "terrorbirdCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the terrorbird", section = TERRORBIRD)
+    default int terrorbirdCrossLeggedRiderForward() { return 13; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "terrorbirdCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the terrorbird", section = TERRORBIRD)
+    default int terrorbirdCrossLeggedRiderSideways() { return 0; }
+
+    @Range(min = -100, max = 250)
+    @ConfigItem(keyName = "terrorbirdExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the terrorbird", section = TERRORBIRD)
+    default int terrorbirdExtraWideRiderHeight() { return 115; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "terrorbirdExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the terrorbird", section = TERRORBIRD)
+    default int terrorbirdExtraWideRiderForward() { return 13; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "terrorbirdExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the terrorbird", section = TERRORBIRD)
+    default int terrorbirdExtraWideRiderSideways() { return 0; }
 
     @Range(min = 0, max = 12)
     @ConfigItem(
@@ -710,6 +870,30 @@ public interface RapidUrsaMountsConfig extends Config
         return 6;
     }
 
+    @Range(min = 0, max = 200)
+    @ConfigItem(keyName = "lavaDragonCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the lava dragon", section = LAVA_DRAGON)
+    default int lavaDragonCrossLeggedRiderHeight() { return 139; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "lavaDragonCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the lava dragon", section = LAVA_DRAGON)
+    default int lavaDragonCrossLeggedRiderForward() { return 50; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "lavaDragonCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the lava dragon", section = LAVA_DRAGON)
+    default int lavaDragonCrossLeggedRiderSideways() { return 0; }
+
+    @Range(min = -100, max = 250)
+    @ConfigItem(keyName = "lavaDragonExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the lava dragon", section = LAVA_DRAGON)
+    default int lavaDragonExtraWideRiderHeight() { return 139; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "lavaDragonExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the lava dragon", section = LAVA_DRAGON)
+    default int lavaDragonExtraWideRiderForward() { return 50; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "lavaDragonExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the lava dragon", section = LAVA_DRAGON)
+    default int lavaDragonExtraWideRiderSideways() { return 0; }
+
     @Range(min = -100, max = 100)
     @ConfigItem(
         keyName = "lavaDragonWalkHeightAdjustment",
@@ -793,6 +977,30 @@ public interface RapidUrsaMountsConfig extends Config
     {
         return 98;
     }
+
+    @Range(min = 0, max = 200)
+    @ConfigItem(keyName = "gryphonCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the gryphon", section = GRYPHON)
+    default int gryphonCrossLeggedRiderHeight() { return 120; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "gryphonCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the gryphon", section = GRYPHON)
+    default int gryphonCrossLeggedRiderForward() { return 13; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "gryphonCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the gryphon", section = GRYPHON)
+    default int gryphonCrossLeggedRiderSideways() { return 0; }
+
+    @Range(min = -100, max = 250)
+    @ConfigItem(keyName = "gryphonExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the gryphon", section = GRYPHON)
+    default int gryphonExtraWideRiderHeight() { return 120; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "gryphonExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the gryphon", section = GRYPHON)
+    default int gryphonExtraWideRiderForward() { return 13; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "gryphonExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the gryphon", section = GRYPHON)
+    default int gryphonExtraWideRiderSideways() { return 0; }
 
     @ConfigItem(
         keyName = "showGryphonSaddle",
@@ -1042,6 +1250,522 @@ public interface RapidUrsaMountsConfig extends Config
     {
         return 4;
     }
+
+    @Range(min = 0, max = 30000)
+    @ConfigItem(
+        keyName = "battleTurtleNpcId",
+        name = "Battle turtle NPC ID",
+        description = "NPC definition used for the Battle turtle",
+        section = BATTLE_TURTLE,
+        hidden = true
+    )
+    default int battleTurtleNpcId()
+    {
+        return 6076;
+    }
+
+    @Range(min = 50, max = 180)
+    @ConfigItem(
+        keyName = "battleTurtleScale",
+        name = "Battle turtle scale (%)",
+        description = "Resize the Battle turtle model",
+        section = BATTLE_TURTLE
+    )
+    default int battleTurtleScale()
+    {
+        return 100;
+    }
+
+    @Range(min = -1, max = 30000)
+    @ConfigItem(
+        keyName = "battleTurtleIdleAnimation",
+        name = "Battle turtle idle animation",
+        description = "Idle animation ID; use -1 while identifying the model",
+        section = BATTLE_TURTLE,
+        hidden = true
+    )
+    default int battleTurtleIdleAnimation()
+    {
+        return 3952;
+    }
+
+    @Range(min = -1, max = 30000)
+    @ConfigItem(
+        keyName = "battleTurtleWalkAnimation",
+        name = "Battle turtle walk animation",
+        description = "Walking animation ID; use -1 while identifying the model",
+        section = BATTLE_TURTLE,
+        hidden = true
+    )
+    default int battleTurtleWalkAnimation()
+    {
+        return 3953;
+    }
+
+    @Range(min = 0, max = 15)
+    @ConfigItem(
+        keyName = "battleTurtleIdleBounce",
+        name = "Battle turtle idle bob",
+        description = "Move the rider and saddle together with the turtle's idle animation",
+        section = BATTLE_TURTLE
+    )
+    default int battleTurtleIdleBounce()
+    {
+        return 2;
+    }
+
+    @Range(min = -20, max = 20)
+    @ConfigItem(
+        keyName = "battleTurtleIdleBobTiming",
+        name = "Idle bob timing",
+        description = "Shift the idle bob along the animation; positive values move it earlier",
+        section = BATTLE_TURTLE
+    )
+    default int battleTurtleIdleBobTiming()
+    {
+        return 4;
+    }
+
+    @Range(min = 0, max = 20)
+    @ConfigItem(
+        keyName = "battleTurtleWalkBounce",
+        name = "Battle turtle walking bob",
+        description = "Move the rider and saddle together with the turtle's walking animation",
+        section = BATTLE_TURTLE
+    )
+    default int battleTurtleWalkBounce()
+    {
+        return 5;
+    }
+
+    @Range(min = -20, max = 20)
+    @ConfigItem(
+        keyName = "battleTurtleWalkBobTiming",
+        name = "Walking bob timing",
+        description = "Shift the walking bob along the animation; positive values move it earlier",
+        section = BATTLE_TURTLE
+    )
+    default int battleTurtleWalkBobTiming()
+    {
+        return 0;
+    }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(
+        keyName = "battleTurtleWalkForwardAdjustment",
+        name = "Walking rider forward/back",
+        description = "Move only the rider forward or backward while the Battle turtle is walking",
+        section = BATTLE_TURTLE
+    )
+    default int battleTurtleWalkForwardAdjustment()
+    {
+        return 0;
+    }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(
+        keyName = "battleTurtleWalkHeightAdjustment",
+        name = "Walking rider height",
+        description = "Raise or lower only the rider while the Battle turtle is walking",
+        section = BATTLE_TURTLE
+    )
+    default int battleTurtleWalkHeightAdjustment()
+    {
+        return 0;
+    }
+
+    @Range(min = 0, max = 200)
+    @ConfigItem(keyName = "battleTurtleCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the Battle turtle", section = BATTLE_TURTLE)
+    default int battleTurtleCrossLeggedRiderHeight() { return 176; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "battleTurtleCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the Battle turtle", section = BATTLE_TURTLE)
+    default int battleTurtleCrossLeggedRiderForward() { return 18; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "battleTurtleCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the Battle turtle", section = BATTLE_TURTLE)
+    default int battleTurtleCrossLeggedRiderSideways() { return 0; }
+
+    @Range(min = -100, max = 250)
+    @ConfigItem(keyName = "battleTurtleExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the Battle turtle", section = BATTLE_TURTLE)
+    default int battleTurtleExtraWideRiderHeight() { return 176; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "battleTurtleExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the Battle turtle", section = BATTLE_TURTLE)
+    default int battleTurtleExtraWideRiderForward() { return 18; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "battleTurtleExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the Battle turtle", section = BATTLE_TURTLE)
+    default int battleTurtleExtraWideRiderSideways() { return 0; }
+
+    @ConfigItem(
+        keyName = "showBattleTurtleSaddle",
+        name = "Show battle saddle",
+        description = "Show the armoured saddle and cannon on the Battle turtle",
+        section = BATTLE_TURTLE
+    )
+    default boolean showBattleTurtleSaddle()
+    {
+        return true;
+    }
+
+    @Range(min = 40, max = 180)
+    @ConfigItem(
+        keyName = "battleTurtleSaddleScale",
+        name = "Battle saddle scale (%)",
+        description = "Resize the Battle turtle saddle while fitting it",
+        section = BATTLE_TURTLE
+    )
+    default int battleTurtleSaddleScale()
+    {
+        return 100;
+    }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(
+        keyName = "battleTurtleSaddleForward",
+        name = "Battle saddle forward/back",
+        description = "Move the battle saddle along the turtle's shell",
+        section = BATTLE_TURTLE
+    )
+    default int battleTurtleSaddleForward()
+    {
+        return 25;
+    }
+
+    @Range(min = -150, max = 200)
+    @ConfigItem(
+        keyName = "battleTurtleSaddleHeight",
+        name = "Battle saddle height",
+        description = "Raise or lower the battle saddle",
+        section = BATTLE_TURTLE
+    )
+    default int battleTurtleSaddleHeight()
+    {
+        return 150;
+    }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(
+        keyName = "battleTurtleSaddleSideways",
+        name = "Battle saddle sideways",
+        description = "Move the battle saddle sideways across the shell",
+        section = BATTLE_TURTLE
+    )
+    default int battleTurtleSaddleSideways()
+    {
+        return 0;
+    }
+
+    @Range(min = 0, max = 30000)
+    @ConfigItem(keyName = "artioNpcId", name = "Battle Bear NPC ID", description = "NPC definition used for the Battle Bear", section = ARTIO, hidden = true)
+    default int artioNpcId() { return 11992; }
+
+    @Range(min = 50, max = 180)
+    @ConfigItem(keyName = "artioScale", name = "Battle Bear scale (%)", description = "Resize the Battle Bear model", section = ARTIO)
+    default int artioScale() { return 104; }
+
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "artioIdleAnimationV2", name = "Battle Bear idle animation", description = "Battle Bear idle animation ID", section = ARTIO, hidden = true)
+    default int artioIdleAnimation() { return 10011; }
+
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "artioWalkAnimationV2", name = "Battle Bear walk animation", description = "Battle Bear walking animation ID", section = ARTIO, hidden = true)
+    default int artioWalkAnimation() { return 10009; }
+
+    @Range(min = -100, max = 250)
+    @ConfigItem(keyName = "artioRiderHeight", name = "Rider height", description = "Raise or lower the rider on the Battle Bear", section = ARTIO)
+    default int artioRiderHeight() { return 118; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioRiderForward", name = "Rider forward/back", description = "Move the rider forward or backward on the Battle Bear", section = ARTIO)
+    default int artioRiderForward() { return 10; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioRiderSideways", name = "Rider sideways", description = "Move the rider sideways on the Battle Bear", section = ARTIO)
+    default int artioRiderSideways() { return -2; }
+
+    @Range(min = -100, max = 250)
+    @ConfigItem(keyName = "artioCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the Battle Bear", section = ARTIO)
+    default int artioCrossLeggedRiderHeight() { return 120; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the Battle Bear", section = ARTIO)
+    default int artioCrossLeggedRiderForward() { return 0; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the Battle Bear", section = ARTIO)
+    default int artioCrossLeggedRiderSideways() { return 0; }
+
+    @Range(min = -100, max = 250)
+    @ConfigItem(keyName = "artioExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the Battle Bear", section = ARTIO)
+    default int artioExtraWideRiderHeight() { return 169; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the Battle Bear", section = ARTIO)
+    default int artioExtraWideRiderForward() { return -14; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the Battle Bear", section = ARTIO)
+    default int artioExtraWideRiderSideways() { return -3; }
+
+    @Range(min = 25, max = 250)
+    @ConfigItem(keyName = "artioExtraWideSaddleWidth", name = "Extra Wide saddle width (%)", description = "Resize the ribbed Extra Wide saddle from side to side", section = ARTIO)
+    default int artioExtraWideSaddleWidth() { return 71; }
+
+    @Range(min = 25, max = 250)
+    @ConfigItem(keyName = "artioExtraWideSaddleLength", name = "Extra Wide saddle length (%)", description = "Resize the ribbed Extra Wide saddle forward and backward", section = ARTIO)
+    default int artioExtraWideSaddleLength() { return 101; }
+
+    @Range(min = 25, max = 250)
+    @ConfigItem(keyName = "artioExtraWideSaddleThickness", name = "Extra Wide saddle thickness (%)", description = "Resize the thickness of the ribbed Extra Wide saddle", section = ARTIO)
+    default int artioExtraWideSaddleThickness() { return 68; }
+
+    @Range(min = 4, max = 60)
+    @ConfigItem(keyName = "artioExtraWideSaddleBodyHeight", name = "Extra Wide saddle body height", description = "Make the ribbed Extra Wide saddle body taller or shorter without moving it", section = ARTIO)
+    default int artioExtraWideSaddleBodyHeight() { return 26; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioExtraWideSaddleForward", name = "Extra Wide saddle forward/back", description = "Move the ribbed Extra Wide saddle along the Battle Bear's back", section = ARTIO)
+    default int artioExtraWideSaddleForward() { return -5; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioExtraWideSaddleHeight", name = "Extra Wide saddle height", description = "Raise or lower the ribbed Extra Wide saddle", section = ARTIO)
+    default int artioExtraWideSaddleHeight() { return -1; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioExtraWideSaddleSideways", name = "Extra Wide saddle sideways", description = "Move the ribbed Extra Wide saddle across the Battle Bear", section = ARTIO)
+    default int artioExtraWideSaddleSideways() { return 0; }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(keyName = "artioExtraWideSpearBarForward", name = "Extra Wide spear bars forward/back", description = "Move the Battle Bear's spear bars forward or backward only when using the Extra Wide saddle", section = ARTIO)
+    default int artioExtraWideSpearBarForward() { return 2; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioExtraWideHandlebarForward", name = "Extra Wide handlebars forward/back", description = "Move the Extra Wide handlebars forward or backward", section = ARTIO)
+    default int artioExtraWideHandlebarForward() { return 20; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioExtraWideHandlebarHeight", name = "Extra Wide handlebars height", description = "Raise or lower the Extra Wide handlebars", section = ARTIO)
+    default int artioExtraWideHandlebarHeight() { return -10; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioExtraWideHandlebarSideways", name = "Extra Wide handlebars sideways", description = "Move both Extra Wide handlebars sideways", section = ARTIO)
+    default int artioExtraWideHandlebarSideways() { return 0; }
+
+    @Range(min = 25, max = 250)
+    @ConfigItem(keyName = "artioExtraWideHandlebarSpread", name = "Extra Wide handlebar spread (%)", description = "Move the left and right grips closer together or farther apart", section = ARTIO)
+    default int artioExtraWideHandlebarSpread() { return 94; }
+
+    @Range(min = 1, max = 10)
+    @ConfigItem(keyName = "artioExtraWideHandlebarThickness", name = "Extra Wide handlebar thickness", description = "Resize the thickness of both handlebars and grips", section = ARTIO)
+    default int artioExtraWideHandlebarThickness() { return 2; }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(keyName = "artioExtraWideHandlebarAngle", name = "Extra Wide handlebar angle", description = "Angle the outer grips upward or downward", section = ARTIO)
+    default int artioExtraWideHandlebarAngle() { return 11; }
+
+    @Range(min = 0, max = 20)
+    @ConfigItem(keyName = "artioIdleBounce", name = "Battle Bear idle bob", description = "Move the rider with the Battle Bear's idle animation", section = ARTIO)
+    default int artioIdleBounce() { return 2; }
+
+    @Range(min = -20, max = 20)
+    @ConfigItem(keyName = "artioIdleBobTiming", name = "Idle bob timing", description = "Shift the idle bob along the Battle Bear's animation", section = ARTIO)
+    default int artioIdleBobTiming() { return 0; }
+
+    @Range(min = 0, max = 20)
+    @ConfigItem(keyName = "artioWalkBounce", name = "Battle Bear walking bob", description = "Move the rider with the Battle Bear's walking animation", section = ARTIO)
+    default int artioWalkBounce() { return 4; }
+
+    @Range(min = -20, max = 20)
+    @ConfigItem(keyName = "artioWalkBobTiming", name = "Walking bob timing", description = "Shift the walking bob along the Battle Bear's animation", section = ARTIO)
+    default int artioWalkBobTiming() { return 0; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioWalkForwardAdjustment", name = "Walking rider forward/back", description = "Adjust the rider only while the Battle Bear is walking", section = ARTIO)
+    default int artioWalkForwardAdjustment() { return 0; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioWalkHeightAdjustment", name = "Walking rider height", description = "Raise or lower the rider only while the Battle Bear is walking", section = ARTIO)
+    default int artioWalkHeightAdjustment() { return 0; }
+
+    @ConfigItem(keyName = "showArtioArmour", name = "Show battle saddle", description = "Show the Battle Bear's curved hide saddle, V's Shield, and genuine Guthan's warspears", section = ARTIO)
+    default boolean showArtioArmour() { return true; }
+
+    @Range(min = 40, max = 180)
+    @ConfigItem(keyName = "artioArmourScale", name = "Saddle scale (%)", description = "Resize the Battle Bear's Fremennik saddle", section = ARTIO)
+    default int artioArmourScale() { return 128; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioArmourForward", name = "Saddle forward/back", description = "Move the saddle along the Battle Bear's back", section = ARTIO)
+    default int artioArmourForward() { return 5; }
+
+    @Range(min = -150, max = 250)
+    @ConfigItem(keyName = "artioArmourHeight", name = "Saddle height", description = "Raise or lower the Battle Bear's saddle", section = ARTIO)
+    default int artioArmourHeight() { return 154; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioArmourSideways", name = "Saddle sideways", description = "Move the saddle sideways across the Battle Bear", section = ARTIO)
+    default int artioArmourSideways() { return -1; }
+
+    @Range(min = 40, max = 150)
+    @ConfigItem(keyName = "artioShieldScale", name = "V's Shield size (%)", description = "Resize the real V's Shield on the backrest", section = ARTIO)
+    default int artioShieldScale() { return 82; }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(keyName = "artioShieldForward", name = "V's Shield forward/back", description = "Move V's Shield toward or away from the backrest", section = ARTIO)
+    default int artioShieldForward() { return -7; }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(keyName = "artioShieldHeight", name = "V's Shield height", description = "Raise or lower V's Shield", section = ARTIO)
+    default int artioShieldHeight() { return 7; }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(keyName = "artioShieldSideways", name = "V's Shield sideways", description = "Move V's Shield left or right across the backrest", section = ARTIO)
+    default int artioShieldSideways() { return 0; }
+
+    @Range(min = -90, max = 90)
+    @ConfigItem(keyName = "artioShieldTilt", name = "V's Shield tilt", description = "Lean the top of V's Shield forward or backward", section = ARTIO)
+    default int artioShieldTilt() { return 0; }
+
+    @Range(min = -180, max = 180)
+    @ConfigItem(keyName = "artioShieldTurn", name = "V's Shield turn", description = "Rotate V's Shield left or right around the backrest", section = ARTIO)
+    default int artioShieldTurn() { return -90; }
+
+    @Range(min = 40, max = 160)
+    @ConfigItem(keyName = "artioWarspearScale", name = "Guthan's warspear size (%)", description = "Resize both genuine Guthan's warspears", section = ARTIO)
+    default int artioWarspearScale() { return 134; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioWarspearForward", name = "Warspears forward/back", description = "Move both warspears along the saddle", section = ARTIO)
+    default int artioWarspearForward() { return -14; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioWarspearHeight", name = "Warspears height", description = "Raise or lower both warspears", section = ARTIO)
+    default int artioWarspearHeight() { return -21; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioLeftWarspearSideways", name = "Left warspear sideways", description = "Move the left warspear toward or away from the saddle", section = ARTIO)
+    default int artioLeftWarspearSideways() { return -55; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioRightWarspearSideways", name = "Right warspear sideways", description = "Move the right warspear toward or away from the saddle", section = ARTIO)
+    default int artioRightWarspearSideways() { return 54; }
+
+    @Range(min = -90, max = 90)
+    @ConfigItem(keyName = "artioWarspearTilt", name = "Warspears tilt", description = "Angle both warspears up or down", section = ARTIO)
+    default int artioWarspearTilt() { return 25; }
+
+    @Range(min = -180, max = 180)
+    @ConfigItem(keyName = "artioWarspearTurn", name = "Warspears turn", description = "Rotate both warspears across the saddle", section = ARTIO)
+    default int artioWarspearTurn() { return 0; }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(keyName = "artioSpearBarForward", name = "Spear bars forward/back", description = "Move both saddle-to-spear mounting bars forward or backward", section = ARTIO)
+    default int artioSpearBarForward() { return 13; }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(keyName = "artioSpearBarHeight", name = "Spear bars outer height", description = "Raise or lower only the outer ends to change the mounting-bar angle", section = ARTIO)
+    default int artioSpearBarHeight() { return -18; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioSpearBarVertical", name = "Spear holders up/down", description = "Move both complete spear holders up or down without changing their angle", section = ARTIO)
+    default int artioSpearBarVertical() { return -8; }
+
+    @Range(min = -20, max = 40)
+    @ConfigItem(keyName = "artioSpearBarSideways", name = "Spear bars sideways", description = "Extend both mounting bars toward or away from the warspears", section = ARTIO)
+    default int artioSpearBarSideways() { return 11; }
+
+    @Range(min = 1, max = 8)
+    @ConfigItem(keyName = "artioSpearBarThickness", name = "Spear bars thickness", description = "Adjust the thickness of both mounting bars", section = ARTIO)
+    default int artioSpearBarThickness() { return 5; }
+
+    @Range(min = 1, max = 30)
+    @ConfigItem(keyName = "artioSpearBarWidth", name = "Spear bars width", description = "Widen both mounting bars across the saddle-to-spear gap", section = ARTIO)
+    default int artioSpearBarWidth() { return 8; }
+
+    @Range(min = 25, max = 250)
+    @ConfigItem(keyName = "artioSeatFrameWidth", name = "Seat frame width (%)", description = "Resize the dark steel seat frame from side to side", section = ARTIO)
+    default int artioSeatFrameWidth() { return 103; }
+
+    @Range(min = 25, max = 250)
+    @ConfigItem(keyName = "artioSeatFrameLength", name = "Seat frame length (%)", description = "Resize the dark steel seat frame forward and backward", section = ARTIO)
+    default int artioSeatFrameLength() { return 105; }
+
+    @Range(min = 25, max = 250)
+    @ConfigItem(keyName = "artioSeatFrameThickness", name = "Seat frame thickness (%)", description = "Resize the vertical thickness of the dark steel seat frame", section = ARTIO)
+    default int artioSeatFrameThickness() { return 116; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioSeatFrameForward", name = "Seat frame forward/back", description = "Move the dark steel seat frame along the saddle", section = ARTIO)
+    default int artioSeatFrameForward() { return 0; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioSeatFrameHeight", name = "Seat frame height", description = "Raise or lower the dark steel seat frame", section = ARTIO)
+    default int artioSeatFrameHeight() { return -10; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioSeatFrameSideways", name = "Seat frame sideways", description = "Move the dark steel seat frame across the saddle", section = ARTIO)
+    default int artioSeatFrameSideways() { return 0; }
+
+    @Range(min = 25, max = 250)
+    @ConfigItem(keyName = "artioSeatCushionWidth", name = "Orange cushion width (%)", description = "Resize the raised orange cushion from side to side", section = ARTIO)
+    default int artioSeatCushionWidth() { return 146; }
+
+    @Range(min = 25, max = 250)
+    @ConfigItem(keyName = "artioSeatCushionLength", name = "Orange cushion length (%)", description = "Resize the raised orange cushion forward and backward", section = ARTIO)
+    default int artioSeatCushionLength() { return 175; }
+
+    @Range(min = 25, max = 250)
+    @ConfigItem(keyName = "artioSeatCushionThickness", name = "Orange cushion thickness (%)", description = "Resize the vertical thickness of the raised orange cushion", section = ARTIO)
+    default int artioSeatCushionThickness() { return 100; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioSeatCushionForward", name = "Orange cushion forward/back", description = "Move the raised orange cushion along the saddle", section = ARTIO)
+    default int artioSeatCushionForward() { return 0; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioSeatCushionHeight", name = "Orange cushion height", description = "Raise or lower the raised orange cushion", section = ARTIO)
+    default int artioSeatCushionHeight() { return -14; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioSeatCushionSideways", name = "Orange cushion sideways", description = "Move the raised orange cushion across the saddle", section = ARTIO)
+    default int artioSeatCushionSideways() { return 0; }
+
+    @Range(min = 25, max = 250)
+    @ConfigItem(keyName = "artioLowerSeatWidth", name = "Dark orange seat width (%)", description = "Resize the darker orange seat below the raised cushion from side to side", section = ARTIO)
+    default int artioLowerSeatWidth() { return 90; }
+
+    @Range(min = 25, max = 250)
+    @ConfigItem(keyName = "artioLowerSeatLength", name = "Dark orange seat length (%)", description = "Resize the darker orange seat forward and backward", section = ARTIO)
+    default int artioLowerSeatLength() { return 151; }
+
+    @Range(min = 25, max = 250)
+    @ConfigItem(keyName = "artioLowerSeatThickness", name = "Dark orange seat thickness (%)", description = "Resize the vertical thickness of the darker orange seat", section = ARTIO)
+    default int artioLowerSeatThickness() { return 100; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioLowerSeatForward", name = "Dark orange seat forward/back", description = "Move the darker orange seat along the saddle", section = ARTIO)
+    default int artioLowerSeatForward() { return 0; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioLowerSeatHeight", name = "Dark orange seat height", description = "Raise or lower the darker orange seat", section = ARTIO)
+    default int artioLowerSeatHeight() { return 5; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioLowerSeatSideways", name = "Dark orange seat sideways", description = "Move the darker orange seat across the saddle", section = ARTIO)
+    default int artioLowerSeatSideways() { return 0; }
+
+    @ConfigItem(keyName = "showArtioAnchorProbeV2", name = "Show anchor probe", description = "Temporarily label animated Battle Bear vertices used to fit the armour", section = ARTIO, hidden = true)
+    default boolean showArtioAnchorProbe() { return false; }
+
+    @Range(min = 0, max = 3000)
+    @ConfigItem(keyName = "artioAnchorProbeStart", name = "Anchor probe start", description = "First Battle Bear vertex index to label", section = ARTIO, hidden = true)
+    default int artioAnchorProbeStart() { return 180; }
+
+    @Range(min = 1, max = 25)
+    @ConfigItem(keyName = "artioAnchorProbeSpacingV2", name = "Anchor probe spacing", description = "Label every Nth vertex; use 1 when narrowing down a body part", section = ARTIO, hidden = true)
+    default int artioAnchorProbeSpacing() { return 1; }
 
     @Range(min = 24, max = 96)
     @ConfigItem(

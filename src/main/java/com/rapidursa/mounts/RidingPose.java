@@ -3,7 +3,9 @@ package com.rapidursa.mounts;
 public enum RidingPose
 {
     STANDARD("Standard"),
-    WIDE("Wide");
+    WIDE("Wide"),
+    EXTRA_WIDE("Extra Wide"),
+    CROSS_LEGGED("Cross-legged");
 
     private final String displayName;
 

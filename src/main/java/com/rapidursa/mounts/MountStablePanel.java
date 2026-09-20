@@ -59,6 +59,8 @@ final class MountStablePanel extends PluginPanel
         BufferedImage terrorbird = loadPreview("terrorbird-preview.png");
         BufferedImage lavaDragon = loadPreview("lava-dragon-preview.png");
         BufferedImage gryphon = loadPreview("gryphon-preview.png");
+        BufferedImage battleTurtle = loadPreview("battle-turtle-preview.png");
+        BufferedImage artio = loadPreview("artio-preview.png");
         sidebarIcon = createHorseshoeSidebarIcon();
 
         setLayout(new BorderLayout());
@@ -84,10 +86,12 @@ final class MountStablePanel extends PluginPanel
         JPanel cards = new JPanel(new GridLayout(0, 1, 0, 8));
         cards.setBackground(ColorScheme.DARK_GRAY_COLOR);
         cards.setAlignmentX(LEFT_ALIGNMENT);
-        cards.add(createMountButton(MountType.BLACK_UNICORN, unicorn));
         cards.add(createMountButton(MountType.TERRORBIRD, terrorbird));
-        cards.add(createMountButton(MountType.LAVA_DRAGON, lavaDragon));
+        cards.add(createMountButton(MountType.BLACK_UNICORN, unicorn));
         cards.add(createMountButton(MountType.GRYPHON, gryphon));
+        cards.add(createMountButton(MountType.ARTIO, artio));
+        cards.add(createMountButton(MountType.LAVA_DRAGON, lavaDragon));
+        cards.add(createMountButton(MountType.BATTLE_TURTLE, battleTurtle));
         content.add(cards);
         content.add(Box.createRigidArea(new Dimension(0, 14)));
 
@@ -133,6 +137,18 @@ final class MountStablePanel extends PluginPanel
                 clientThread.invokeLater(() -> configManager.setConfiguration(
                     RapidUrsaMountsConfig.GROUP, "showGryphonSaddle",
                     !config.showGryphonSaddle()));
+            }
+            else if (selected == MountType.BATTLE_TURTLE)
+            {
+                clientThread.invokeLater(() -> configManager.setConfiguration(
+                    RapidUrsaMountsConfig.GROUP, "showBattleTurtleSaddle",
+                    !config.showBattleTurtleSaddle()));
+            }
+            else if (selected == MountType.ARTIO)
+            {
+                clientThread.invokeLater(() -> configManager.setConfiguration(
+                    RapidUrsaMountsConfig.GROUP, "showArtioArmour",
+                    !config.showArtioArmour()));
             }
         });
         content.add(saddleButton);
@@ -207,13 +223,25 @@ final class MountStablePanel extends PluginPanel
         }
         poseSelector.setSelectedItem(config.ridingPose());
         boolean supportsSaddle = selected == MountType.BLACK_UNICORN
-            || selected == MountType.GRYPHON;
+            || selected == MountType.GRYPHON
+            || selected == MountType.BATTLE_TURTLE
+            || selected == MountType.ARTIO;
         boolean saddleEnabled = selected == MountType.BLACK_UNICORN
             ? config.showSaddleAndReins()
-            : selected == MountType.GRYPHON && config.showGryphonSaddle();
+            : selected == MountType.GRYPHON
+                ? config.showGryphonSaddle()
+                : selected == MountType.BATTLE_TURTLE
+                    ? config.showBattleTurtleSaddle()
+                    : selected == MountType.ARTIO
+                        && config.showArtioArmour();
         saddleButton.setEnabled(supportsSaddle);
+        String saddleLabel = selected == MountType.BATTLE_TURTLE
+            ? "Battle saddle & cannon"
+            : selected == MountType.ARTIO
+                ? "Fremennik saddle & weapons"
+                : "Saddle & reins";
         saddleButton.setText(supportsSaddle
-            ? "Saddle & reins: " + (saddleEnabled ? "On" : "Off")
+            ? saddleLabel + ": " + (saddleEnabled ? "On" : "Off")
             : "Saddle & reins: Unavailable");
         saddleButton.setBackground(saddleEnabled
             ? new Color(104, 73, 42)
@@ -288,4 +316,5 @@ final class MountStablePanel extends PluginPanel
         graphics.dispose();
         return image;
     }
+
 }

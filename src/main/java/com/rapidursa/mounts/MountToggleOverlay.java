@@ -30,6 +30,8 @@ final class MountToggleOverlay extends Overlay implements MouseListener
     private final BufferedImage terrorbirdIcon;
     private final BufferedImage lavaDragonIcon;
     private final BufferedImage gryphonIcon;
+    private final BufferedImage battleTurtleIcon;
+    private final BufferedImage artioIcon;
 
     @Inject
     MountToggleOverlay(
@@ -43,6 +45,8 @@ final class MountToggleOverlay extends Overlay implements MouseListener
         this.terrorbirdIcon = itemManager.getImage(ItemID.STRIPY_FEATHER);
         this.lavaDragonIcon = itemManager.getImage(ItemID.LAVA_DRAGON_BONES);
         this.gryphonIcon = itemManager.getImage(net.runelite.api.gameval.ItemID.GRYPHONBOSSPET);
+        this.battleTurtleIcon = itemManager.getImage(ItemID.SEA_TURTLE);
+        this.artioIcon = itemManager.getImage(ItemID.CALLISTO_CUB);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
         setPosition(OverlayPosition.TOP_LEFT);
     }
@@ -75,6 +79,14 @@ final class MountToggleOverlay extends Overlay implements MouseListener
         else if (config.mountType() == MountType.GRYPHON)
         {
             icon = gryphonIcon;
+        }
+        else if (config.mountType() == MountType.BATTLE_TURTLE)
+        {
+            icon = battleTurtleIcon;
+        }
+        else if (config.mountType() == MountType.ARTIO)
+        {
+            icon = artioIcon;
         }
 
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

@@ -1,5 +1,61 @@
 # Changelog
 
+## 1.8.0
+
+- Added the Battle turtle and Battle Bear as fully selectable mounts.
+- Added the Cross-legged riding pose and mount-specific positioning controls.
+- Added the universal Extra Wide riding pose using the sled's idle and moving
+  animations, with independent height, forward/back, and sideways controls for
+  every mount.
+- Added live Extra Wide idle and moving animation ID controls under Rider for
+  rapid in-game animation testing.
+- Added a dedicated Extra Wide Battle Bear saddle with the regular backrest,
+  V's Shield, and separate front blocks removed.
+- Removed the regular saddle's raised orange cushions and upright side pads
+  from the Extra Wide Battle Bear variant for a clean, open seat profile.
+- Added a tapered, profiled ribbed leather seat beneath the Battle Bear's Extra
+  Wide rider, with a narrow nose, raised rear and shallow rider pocket.
+- Added independent width, length, thickness, body height, forward/back,
+  vertical position, and sideways controls for the Extra Wide saddle.
+- Corrected the Extra Wide saddle's top-face winding so its padded upper
+  surface renders solidly from overhead instead of appearing hollow.
+- Corrected the remaining side, underside, nose, and rear face winding so the
+  Extra Wide saddle is fully enclosed, and recoloured it muted dark leather.
+- Deepened the Extra Wide saddle to a charcoal brown-grey leather with
+  near-black ribs, and added a fitted V-shaped front handlebar and hand grips.
+- Fixed the Extra Wide saddle measurement variables being declared in the
+  wrong model builder, which prevented the handlebar build from compiling.
+- Added independent forward/back, height, sideways, spread, and thickness
+  controls for the Extra Wide Battle Bear handlebars and grips.
+- Recoloured the Extra Wide handlebars black and added an angle control for
+  tilting both outer grips upward or downward.
+- Locked in the approved final Battle Bear and Extra Wide rider, saddle,
+  handlebar, seat, and warspear defaults for release.
+- Added a separate Extra Wide spear-bar forward/back setting, defaulted to 2,
+  while preserving the regular Battle Bear saddle's setting at 13.
+- Polished the release documentation and user-facing setting descriptions for
+  the final Plugin Hub submission.
+- Hid raw NPC IDs, animation IDs, loop-frame controls, and the Battle Bear
+  anchor probe tools from the release settings while retaining their approved
+  internal defaults.
+- Built a fitted Fremennik battle saddle for the Battle Bear with V's Shield,
+  genuine Guthan's warspears, adjustable seat layers, and spear holders.
+- Saved the approved final Battle Bear, saddle, seat, shield, warspear, and spear-holder defaults.
+- Locked the Battle Bear rider to the saddle's animated upper-torso skeleton anchor so both follow the exact same movement during idle and walking animations.
+- Kept the rider position controls as independent fine-tuning offsets from the animated seat anchor.
+- Added matching transparent Battle turtle and Battle Bear previews to the Mount Stable sidebar.
+- Reordered the Mount Stable cards to Terrorbird, Black unicorn, Gryphon,
+  Battle Bear, Lava dragon, and Battle turtle.
+
+- Increased the procedural backing-mesh capacity so the curved Battle Bear saddle,
+  rear shield and cache-backed warspears always construct instead of leaving
+  the rider floating above an empty mount.
+- Replaced the Battle Bear's handmade side spears with Guthan's genuine equipped
+  warspear model loaded from the live game cache.
+- Rebuilt the Battle Bear's saddle seat and backrest from layered curved profiles for a
+  softer Fremennik silhouette, with muted hide colours and V's Shield behind
+  the rider.
+
 ## 1.7.0
 
 - Added fitted, animation-synchronised saddles and reins for the Black unicorn

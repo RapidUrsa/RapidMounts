@@ -13,18 +13,20 @@ Rapid Mounts is a visual-only cosmetic plugin.
   rider; it never modifies the real `PlayerComposition` or equipment.
 - Temporarily removes the cosmetics while the real player performs an action.
 - The overlay button and optional hotkey only toggle local cosmetic state.
-- Includes four selectable mounts: black unicorn, terrorbird, lava dragon, and
-  gryphon, with independently tuned Standard and Wide riding poses.
-- Adds fitted, animated saddle-and-reins sets for the Black unicorn in Wide pose
-  and the gryphon in Standard pose, with a user-facing visibility toggle.
+- Includes six selectable mounts: black unicorn, terrorbird, lava dragon,
+  gryphon, Battle turtle, and Battle Bear, with independently tuned riding poses.
+- Adds fitted, animated tack for the Black unicorn, gryphon, Battle turtle, and
+  Battle Bear, with user-facing visibility toggles.
 - Provides cosmetic cape visibility and positioning controls to reduce clipping.
 - Uses bundled classpath images for the Mount Stable previews and RuneLite's
   item image service for the movable mount button icons.
 
-## Fixed content
+## Content identifiers
 
-All NPC, model, animation, item-icon, and spot-animation identifiers are fixed
-in source. Users cannot supply arbitrary content identifiers.
+Mount NPCs, model sources, item icons, and spot animations use bundled defaults.
+The Rider settings expose bounded animation-ID overrides for the Extra Wide and
+Cross-legged cosmetic poses so those player animations can be corrected after
+cache changes without altering gameplay or making network requests.
 
 ## Capabilities deliberately absent
 
@@ -61,8 +63,8 @@ commit=YOUR-40-CHARACTER-COMMIT-HASH
 
 Suggested pull-request description:
 
-> Updates Rapid Mounts to v1.7.0 with fitted, animation-synchronised saddles and
-> reins for the Black unicorn and normal gryphon, mounted cape polish, and a
-> Mount Stable toggle for supported tack. The unicorn set is fitted to Wide pose
-> and the gryphon set to Standard pose. The plugin remains visual-only and does
-> not alter movement, input, menus, gameplay, or server-visible state.
+> Updates Rapid Mounts to v1.8.0 with the Battle turtle and Battle Bear, fitted
+> mount-specific tack, skeleton-anchored rider motion, Extra Wide and
+> Cross-legged riding poses, final tuned defaults, and matching Mount Stable
+> previews. The plugin remains visual-only and does not alter movement, input,
+> menus, gameplay, or server-visible state.

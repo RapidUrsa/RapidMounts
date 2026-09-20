@@ -1,12 +1,14 @@
 # Rapid Mounts
 
 Rapid Mounts is a visual-only RuneLite plugin that lets your local player ride
-four animated cosmetic mounts:
+six animated cosmetic mounts:
 
-- Black unicorn
 - Terrorbird
-- Lava dragon
+- Black unicorn
 - Gryphon
+- Battle Bear
+- Lava dragon
+- Battle turtle
 
 The plugin changes only what is drawn by your own RuneLite client. Other
 players cannot see the mount, and it does not change movement, pathing, speed,
@@ -14,10 +16,11 @@ clicks, combat, or any other gameplay.
 
 ## Features
 
-- Animated idle and walking cycles for all four mounts.
+- Animated idle and walking cycles for all six mounts.
 - A reconstructed rider that keeps the local player's equipment and appearance.
-- Selectable Standard and Wide riding poses, tuned independently for every mount.
-- Fitted, animated saddles and reins for the Black unicorn and Gryphon.
+- Selectable Standard, Wide, Extra Wide, and Cross-legged riding poses, with
+  mount-specific positioning controls.
+- Fitted, animated tack for the Black unicorn, Gryphon, Battle turtle, and Battle Bear.
 - A sidebar toggle for showing or hiding supported saddle-and-reins sets.
 - Weapons and shields are hidden from the cosmetic rider by default for a cleaner seated pose.
 - Optional cape hiding and position adjustments to reduce clipping while mounted.
@@ -35,9 +38,10 @@ clicks, combat, or any other gameplay.
 ## Controls
 
 1. Open the horseshoe button in the RuneLite sidebar.
-2. Select a mount and choose **Standard** or **Wide**.
-3. For the Black unicorn or Gryphon, use **Saddle & reins** to show or hide the
-   fitted tack. The unicorn set uses Wide pose and the gryphon set uses Standard.
+2. Select a mount and choose **Standard**, **Wide**, **Extra Wide**, or
+   **Cross-legged**.
+3. For a supported mount, use the sidebar tack toggle to show or hide its fitted
+   saddle or saddle-and-reins set.
 4. Use the panel or the on-screen button to mount or dismount.
 5. Hold **Alt** and drag the on-screen button to reposition it.
 6. Optionally assign a **Mount/dismount hotkey** in the plugin settings.
@@ -45,9 +49,9 @@ clicks, combat, or any other gameplay.
 The tested positions are supplied as defaults. Advanced rider and mount-specific
 tuning is available in collapsed settings sections.
 
-The Standard pose continues to use the advanced position controls. The Wide
-pose uses separately tuned positions and motion for each mount so changing pose
-does not overwrite the Standard setup.
+Each pose uses its own tuned rider position where required, so changing pose
+does not overwrite the fit of the others. Battle Bear also switches to its
+dedicated ribbed saddle and handlebars when Extra Wide is selected.
 
 **Hide held equipment** affects only the cosmetic rider. The real player,
 weapon, and shield return normally whenever the mount is hidden or paused.
