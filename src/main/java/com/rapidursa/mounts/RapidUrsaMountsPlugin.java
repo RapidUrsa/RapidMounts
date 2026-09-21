@@ -101,6 +101,9 @@ public class RapidUrsaMountsPlugin extends Plugin
     private RapidUrsaMountsConfig config;
 
     @Inject
+    private ConfigManager configManager;
+
+    @Inject
     private AppearanceComposer appearanceComposer;
 
     @Inject
@@ -198,6 +201,7 @@ public class RapidUrsaMountsPlugin extends Plugin
     @Override
     protected void startUp()
     {
+        migrateExtraWideAnimationDefaults();
         hooks.registerRenderableDrawListener(drawListener);
         mounted = true;
         mountButton.bind(this);
@@ -214,6 +218,32 @@ public class RapidUrsaMountsPlugin extends Plugin
         overlayManager.add(artioAnchorOverlay);
         mouseManager.registerMouseListener(mountButton);
         keyManager.registerKeyListener(mountHotkey);
+    }
+
+    /**
+     * v1.8.0 accidentally shipped the two development animation IDs as the
+     * Extra Wide defaults. Replace only those known-bad persisted values so
+     * existing development installs are repaired without touching any other
+     * custom override. Normal Plugin Hub installs have no stored value and
+     * therefore pick up the corrected interface defaults automatically.
+     */
+    private void migrateExtraWideAnimationDefaults()
+    {
+        String idle = configManager.getConfiguration(
+            RapidUrsaMountsConfig.GROUP, "extraWideIdleAnimationId");
+        if ("146".equals(idle))
+        {
+            configManager.setConfiguration(
+                RapidUrsaMountsConfig.GROUP, "extraWideIdleAnimationId", 1461);
+        }
+
+        String moving = configManager.getConfiguration(
+            RapidUrsaMountsConfig.GROUP, "extraWideWalkAnimationId");
+        if ("8653".equals(moving))
+        {
+            configManager.setConfiguration(
+                RapidUrsaMountsConfig.GROUP, "extraWideWalkAnimationId", 1462);
+        }
     }
 
     @Override

@@ -24,9 +24,9 @@ Rapid Mounts is a visual-only cosmetic plugin.
 ## Content identifiers
 
 Mount NPCs, model sources, item icons, and spot animations use bundled defaults.
-The Rider settings expose bounded animation-ID overrides for the Extra Wide and
-Cross-legged cosmetic poses so those player animations can be corrected after
-cache changes without altering gameplay or making network requests.
+Raw animation-ID overrides used during development remain hidden in the public
+settings. Version 1.8.1 safely migrates only the two known-bad Extra Wide values
+from 1.8.0 and does not alter gameplay or make network requests.
 
 ## Capabilities deliberately absent
 
@@ -61,10 +61,9 @@ repository=https://github.com/RapidUrsa/RapidMounts.git
 commit=YOUR-40-CHARACTER-COMMIT-HASH
 ```
 
-Suggested pull-request description:
+Suggested v1.8.1 pull-request description:
 
-> Updates Rapid Mounts to v1.8.0 with the Battle turtle and Battle Bear, fitted
-> mount-specific tack, skeleton-anchored rider motion, Extra Wide and
-> Cross-legged riding poses, final tuned defaults, and matching Mount Stable
-> previews. The plugin remains visual-only and does not alter movement, input,
-> menus, gameplay, or server-visible state.
+> Updates Rapid Mounts to v1.8.1, correcting the Extra Wide idle and moving
+> animation defaults and safely migrating the two incorrect v1.8.0 values.
+> The plugin remains visual-only and does not alter movement, input, menus,
+> gameplay, or server-visible state.

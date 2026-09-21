@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.1
+
+- Corrected the Extra Wide pose's default idle animation ID to 1461 and moving
+  animation ID to 1462 so fresh installations use the intended sled poses.
+- Added a safe migration that replaces only the two incorrect v1.8.0 Extra
+  Wide animation overrides while preserving any other custom values.
+
 ## 1.8.0
 
 - Added the Battle turtle and Battle Bear as fully selectable mounts.

@@ -512,7 +512,7 @@ public interface RapidUrsaMountsConfig extends Config
     )
     default int extraWideIdleAnimationId()
     {
-        return 146;
+        return 1461;
     }
 
     @Range(min = 0, max = 30000)
@@ -525,7 +525,7 @@ public interface RapidUrsaMountsConfig extends Config
     )
     default int extraWideWalkAnimationId()
     {
-        return 8653;
+        return 1462;
     }
 
     @Range(min = 0, max = 20000)
