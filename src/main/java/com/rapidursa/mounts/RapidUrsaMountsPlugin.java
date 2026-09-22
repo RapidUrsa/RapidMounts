@@ -67,6 +67,9 @@ public class RapidUrsaMountsPlugin extends Plugin
     private static final int GUTHANS_WARSPEAR_ITEM_ID = 4726;
     private static final int FALLBACK_BODY_MODEL = 25754;
     private static final int FALLBACK_DETAILS_MODEL = 25756;
+    private static final int ARTIO_REIN_MOUTH_TARGET_FORWARD = 145;
+    private static final int ARTIO_REIN_MOUTH_TARGET_HEIGHT = 5;
+    private static final int ARTIO_REIN_MOUTH_TARGET_SPREAD = 18;
     private static final int REIN_LOOP_FRAMES = 32;
     private static final int REIN_REGULAR_LOOPS = 4;
     private static final int SADDLE_MOTION_FRAMES = REIN_LOOP_FRAMES * (REIN_REGULAR_LOOPS + 1);
@@ -146,11 +149,20 @@ public class RapidUrsaMountsPlugin extends Plugin
     private RuneLiteObject artioShield;
     private RuneLiteObject artioWarspears;
     private int[] lastGryphonReinAnchors;
+    private int gryphonSaddleAnchorVertex = -1;
+    private int[] baseGryphonSaddleAnchor;
+    private int currentGryphonSeatForward;
+    private int currentGryphonSeatSideways;
+    private int currentGryphonSeatHeight;
     private int[] baseArtioArmourAnchors;
     private int[] lastArtioArmourAnchors;
+    private final int[] artioReinHeadVertices = {-1, -1};
     private int currentArtioSeatForward;
     private int currentArtioSeatSideways;
     private int currentArtioSeatHeight;
+    private int currentArtioSaddleForward;
+    private int currentArtioSaddleSideways;
+    private int currentArtioSaddleHeight;
     private int currentGryphonSaddleForward;
     private int currentGryphonSaddleSideways;
     private int currentGryphonSaddleHeight;
@@ -202,6 +214,7 @@ public class RapidUrsaMountsPlugin extends Plugin
     protected void startUp()
     {
         migrateExtraWideAnimationDefaults();
+        migrateV19FittedDefaults();
         hooks.registerRenderableDrawListener(drawListener);
         mounted = true;
         mountButton.bind(this);
@@ -244,6 +257,101 @@ public class RapidUrsaMountsPlugin extends Plugin
             configManager.setConfiguration(
                 RapidUrsaMountsConfig.GROUP, "extraWideWalkAnimationId", 1462);
         }
+    }
+
+    /**
+     * v1.9 locks the approved rider and fitted-tack geometry into the plugin.
+     * Clear development-era overrides once so upgraded installations receive
+     * the same release fit as fresh installs, then leave user-facing mount
+     * scale choices untouched.
+     */
+    private void migrateV19FittedDefaults()
+    {
+        final String migrationKey = "v19FittedDefaultsApplied";
+        if (configManager.getConfiguration(
+            RapidUrsaMountsConfig.GROUP, migrationKey) != null)
+        {
+            return;
+        }
+
+        String[] fittedKeys =
+        {
+            "terrorbirdRiderHeight", "terrorbirdRiderForward",
+            "terrorbirdRiderSideways", "terrorbirdCrossLeggedRiderHeight",
+            "terrorbirdCrossLeggedRiderForward", "terrorbirdCrossLeggedRiderSideways",
+            "terrorbirdExtraWideRiderHeight", "terrorbirdExtraWideRiderForward",
+            "terrorbirdExtraWideRiderSideways", "terrorbirdIdleBounce",
+            "terrorbirdWalkHeightAdjustment", "terrorbirdWalkForwardAdjustment",
+            "terrorbirdStrideFollow", "terrorbirdSeatBounce", "terrorbirdSeatSway",
+            "lavaDragonRiderHeight", "lavaDragonRiderForward",
+            "lavaDragonRiderSideways", "lavaDragonCrossLeggedRiderHeight",
+            "lavaDragonCrossLeggedRiderForward", "lavaDragonCrossLeggedRiderSideways",
+            "lavaDragonExtraWideRiderHeight", "lavaDragonExtraWideRiderForward",
+            "lavaDragonExtraWideRiderSideways", "lavaDragonWalkHeightAdjustment",
+            "lavaDragonWalkForwardAdjustment", "lavaDragonIdleBounce",
+            "lavaDragonStrideFollow", "lavaDragonSeatBounce", "lavaDragonSeatSway",
+            "gryphonCrossLeggedRiderHeight", "gryphonCrossLeggedRiderForward",
+            "gryphonCrossLeggedRiderSideways", "gryphonExtraWideRiderHeight",
+            "gryphonExtraWideRiderForward", "gryphonExtraWideRiderSideways",
+            "gryphonSaddleScale", "gryphonSaddleForward", "gryphonSaddleHeight",
+            "gryphonSaddleSideways", "gryphonLeftReinHandForward",
+            "gryphonLeftReinHandHeight", "gryphonLeftReinHandSideways",
+            "gryphonRightReinHandForward", "gryphonRightReinHandHeight",
+            "gryphonRightReinHandSideways", "gryphonRiderHeight",
+            "gryphonWideRiderHeight", "gryphonRiderForward", "gryphonRiderSideways",
+            "gryphonWalkHeightAdjustment", "gryphonWalkForwardAdjustment",
+            "gryphonIdleBounce", "gryphonSeatSway", "gryphonLateralSway",
+            "battleTurtleIdleBounce", "battleTurtleIdleBobTiming",
+            "battleTurtleWalkBounce", "battleTurtleWalkBobTiming",
+            "battleTurtleWalkForwardAdjustment", "battleTurtleWalkHeightAdjustment",
+            "battleTurtleCrossLeggedRiderHeight", "battleTurtleCrossLeggedRiderForward",
+            "battleTurtleCrossLeggedRiderSideways", "battleTurtleExtraWideRiderHeight",
+            "battleTurtleExtraWideRiderForward", "battleTurtleExtraWideRiderSideways",
+            "battleTurtleSaddleScale", "battleTurtleSaddleForward",
+            "battleTurtleSaddleHeight", "battleTurtleSaddleSideways",
+            "artioRiderHeight", "artioRiderForward", "artioRiderSideways",
+            "artioCrossLeggedRiderHeight", "artioCrossLeggedRiderForward",
+            "artioCrossLeggedRiderSideways", "artioExtraWideRiderHeight",
+            "artioExtraWideRiderForward", "artioExtraWideRiderSideways",
+            "artioNoSaddleRiderHeight", "artioNoSaddleRiderForward",
+            "artioNoSaddleRiderSideways", "artioExtraWideSaddleWidth",
+            "artioExtraWideSaddleLength", "artioExtraWideSaddleThickness",
+            "artioExtraWideSaddleBodyHeight", "artioExtraWideSaddleForward",
+            "artioExtraWideSaddleHeight", "artioExtraWideSaddleSideways",
+            "artioExtraWideSpearBarForward", "artioExtraWideHandlebarForward",
+            "artioExtraWideHandlebarHeight", "artioExtraWideHandlebarSideways",
+            "artioExtraWideHandlebarSpread", "artioExtraWideHandlebarThickness",
+            "artioExtraWideHandlebarAngle", "artioExtraWideReinHandForward",
+            "artioExtraWideReinHandHeight", "artioExtraWideReinHandSideways",
+            "artioExtraWideReinHeadForward", "artioExtraWideReinHeadHeight",
+            "artioExtraWideReinHeadSideways", "artioExtraWideReinHeadSpread",
+            "artioExtraWideReinSag", "artioExtraWideReinNeckClearance",
+            "artioExtraWideReinThickness", "artioExtraWideMouthBarThickness",
+            "artioExtraWideMouthBarExtension", "artioIdleBounce",
+            "artioIdleBobTiming", "artioWalkBounce", "artioWalkBobTiming",
+            "artioWalkForwardAdjustment", "artioWalkHeightAdjustment",
+            "artioArmourScale", "artioArmourForward", "artioArmourHeight",
+            "artioArmourSideways", "artioShieldScale", "artioShieldForward",
+            "artioShieldHeight", "artioShieldSideways", "artioShieldTilt",
+            "artioShieldTurn", "artioWarspearScale", "artioWarspearForward",
+            "artioWarspearHeight", "artioLeftWarspearSideways",
+            "artioRightWarspearSideways", "artioWarspearTilt", "artioWarspearTurn",
+            "artioSpearBarForward", "artioSpearBarHeight", "artioSpearBarVertical",
+            "artioSpearBarSideways", "artioSpearBarThickness", "artioSpearBarWidth",
+            "artioSeatFrameWidth", "artioSeatFrameLength", "artioSeatFrameThickness",
+            "artioSeatFrameForward", "artioSeatFrameHeight", "artioSeatFrameSideways",
+            "artioSeatCushionWidth", "artioSeatCushionLength",
+            "artioSeatCushionThickness", "artioSeatCushionForward",
+            "artioSeatCushionHeight", "artioSeatCushionSideways",
+            "artioLowerSeatWidth", "artioLowerSeatLength", "artioLowerSeatThickness",
+            "artioLowerSeatForward", "artioLowerSeatHeight", "artioLowerSeatSideways"
+        };
+        for (String key : fittedKeys)
+        {
+            configManager.unsetConfiguration(RapidUrsaMountsConfig.GROUP, key);
+        }
+        configManager.setConfiguration(
+            RapidUrsaMountsConfig.GROUP, migrationKey, true);
     }
 
     @Override
@@ -381,7 +489,19 @@ public class RapidUrsaMountsPlugin extends Plugin
             || "artioExtraWideHandlebarSideways".equals(event.getKey())
             || "artioExtraWideHandlebarSpread".equals(event.getKey())
             || "artioExtraWideHandlebarThickness".equals(event.getKey())
-            || "artioExtraWideHandlebarAngle".equals(event.getKey()))
+            || "artioExtraWideHandlebarAngle".equals(event.getKey())
+            || "artioExtraWideReinHandForward".equals(event.getKey())
+            || "artioExtraWideReinHandHeight".equals(event.getKey())
+            || "artioExtraWideReinHandSideways".equals(event.getKey())
+            || "artioExtraWideReinHeadForward".equals(event.getKey())
+            || "artioExtraWideReinHeadHeight".equals(event.getKey())
+            || "artioExtraWideReinHeadSideways".equals(event.getKey())
+            || "artioExtraWideReinHeadSpread".equals(event.getKey())
+            || "artioExtraWideReinSag".equals(event.getKey())
+            || "artioExtraWideReinNeckClearance".equals(event.getKey())
+            || "artioExtraWideReinThickness".equals(event.getKey())
+            || "artioExtraWideMouthBarThickness".equals(event.getKey())
+            || "artioExtraWideMouthBarExtension".equals(event.getKey()))
         {
             despawn();
         }
@@ -547,17 +667,6 @@ public class RapidUrsaMountsPlugin extends Plugin
                 saddleForward = config.gryphonSaddleForward();
                 saddleSideways = config.gryphonSaddleSideways();
                 saddleHeight = config.gryphonSaddleHeight();
-                if (moving)
-                {
-                    saddleForward += currentWalkForwardAdjustment() + currentSeatSway();
-                    saddleSideways += currentLateralSway();
-                    saddleHeight += currentWalkHeightAdjustment()
-                        + currentStrideFollow() + currentSeatBounce();
-                }
-                else
-                {
-                    saddleHeight += currentIdleBounce();
-                }
                 currentGryphonSaddleForward = saddleForward;
                 currentGryphonSaddleSideways = saddleSideways;
                 currentGryphonSaddleHeight = saddleHeight;
@@ -583,6 +692,9 @@ public class RapidUrsaMountsPlugin extends Plugin
                 {
                     saddleHeight += currentIdleBounce();
                 }
+                currentArtioSaddleForward = saddleForward;
+                currentArtioSaddleSideways = saddleSideways;
+                currentArtioSaddleHeight = saddleHeight;
             }
             else
             {
@@ -632,15 +744,11 @@ public class RapidUrsaMountsPlugin extends Plugin
             activeUnicornAnimation = -1;
         }
 
-        if (config.mountType() == MountType.GRYPHON
-            && config.showGryphonSaddle()
-            && saddle != null)
+        if (config.mountType() == MountType.GRYPHON && saddle != null)
         {
-            updateGryphonReins();
+            updateGryphonSaddle();
         }
-        else if (config.mountType() == MountType.ARTIO
-            && config.showArtioArmour()
-            && saddle != null)
+        else if (config.mountType() == MountType.ARTIO && saddle != null)
         {
             updateArtioArmour();
         }
@@ -706,7 +814,16 @@ public class RapidUrsaMountsPlugin extends Plugin
                     riderSideways += currentArtioSeatSideways;
                     riderHeight += currentArtioSeatHeight;
                 }
-                if (config.mountType() != MountType.BLACK_UNICORN && moving)
+                if (config.mountType() == MountType.GRYPHON)
+                {
+                    // Share the Gryphon back vertex delta with the complete
+                    // saddle so the rider cannot drift above or through it.
+                    riderForward += currentGryphonSeatForward;
+                    riderSideways += currentGryphonSeatSideways;
+                    riderHeight += currentGryphonSeatHeight;
+                }
+                if (config.mountType() != MountType.BLACK_UNICORN
+                    && config.mountType() != MountType.GRYPHON && moving)
                 {
                     riderForward += currentWalkForwardAdjustment();
                     riderForward += currentSeatSway();
@@ -715,7 +832,8 @@ public class RapidUrsaMountsPlugin extends Plugin
                     riderHeight += currentStrideFollow();
                     riderHeight += currentSeatBounce();
                 }
-                else if (config.mountType() != MountType.BLACK_UNICORN && !moving)
+                else if (config.mountType() != MountType.BLACK_UNICORN
+                    && config.mountType() != MountType.GRYPHON && !moving)
                 {
                     riderHeight += currentIdleBounce();
                 }
@@ -728,10 +846,10 @@ public class RapidUrsaMountsPlugin extends Plugin
                 rider.setZ(Perspective.getTileHeight(client, riderPoint, plane) - riderHeight);
                 rider.setOrientation(orientation);
 
-                if (config.useRidingPose())
+                if (config.ridingPose() != null)
                 {
                     boolean widePose = config.ridingPose() == RidingPose.WIDE;
-                    boolean extraWidePose = config.ridingPose() == RidingPose.EXTRA_WIDE;
+                    boolean extraWidePose = config.ridingPose().usesExtraWideAnimation();
                     boolean crossLeggedPose = config.ridingPose() == RidingPose.CROSS_LEGGED;
                     int wantedRiderAnimation = crossLeggedPose
                         ? config.crossLeggedAnimationId()
@@ -787,19 +905,15 @@ public class RapidUrsaMountsPlugin extends Plugin
             deactivate(rider);
             mountedRenderReady = false;
         }
-        // Each fitted tack set belongs to its finished riding poses: the
-        // unicorn supports both Wide and Cross-legged, while the gryphon uses Standard.
+        // Fitted tack is automatic for each approved mount/style combination.
         if ((config.mountType() == MountType.BLACK_UNICORN
-                && (isWidePose() || isCrossLeggedPose())
-                && config.showSaddleAndReins())
+                && isWidePose())
             || (config.mountType() == MountType.GRYPHON
-                && !isWidePose()
-                && config.showGryphonSaddle())
+                && config.ridingPose() == RidingPose.STANDARD)
             || (config.mountType() == MountType.BATTLE_TURTLE
-                && isCrossLeggedPose()
-                && config.showBattleTurtleSaddle())
+                && isCrossLeggedPose())
             || (config.mountType() == MountType.ARTIO
-                && config.showArtioArmour()))
+                && !isNoSaddlePose()))
         {
             activate(saddle);
             if (config.mountType() == MountType.ARTIO)
@@ -901,7 +1015,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         unicorn.setRenderMode(Renderable.RENDERMODE_SORTED_NO_DEPTH);
         unicorn.setDrawFrontTilesFirst(true);
 
-        if (config.mountType() == MountType.BLACK_UNICORN && config.showSaddlePrototype())
+        if (config.mountType() == MountType.BLACK_UNICORN)
         {
             Model saddleModel;
             if (config.useCustomSaddle())
@@ -936,9 +1050,9 @@ public class RapidUrsaMountsPlugin extends Plugin
                 saddle.setDrawFrontTilesFirst(true);
             }
         }
-        else if (config.mountType() == MountType.GRYPHON && config.showGryphonSaddle())
+        else if (config.mountType() == MountType.GRYPHON)
         {
-            Model saddleModel = buildGryphonSaddleModel(null);
+            Model saddleModel = buildGryphonSaddleModel(null, null);
             if (saddleModel != null)
             {
                 saddle = client.createRuneLiteObject();
@@ -952,8 +1066,7 @@ public class RapidUrsaMountsPlugin extends Plugin
                 saddle.setDrawFrontTilesFirst(true);
             }
         }
-        else if (config.mountType() == MountType.BATTLE_TURTLE
-            && config.showBattleTurtleSaddle())
+        else if (config.mountType() == MountType.BATTLE_TURTLE)
         {
             Model saddleModel = buildBattleTurtleSaddleModel();
             if (saddleModel != null)
@@ -969,9 +1082,9 @@ public class RapidUrsaMountsPlugin extends Plugin
                 saddle.setDrawFrontTilesFirst(true);
             }
         }
-        else if (config.mountType() == MountType.ARTIO && config.showArtioArmour())
+        else if (config.mountType() == MountType.ARTIO)
         {
-            Model saddleModel = buildArtioArmourModel(null);
+            Model saddleModel = buildArtioArmourModel(null, null);
             if (saddleModel != null)
             {
                 saddle = client.createRuneLiteObject();
@@ -1517,7 +1630,7 @@ public class RapidUrsaMountsPlugin extends Plugin
     }
 
     /** Purpose-built low-poly Fremennik hunting saddle for Artio. */
-    private Model buildArtioArmourModel(int[][] motion)
+    private Model buildArtioArmourModel(int[][] motion, int[] reinAnchors)
     {
         ModelData template = client.loadModelData(FALLBACK_BODY_MODEL);
         if (template == null)
@@ -1537,9 +1650,11 @@ public class RapidUrsaMountsPlugin extends Plugin
             template.shallowCopy(),
             template.shallowCopy()
         });
-        // The armour below consumes 248 vertices and 396 faces. Check the
-        // real requirement rather than assuming every cache model contributes
-        // the same number of template vertices.
+        // Extra Wide with both five-section reins and its mouth bar uses 208
+        // vertices and 316 faces. Retain the proven 248/396 backing capacity
+        // used by the live saddle; requesting additional merged templates can
+        // make RuneLite's procedural model merge fail and leave the complete
+        // saddle absent.
         if (data == null || data.getVerticesCount() < 248 || data.getFaceCount() < 396)
         {
             return null;
@@ -1765,12 +1880,96 @@ public class RapidUrsaMountsPlugin extends Plugin
             vertex, face, 29, barInnerY, barZ, barOuterX, barOuterY, barZ,
             barThickness, barWidth, blackSteel);
         vertex += 8;
+
+        if (isExtraWidePose() && !isNoSaddlePose())
+        {
+            int handleCenterX = extraSeatX + config.artioExtraWideHandlebarSideways();
+            int handleReachX = Math.max(4,
+                (extraSeatHalfX + 9) * config.artioExtraWideHandlebarSpread() / 100);
+            int handleStartY = extraSeatY - extraSeatHalfY - 7
+                - config.artioExtraWideHandlebarHeight();
+            int handleEndY = handleStartY - 10
+                - config.artioExtraWideHandlebarAngle();
+            int handleStartZ = extraSeatZ - extraSeatHalfZ + 7
+                + config.artioExtraWideHandlebarForward();
+            int handleEndZ = handleStartZ - 12;
+            int headSpread = config.artioExtraWideReinHeadSpread();
+            int headSideways = config.artioExtraWideReinHeadSideways();
+            int[][] headEnds = reinAnchors != null && reinAnchors.length == 6
+                ? new int[][]{
+                    {reinAnchors[0], reinAnchors[1], reinAnchors[2]},
+                    {reinAnchors[3], reinAnchors[4], reinAnchors[5]}}
+                : new int[][]{
+                    {headSideways - headSpread,
+                        -config.artioExtraWideReinHeadHeight(),
+                        -config.artioExtraWideReinHeadForward()},
+                    {headSideways + headSpread,
+                        -config.artioExtraWideReinHeadHeight(),
+                        -config.artioExtraWideReinHeadForward()}};
+            int mouthBarY = (headEnds[0][1] + headEnds[1][1]) / 2;
+            int mouthBarZ = (headEnds[0][2] + headEnds[1][2]) / 2;
+            for (int[] headEnd : headEnds)
+            {
+                headEnd[1] = mouthBarY;
+                headEnd[2] = mouthBarZ;
+            }
+            int reinThickness = config.artioExtraWideReinThickness();
+            int reinSag = config.artioExtraWideReinSag();
+            int neckClearance = config.artioExtraWideReinNeckClearance();
+            for (int side = 0; side < 2; side++)
+            {
+                int sign = side == 0 ? -1 : 1;
+                int[] hand = {
+                    handleCenterX + sign * (handleReachX
+                        + config.artioExtraWideReinHandSideways()),
+                    handleEndY - config.artioExtraWideReinHandHeight(),
+                    handleEndZ - config.artioExtraWideReinHandForward()
+                };
+                int[] head = headEnds[side];
+                int[] control1 = {
+                    hand[0] + (head[0] - hand[0]) / 3
+                        + sign * neckClearance / 3,
+                    hand[1] + (head[1] - hand[1]) / 3 + reinSag,
+                    hand[2] + (head[2] - hand[2]) / 3
+                };
+                int[] control2 = {
+                    head[0] + (hand[0] - head[0]) / 3
+                        + sign * neckClearance,
+                    head[1] + (hand[1] - head[1]) / 3 + reinSag,
+                    head[2] + (hand[2] - head[2]) / 3
+                };
+                int[][] path = buildCubicReinPath(hand, control1, control2, head, 6);
+                for (int i = 0; i < path.length - 1; i++)
+                {
+                    face = addSaddleStrap(x, y, z, face1, face2, face3, colors,
+                        vertex, face,
+                        path[i][0], path[i][1], path[i][2],
+                        path[i + 1][0], path[i + 1][1], path[i + 1][2],
+                        reinThickness, reinThickness, leatherDark);
+                    vertex += 8;
+                }
+            }
+
+            // Join the two animated mouth vertices with a level black bit.
+            // Averaging Y/Z prevents unequal vertex heights from twisting the
+            // bar diagonally through the bear's muzzle during animation.
+            int mouthBarExtension = config.artioExtraWideMouthBarExtension();
+            int mouthBarMinX = Math.min(headEnds[0][0], headEnds[1][0])
+                - mouthBarExtension;
+            int mouthBarMaxX = Math.max(headEnds[0][0], headEnds[1][0])
+                + mouthBarExtension;
+            face = addSaddleCylinderX(x, y, z, face1, face2, face3, colors,
+                vertex, face,
+                mouthBarMinX, mouthBarMaxX, mouthBarY, mouthBarZ,
+                config.artioExtraWideMouthBarThickness(), blackSteel);
+            vertex += 16;
+        }
         if (motion != null)
         {
             // The complete saddle is one practical rigid assembly. Following
             // the stable upper-torso anchor keeps it attached without the
             // distortion caused by independently articulated armour plates.
-            offsetVertexRange(x, y, z, 0, 248, motion[0]);
+            offsetVertexRange(x, y, z, 0, vertex, motion[0]);
         }
 
         int scale = Math.max(1, 128 * config.artioArmourScale() / 100);
@@ -2033,11 +2232,6 @@ public class RapidUrsaMountsPlugin extends Plugin
         currentArtioSeatHeight = -(anchors[1] - baseArtioArmourAnchors[1]);
         currentArtioSeatForward = anchors[2] - baseArtioArmourAnchors[2];
 
-        if (java.util.Arrays.equals(anchors, lastArtioArmourAnchors))
-        {
-            return;
-        }
-
         int scale = Math.max(1, 128 * config.artioArmourScale() / 100);
         int[][] motion = new int[vertices.length][3];
         for (int i = 0; i < vertices.length; i++)
@@ -2048,11 +2242,25 @@ public class RapidUrsaMountsPlugin extends Plugin
             motion[i][2] = Math.round((anchors[offset + 2] - baseArtioArmourAnchors[offset + 2]) * 128f / scale);
         }
 
-        Model model = buildArtioArmourModel(motion);
+        int[] reinAnchors = buildArtioReinAnchors(mountModel, motion, scale);
+        int[] combinedAnchors = new int[anchors.length
+            + (reinAnchors == null ? 0 : reinAnchors.length)];
+        System.arraycopy(anchors, 0, combinedAnchors, 0, anchors.length);
+        if (reinAnchors != null)
+        {
+            System.arraycopy(reinAnchors, 0, combinedAnchors, anchors.length,
+                reinAnchors.length);
+        }
+        if (java.util.Arrays.equals(combinedAnchors, lastArtioArmourAnchors))
+        {
+            return;
+        }
+
+        Model model = buildArtioArmourModel(motion, reinAnchors);
         if (model != null)
         {
             saddle.setModel(model);
-            lastArtioArmourAnchors = anchors;
+            lastArtioArmourAnchors = combinedAnchors;
         }
         if (artioShield != null)
         {
@@ -2072,6 +2280,91 @@ public class RapidUrsaMountsPlugin extends Plugin
             }
         }
         updateArtioWarspears(motion, scale);
+    }
+
+    private int[] buildArtioReinAnchors(Model mountModel, int[][] motion, int scale)
+    {
+        if (!isExtraWidePose() || isNoSaddlePose())
+        {
+            return null;
+        }
+
+        float[] mountX = mountModel.getVerticesX();
+        float[] mountY = mountModel.getVerticesY();
+        float[] mountZ = mountModel.getVerticesZ();
+        int[] targetX = {
+            -ARTIO_REIN_MOUTH_TARGET_SPREAD,
+            ARTIO_REIN_MOUTH_TARGET_SPREAD
+        };
+        int targetY = -ARTIO_REIN_MOUTH_TARGET_HEIGHT;
+        int targetZ = -ARTIO_REIN_MOUTH_TARGET_FORWARD;
+        for (int side = 0; side < 2; side++)
+        {
+            if (artioReinHeadVertices[side] >= 0
+                && artioReinHeadVertices[side] < mountModel.getVerticesCount())
+            {
+                continue;
+            }
+            float wantedX = currentArtioSaddleSideways
+                + (targetX[side] + motion[0][0]) * scale / 128f;
+            float wantedY = -currentArtioSaddleHeight
+                + (targetY + motion[0][1]) * scale / 128f;
+            float wantedZ = -currentArtioSaddleForward
+                + (targetZ + motion[0][2]) * scale / 128f;
+            double bestDistance = Double.MAX_VALUE;
+            int bestVertex = -1;
+            for (int vertex = 0; vertex < mountModel.getVerticesCount(); vertex++)
+            {
+                if (vertex == artioReinHeadVertices[1 - side])
+                {
+                    continue;
+                }
+                double dx = mountX[vertex] - wantedX;
+                double dy = mountY[vertex] - wantedY;
+                double dz = mountZ[vertex] - wantedZ;
+                double distance = dx * dx + dy * dy + dz * dz;
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    bestVertex = vertex;
+                }
+            }
+            artioReinHeadVertices[side] = bestVertex;
+        }
+
+        int[] anchors = new int[6];
+        for (int side = 0; side < 2; side++)
+        {
+            int vertex = artioReinHeadVertices[side];
+            if (vertex < 0)
+            {
+                return null;
+            }
+            int offset = side * 3;
+            anchors[offset] = Math.round(
+                (mountX[vertex] - currentArtioSaddleSideways) * 128f / scale)
+                - motion[0][0];
+            anchors[offset + 1] = Math.round(
+                (mountY[vertex] + currentArtioSaddleHeight) * 128f / scale)
+                - motion[0][1];
+            anchors[offset + 2] = Math.round(
+                (mountZ[vertex] + currentArtioSaddleForward) * 128f / scale)
+                - motion[0][2];
+
+            // Keep the chosen animated mouth vertex as the moving base, then
+            // apply the visible tuning controls as real saddle-local offsets.
+            // This avoids snapping back to the vertex whenever the model is
+            // rebuilt and lets the complete mouth bar be positioned freely.
+            int sideSign = side == 0 ? -1 : 1;
+            anchors[offset] += config.artioExtraWideReinHeadSideways()
+                + sideSign * (config.artioExtraWideReinHeadSpread()
+                    - ARTIO_REIN_MOUTH_TARGET_SPREAD);
+            anchors[offset + 1] -= config.artioExtraWideReinHeadHeight()
+                - ARTIO_REIN_MOUTH_TARGET_HEIGHT;
+            anchors[offset + 2] -= config.artioExtraWideReinHeadForward()
+                - ARTIO_REIN_MOUTH_TARGET_FORWARD;
+        }
+        return anchors;
     }
 
     private void updateArtioWarspears(int[][] motion, int scale)
@@ -2111,7 +2404,7 @@ public class RapidUrsaMountsPlugin extends Plugin
      * cloths and metal stirrups. It deliberately uses broad OSRS-style facets
      * rather than trying to reproduce the concept art's fine surface detail.
      */
-    private Model buildGryphonSaddleModel(int[] reinAnchors)
+    private Model buildGryphonSaddleModel(int[] reinAnchors, int[] saddleMotion)
     {
         ModelData template = client.loadModelData(FALLBACK_BODY_MODEL);
         if (template == null)
@@ -2338,12 +2631,20 @@ public class RapidUrsaMountsPlugin extends Plugin
             vertex += 16;
         }
 
+        if (saddleMotion != null)
+        {
+            // Move the complete rigid saddle assembly with the animated back
+            // vertex. Mouth anchors are converted back out of this motion so
+            // the bit and reins still terminate on the animated beak.
+            offsetVertexRange(x, y, z, 0, vertex, saddleMotion);
+        }
+
         int scale = Math.max(1, 128 * config.gryphonSaddleScale() / 100);
         data.scale(scale, scale, scale);
         return data.light(AMBIENT, CONTRAST, LIGHT_X, LIGHT_Y, LIGHT_Z);
     }
 
-    private void updateGryphonReins()
+    private void updateGryphonSaddle()
     {
         Model mountModel = unicorn == null ? null : unicorn.getModel();
         if (mountModel == null || mountModel.getVerticesCount() <= 561)
@@ -2354,7 +2655,51 @@ public class RapidUrsaMountsPlugin extends Plugin
         float[] mountY = mountModel.getVerticesY();
         float[] mountZ = mountModel.getVerticesZ();
         int scale = Math.max(1, 128 * config.gryphonSaddleScale() / 100);
-        int[] anchors = new int[6];
+
+        if (gryphonSaddleAnchorVertex < 0
+            || gryphonSaddleAnchorVertex >= mountModel.getVerticesCount())
+        {
+            float wantedX = currentGryphonSaddleSideways;
+            float wantedY = -currentGryphonSaddleHeight;
+            float wantedZ = -currentGryphonSaddleForward;
+            double bestDistance = Double.MAX_VALUE;
+            for (int vertex = 0; vertex < mountModel.getVerticesCount(); vertex++)
+            {
+                double dx = mountX[vertex] - wantedX;
+                double dy = mountY[vertex] - wantedY;
+                double dz = mountZ[vertex] - wantedZ;
+                double distance = dx * dx + dy * dy + dz * dz;
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    gryphonSaddleAnchorVertex = vertex;
+                }
+            }
+        }
+        if (gryphonSaddleAnchorVertex < 0)
+        {
+            return;
+        }
+
+        int[] saddleAnchor = {
+            Math.round(mountX[gryphonSaddleAnchorVertex]),
+            Math.round(mountY[gryphonSaddleAnchorVertex]),
+            Math.round(mountZ[gryphonSaddleAnchorVertex])
+        };
+        if (baseGryphonSaddleAnchor == null)
+        {
+            baseGryphonSaddleAnchor = saddleAnchor.clone();
+        }
+        currentGryphonSeatSideways = saddleAnchor[0] - baseGryphonSaddleAnchor[0];
+        currentGryphonSeatHeight = -(saddleAnchor[1] - baseGryphonSaddleAnchor[1]);
+        currentGryphonSeatForward = saddleAnchor[2] - baseGryphonSaddleAnchor[2];
+        int[] saddleMotion = {
+            Math.round(currentGryphonSeatSideways * 128f / scale),
+            Math.round(-currentGryphonSeatHeight * 128f / scale),
+            Math.round(currentGryphonSeatForward * 128f / scale)
+        };
+
+        int[] reinAnchors = new int[6];
         int[] vertices = {520, 561};
         final int mouthLowerCorrection = 7;
         final int mouthForwardCorrection = 42;
@@ -2365,24 +2710,30 @@ public class RapidUrsaMountsPlugin extends Plugin
             // Convert from the mount object's origin to the translated saddle
             // origin, then undo the saddle's model scale because the complete
             // saddle data is scaled once at the end of its builder.
-            anchors[offset] = Math.round(
-                (mountX[vertex] - currentGryphonSaddleSideways) * 128f / scale);
-            anchors[offset + 1] = Math.round(
+            reinAnchors[offset] = Math.round(
+                (mountX[vertex] - currentGryphonSaddleSideways) * 128f / scale)
+                - saddleMotion[0];
+            reinAnchors[offset + 1] = Math.round(
                 (mountY[vertex] + currentGryphonSaddleHeight
-                    + mouthLowerCorrection) * 128f / scale);
+                    + mouthLowerCorrection) * 128f / scale)
+                - saddleMotion[1];
             // Both models use negative Z as forward. Keep the native sign and
             // compensate for the small origin mismatch between the animated
             // NPC model and our custom saddle model. Mirroring this axis sends
             // the complete bridle behind the rider instead of to the beak.
-            anchors[offset + 2] = Math.round(
+            reinAnchors[offset + 2] = Math.round(
                 (mountZ[vertex] + currentGryphonSaddleForward
-                    - mouthForwardCorrection) * 128f / scale);
+                    - mouthForwardCorrection) * 128f / scale)
+                - saddleMotion[2];
         }
+        int[] anchors = new int[9];
+        System.arraycopy(saddleAnchor, 0, anchors, 0, 3);
+        System.arraycopy(reinAnchors, 0, anchors, 3, 6);
         if (java.util.Arrays.equals(anchors, lastGryphonReinAnchors))
         {
             return;
         }
-        Model model = buildGryphonSaddleModel(anchors);
+        Model model = buildGryphonSaddleModel(reinAnchors, saddleMotion);
         if (model != null)
         {
             saddle.setModel(model);
@@ -2466,20 +2817,19 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentSaddleBuildScale()
     {
-        if (config.mountType() == MountType.ARTIO && config.showArtioArmour())
+        if (config.mountType() == MountType.ARTIO)
         {
             return config.artioArmourScale();
         }
-        if (config.mountType() == MountType.BATTLE_TURTLE
-            && config.showBattleTurtleSaddle())
+        if (config.mountType() == MountType.BATTLE_TURTLE)
         {
             return config.battleTurtleSaddleScale();
         }
-        if (config.mountType() == MountType.GRYPHON && config.showGryphonSaddle())
+        if (config.mountType() == MountType.GRYPHON)
         {
             return config.gryphonSaddleScale();
         }
-        if (config.mountType() != MountType.BLACK_UNICORN || !config.showSaddlePrototype())
+        if (config.mountType() != MountType.BLACK_UNICORN)
         {
             return -1;
         }
@@ -3508,6 +3858,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderHeight()
     {
+        if (isNoSaddlePose())
+        {
+            return config.artioNoSaddleRiderHeight();
+        }
         if (isCrossLeggedPose())
         {
             return currentCrossLeggedRiderHeight();
@@ -3557,6 +3911,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderForward()
     {
+        if (isNoSaddlePose())
+        {
+            return config.artioNoSaddleRiderForward();
+        }
         if (isCrossLeggedPose())
         {
             return currentCrossLeggedRiderForward();
@@ -3606,6 +3964,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderSideways()
     {
+        if (isNoSaddlePose())
+        {
+            return config.artioNoSaddleRiderSideways();
+        }
         if (isCrossLeggedPose())
         {
             return currentCrossLeggedRiderSideways();
@@ -3793,17 +4155,23 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private boolean isWidePose()
     {
-        return config.useRidingPose() && config.ridingPose() == RidingPose.WIDE;
+        return config.ridingPose() == RidingPose.WIDE;
     }
 
     private boolean isExtraWidePose()
     {
-        return config.useRidingPose() && config.ridingPose() == RidingPose.EXTRA_WIDE;
+        return config.ridingPose().usesExtraWideAnimation();
+    }
+
+    private boolean isNoSaddlePose()
+    {
+        return config.mountType() == MountType.ARTIO
+            && config.ridingPose() == RidingPose.NO_SADDLE;
     }
 
     private boolean isCrossLeggedPose()
     {
-        return config.useRidingPose() && config.ridingPose() == RidingPose.CROSS_LEGGED;
+        return config.ridingPose() == RidingPose.CROSS_LEGGED;
     }
 
     private void playMountEffect()
@@ -3971,11 +4339,21 @@ public class RapidUrsaMountsPlugin extends Plugin
         artioShield = null;
         artioWarspears = null;
         lastGryphonReinAnchors = null;
+        gryphonSaddleAnchorVertex = -1;
+        baseGryphonSaddleAnchor = null;
+        currentGryphonSeatForward = 0;
+        currentGryphonSeatSideways = 0;
+        currentGryphonSeatHeight = 0;
         baseArtioArmourAnchors = null;
         lastArtioArmourAnchors = null;
+        artioReinHeadVertices[0] = -1;
+        artioReinHeadVertices[1] = -1;
         currentArtioSeatForward = 0;
         currentArtioSeatSideways = 0;
         currentArtioSeatHeight = 0;
+        currentArtioSaddleForward = 0;
+        currentArtioSaddleSideways = 0;
+        currentArtioSaddleHeight = 0;
         saddleMotionModels = null;
         activeSaddleMotionFrame = -1;
         builtRiderOutfit = null;

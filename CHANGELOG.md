@@ -1,5 +1,49 @@
 # Changelog
 
+## 1.9.0
+
+- Removed Extra Wide from the approved Terrorbird and Lava Dragon pose lists.
+- Hid the remaining Black Unicorn fitting controls and restored all Battle Bear
+  controls for the final adjustment pass.
+- Added mount-specific pose lists to the Mount Stable selector.
+- Disabled the selector automatically for Gryphon and Battle Turtle because
+  each currently supports one approved pose.
+- Added per-mount pose memory with safe fallbacks for unsupported old choices.
+- Set Battle Bear's fresh/default riding style to Extra Wide.
+- Set Black unicorn's fresh/default riding style to Wide and made its Standard
+  style bareback.
+- Added a Battle Bear-only No Saddle style using the Extra Wide animation with
+  independent rider height, forward/back, and sideways controls, defaulted to
+  the approved -51 forward/back, 99 height, and -3 sideways fit.
+- Added dark leather reins to Battle Bear's Extra Wide saddle, running from
+  its black hand grips to cached animated head vertices so the reins follow
+  the bear during idle and walking animations.
+- Added live hand-end, head-target, sag, spread, and thickness controls for
+  tuning the first Battle Bear rein test.
+- Moved the default Battle Bear rein target from the ears to the mouth and
+  added an animated black mouth bar with thickness and extension controls.
+- Corrected the Battle Bear head controls so forward/back, height, and spread
+  apply real offsets after animated mouth anchoring, and added a separate
+  sideways control for moving the complete mouth bar left or right.
+- Curved the final section of each Battle Bear rein outward around the neck,
+  with an adjustable neck-clearance control and smoother five-section paths.
+- Anchored the complete Gryphon saddle to an animated back vertex and applied
+  the same skeleton delta to the rider, while retaining the independent
+  mouth-vertex anchoring used by its reins and gold bit.
+- Exposed live Gryphon saddle up/down and left/right controls for final
+  skeleton-lock positioning without changing the selected back anchor.
+- Locked the approved final Gryphon and Battle Bear rider, saddle, rein,
+  mouth-bar, shield, warspear, and attachment values into the release build.
+- Reduced every mount-specific settings section to its useful scale control;
+  development fitting, bob, pose-offset, and saddle geometry controls remain
+  available internally but are hidden from the release menus.
+- Added a one-time v1.9 migration that removes old local fitting overrides so
+  upgraded installations receive the same approved defaults as fresh installs.
+- Kept the Battle Bear's proven procedural backing capacity so adding reins
+  cannot prevent the complete saddle model from loading.
+- Made fitted saddles and reins automatic and removed their sidebar toggle.
+- Kept Terrorbird and Lava Dragon saddle-free.
+
 ## 1.8.1
 
 - Corrected the Extra Wide pose's default idle animation ID to 1461 and moving

@@ -51,7 +51,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "showSaddleAndReins",
         name = "Show saddle and reins",
         description = "Show the fitted saddle and animated reins when riding the Black unicorn in Wide or Cross-legged pose",
-        section = SADDLE
+        section = SADDLE,
+        hidden = true
     )
     default boolean showSaddleAndReins()
     {
@@ -484,7 +485,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "useRidingPose",
         name = "Use riding pose",
         description = "Apply the selected riding animation to the mounted player",
-        section = RIDER
+        section = RIDER,
+        hidden = true
     )
     default boolean useRidingPose()
     {
@@ -494,8 +496,9 @@ public interface RapidUrsaMountsConfig extends Config
     @ConfigItem(
         keyName = "ridingPose",
         name = "Riding pose",
-        description = "Choose the Standard, Wide, Extra Wide, or Cross-legged riding pose",
-        section = RIDER
+        description = "Pose selected through the mount-aware Mount Stable selector",
+        section = RIDER,
+        hidden = true
     )
     default RidingPose ridingPose()
     {
@@ -611,7 +614,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "riderHeight",
         name = "Rider height",
         description = "Raise or lower the rider on the black unicorn",
-        section = UNICORN
+        section = UNICORN,
+        hidden = true
     )
     default int riderHeight()
     {
@@ -623,7 +627,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "riderForward",
         name = "Rider forward/back",
         description = "Move the rider along the direction the unicorn faces",
-        section = UNICORN
+        section = UNICORN,
+        hidden = true
     )
     default int riderForward()
     {
@@ -635,7 +640,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "riderSideways",
         name = "Rider sideways",
         description = "Move the rider sideways relative to the unicorn",
-        section = UNICORN
+        section = UNICORN,
+        hidden = true
     )
     default int riderSideways()
     {
@@ -643,27 +649,27 @@ public interface RapidUrsaMountsConfig extends Config
     }
 
     @Range(min = 0, max = 200)
-    @ConfigItem(keyName = "unicornCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the black unicorn", section = UNICORN)
+    @ConfigItem(keyName = "unicornCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the black unicorn", section = UNICORN, hidden = true)
     default int unicornCrossLeggedRiderHeight() { return 132; }
 
     @Range(min = -150, max = 150)
-    @ConfigItem(keyName = "unicornCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the black unicorn", section = UNICORN)
+    @ConfigItem(keyName = "unicornCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the black unicorn", section = UNICORN, hidden = true)
     default int unicornCrossLeggedRiderForward() { return 9; }
 
     @Range(min = -100, max = 100)
-    @ConfigItem(keyName = "unicornCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the black unicorn", section = UNICORN)
+    @ConfigItem(keyName = "unicornCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the black unicorn", section = UNICORN, hidden = true)
     default int unicornCrossLeggedRiderSideways() { return 0; }
 
     @Range(min = -100, max = 250)
-    @ConfigItem(keyName = "unicornExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the black unicorn", section = UNICORN)
+    @ConfigItem(keyName = "unicornExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the black unicorn", section = UNICORN, hidden = true)
     default int unicornExtraWideRiderHeight() { return 132; }
 
     @Range(min = -150, max = 150)
-    @ConfigItem(keyName = "unicornExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the black unicorn", section = UNICORN)
+    @ConfigItem(keyName = "unicornExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the black unicorn", section = UNICORN, hidden = true)
     default int unicornExtraWideRiderForward() { return 9; }
 
     @Range(min = -100, max = 100)
-    @ConfigItem(keyName = "unicornExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the black unicorn", section = UNICORN)
+    @ConfigItem(keyName = "unicornExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the black unicorn", section = UNICORN, hidden = true)
     default int unicornExtraWideRiderSideways() { return 0; }
 
     @Range(min = 0, max = 12)
@@ -671,7 +677,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "unicornIdleBounce",
         name = "Unicorn idle bounce",
         description = "Subtle rider lift synchronized to the unicorn's idle animation",
-        section = UNICORN
+        section = UNICORN,
+        hidden = true
     )
     default int unicornIdleBounce()
     {
@@ -695,7 +702,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "terrorbirdRiderHeight",
         name = "Terrorbird rider height",
         description = "Raise or lower the rider on the terrorbird",
-        section = TERRORBIRD
+        section = TERRORBIRD,
+        hidden = true
     )
     default int terrorbirdRiderHeight()
     {
@@ -707,7 +715,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "terrorbirdRiderForward",
         name = "Terrorbird forward/back",
         description = "Move the rider along the direction the terrorbird faces",
-        section = TERRORBIRD
+        section = TERRORBIRD,
+        hidden = true
     )
     default int terrorbirdRiderForward()
     {
@@ -719,7 +728,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "terrorbirdRiderSideways",
         name = "Terrorbird sideways",
         description = "Move the rider sideways relative to the terrorbird",
-        section = TERRORBIRD
+        section = TERRORBIRD,
+        hidden = true
     )
     default int terrorbirdRiderSideways()
     {
@@ -727,27 +737,27 @@ public interface RapidUrsaMountsConfig extends Config
     }
 
     @Range(min = 0, max = 200)
-    @ConfigItem(keyName = "terrorbirdCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the terrorbird", section = TERRORBIRD)
+    @ConfigItem(keyName = "terrorbirdCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the terrorbird", section = TERRORBIRD, hidden = true)
     default int terrorbirdCrossLeggedRiderHeight() { return 115; }
 
     @Range(min = -150, max = 150)
-    @ConfigItem(keyName = "terrorbirdCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the terrorbird", section = TERRORBIRD)
+    @ConfigItem(keyName = "terrorbirdCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the terrorbird", section = TERRORBIRD, hidden = true)
     default int terrorbirdCrossLeggedRiderForward() { return 13; }
 
     @Range(min = -100, max = 100)
-    @ConfigItem(keyName = "terrorbirdCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the terrorbird", section = TERRORBIRD)
+    @ConfigItem(keyName = "terrorbirdCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the terrorbird", section = TERRORBIRD, hidden = true)
     default int terrorbirdCrossLeggedRiderSideways() { return 0; }
 
     @Range(min = -100, max = 250)
-    @ConfigItem(keyName = "terrorbirdExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the terrorbird", section = TERRORBIRD)
+    @ConfigItem(keyName = "terrorbirdExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the terrorbird", section = TERRORBIRD, hidden = true)
     default int terrorbirdExtraWideRiderHeight() { return 115; }
 
     @Range(min = -150, max = 150)
-    @ConfigItem(keyName = "terrorbirdExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the terrorbird", section = TERRORBIRD)
+    @ConfigItem(keyName = "terrorbirdExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the terrorbird", section = TERRORBIRD, hidden = true)
     default int terrorbirdExtraWideRiderForward() { return 13; }
 
     @Range(min = -100, max = 100)
-    @ConfigItem(keyName = "terrorbirdExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the terrorbird", section = TERRORBIRD)
+    @ConfigItem(keyName = "terrorbirdExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the terrorbird", section = TERRORBIRD, hidden = true)
     default int terrorbirdExtraWideRiderSideways() { return 0; }
 
     @Range(min = 0, max = 12)
@@ -755,7 +765,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "terrorbirdIdleBounce",
         name = "Terrorbird idle bounce",
         description = "Subtle rider lift synchronized to the terrorbird's idle animation",
-        section = TERRORBIRD
+        section = TERRORBIRD,
+        hidden = true
     )
     default int terrorbirdIdleBounce()
     {
@@ -767,7 +778,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "terrorbirdWalkHeightAdjustment",
         name = "Terrorbird walk height adjust",
         description = "Change rider height only while moving; negative values lower the rider",
-        section = TERRORBIRD
+        section = TERRORBIRD,
+        hidden = true
     )
     default int terrorbirdWalkHeightAdjustment()
     {
@@ -779,7 +791,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "terrorbirdWalkForwardAdjustment",
         name = "Terrorbird walk forward adjust",
         description = "Move the rider forward or backward only while the terrorbird is moving",
-        section = TERRORBIRD
+        section = TERRORBIRD,
+        hidden = true
     )
     default int terrorbirdWalkForwardAdjustment()
     {
@@ -791,7 +804,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "terrorbirdStrideFollow",
         name = "Terrorbird stride follow",
         description = "Optional rider bob synchronized to the terrorbird stride; use a negative value to invert it",
-        section = TERRORBIRD
+        section = TERRORBIRD,
+        hidden = true
     )
     default int terrorbirdStrideFollow()
     {
@@ -803,7 +817,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "terrorbirdSeatBounce",
         name = "Terrorbird seat bounce",
         description = "Move the complete rider up and down in time with the terrorbird stride",
-        section = TERRORBIRD
+        section = TERRORBIRD,
+        hidden = true
     )
     default int terrorbirdSeatBounce()
     {
@@ -815,7 +830,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "terrorbirdSeatSway",
         name = "Terrorbird seat sway",
         description = "Move the complete rider forward and backward in time with the terrorbird stride",
-        section = TERRORBIRD
+        section = TERRORBIRD,
+        hidden = true
     )
     default int terrorbirdSeatSway()
     {
@@ -839,7 +855,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "lavaDragonRiderHeight",
         name = "Lava dragon rider height",
         description = "Raise or lower the rider on the lava dragon",
-        section = LAVA_DRAGON
+        section = LAVA_DRAGON,
+        hidden = true
     )
     default int lavaDragonRiderHeight()
     {
@@ -851,7 +868,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "lavaDragonRiderForward",
         name = "Lava dragon forward/back",
         description = "Move the rider along the direction the lava dragon faces",
-        section = LAVA_DRAGON
+        section = LAVA_DRAGON,
+        hidden = true
     )
     default int lavaDragonRiderForward()
     {
@@ -863,7 +881,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "lavaDragonRiderSideways",
         name = "Lava dragon sideways",
         description = "Move the rider sideways relative to the lava dragon",
-        section = LAVA_DRAGON
+        section = LAVA_DRAGON,
+        hidden = true
     )
     default int lavaDragonRiderSideways()
     {
@@ -871,27 +890,27 @@ public interface RapidUrsaMountsConfig extends Config
     }
 
     @Range(min = 0, max = 200)
-    @ConfigItem(keyName = "lavaDragonCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the lava dragon", section = LAVA_DRAGON)
+    @ConfigItem(keyName = "lavaDragonCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the lava dragon", section = LAVA_DRAGON, hidden = true)
     default int lavaDragonCrossLeggedRiderHeight() { return 139; }
 
     @Range(min = -150, max = 150)
-    @ConfigItem(keyName = "lavaDragonCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the lava dragon", section = LAVA_DRAGON)
+    @ConfigItem(keyName = "lavaDragonCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the lava dragon", section = LAVA_DRAGON, hidden = true)
     default int lavaDragonCrossLeggedRiderForward() { return 50; }
 
     @Range(min = -100, max = 100)
-    @ConfigItem(keyName = "lavaDragonCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the lava dragon", section = LAVA_DRAGON)
+    @ConfigItem(keyName = "lavaDragonCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the lava dragon", section = LAVA_DRAGON, hidden = true)
     default int lavaDragonCrossLeggedRiderSideways() { return 0; }
 
     @Range(min = -100, max = 250)
-    @ConfigItem(keyName = "lavaDragonExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the lava dragon", section = LAVA_DRAGON)
+    @ConfigItem(keyName = "lavaDragonExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the lava dragon", section = LAVA_DRAGON, hidden = true)
     default int lavaDragonExtraWideRiderHeight() { return 139; }
 
     @Range(min = -150, max = 150)
-    @ConfigItem(keyName = "lavaDragonExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the lava dragon", section = LAVA_DRAGON)
+    @ConfigItem(keyName = "lavaDragonExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the lava dragon", section = LAVA_DRAGON, hidden = true)
     default int lavaDragonExtraWideRiderForward() { return 50; }
 
     @Range(min = -100, max = 100)
-    @ConfigItem(keyName = "lavaDragonExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the lava dragon", section = LAVA_DRAGON)
+    @ConfigItem(keyName = "lavaDragonExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the lava dragon", section = LAVA_DRAGON, hidden = true)
     default int lavaDragonExtraWideRiderSideways() { return 0; }
 
     @Range(min = -100, max = 100)
@@ -899,7 +918,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "lavaDragonWalkHeightAdjustment",
         name = "Lava dragon walk height adjust",
         description = "Change rider height only while the lava dragon is moving",
-        section = LAVA_DRAGON
+        section = LAVA_DRAGON,
+        hidden = true
     )
     default int lavaDragonWalkHeightAdjustment()
     {
@@ -911,7 +931,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "lavaDragonWalkForwardAdjustment",
         name = "Lava dragon walk forward adjust",
         description = "Move the rider forward or backward only while the lava dragon is moving",
-        section = LAVA_DRAGON
+        section = LAVA_DRAGON,
+        hidden = true
     )
     default int lavaDragonWalkForwardAdjustment()
     {
@@ -923,7 +944,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "lavaDragonIdleBounce",
         name = "Lava dragon idle bounce",
         description = "Subtle rider lift synchronized to the lava dragon's idle breathing",
-        section = LAVA_DRAGON
+        section = LAVA_DRAGON,
+        hidden = true
     )
     default int lavaDragonIdleBounce()
     {
@@ -935,7 +957,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "lavaDragonStrideFollow",
         name = "Lava dragon stride follow",
         description = "Rider bob synchronized to the lava dragon stride; negative values invert it",
-        section = LAVA_DRAGON
+        section = LAVA_DRAGON,
+        hidden = true
     )
     default int lavaDragonStrideFollow()
     {
@@ -947,7 +970,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "lavaDragonSeatBounce",
         name = "Lava dragon seat bounce",
         description = "Move the complete rider up and down in time with the lava dragon stride",
-        section = LAVA_DRAGON
+        section = LAVA_DRAGON,
+        hidden = true
     )
     default int lavaDragonSeatBounce()
     {
@@ -959,7 +983,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "lavaDragonSeatSway",
         name = "Lava dragon seat sway",
         description = "Move the complete rider forward and backward in time with the lava dragon stride",
-        section = LAVA_DRAGON
+        section = LAVA_DRAGON,
+        hidden = true
     )
     default int lavaDragonSeatSway()
     {
@@ -979,34 +1004,35 @@ public interface RapidUrsaMountsConfig extends Config
     }
 
     @Range(min = 0, max = 200)
-    @ConfigItem(keyName = "gryphonCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the gryphon", section = GRYPHON)
+    @ConfigItem(keyName = "gryphonCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the gryphon", section = GRYPHON, hidden = true)
     default int gryphonCrossLeggedRiderHeight() { return 120; }
 
     @Range(min = -150, max = 150)
-    @ConfigItem(keyName = "gryphonCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the gryphon", section = GRYPHON)
+    @ConfigItem(keyName = "gryphonCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the gryphon", section = GRYPHON, hidden = true)
     default int gryphonCrossLeggedRiderForward() { return 13; }
 
     @Range(min = -100, max = 100)
-    @ConfigItem(keyName = "gryphonCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the gryphon", section = GRYPHON)
+    @ConfigItem(keyName = "gryphonCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the gryphon", section = GRYPHON, hidden = true)
     default int gryphonCrossLeggedRiderSideways() { return 0; }
 
     @Range(min = -100, max = 250)
-    @ConfigItem(keyName = "gryphonExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the gryphon", section = GRYPHON)
-    default int gryphonExtraWideRiderHeight() { return 120; }
+    @ConfigItem(keyName = "gryphonExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the gryphon", section = GRYPHON, hidden = true)
+    default int gryphonExtraWideRiderHeight() { return 93; }
 
     @Range(min = -150, max = 150)
-    @ConfigItem(keyName = "gryphonExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the gryphon", section = GRYPHON)
-    default int gryphonExtraWideRiderForward() { return 13; }
+    @ConfigItem(keyName = "gryphonExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the gryphon", section = GRYPHON, hidden = true)
+    default int gryphonExtraWideRiderForward() { return -22; }
 
     @Range(min = -100, max = 100)
-    @ConfigItem(keyName = "gryphonExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the gryphon", section = GRYPHON)
+    @ConfigItem(keyName = "gryphonExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the gryphon", section = GRYPHON, hidden = true)
     default int gryphonExtraWideRiderSideways() { return 0; }
 
     @ConfigItem(
         keyName = "showGryphonSaddle",
         name = "Show gryphon saddle",
         description = "Show the ivory-and-gold Skybound saddle on the gryphon",
-        section = GRYPHON
+        section = GRYPHON,
+        hidden = true
     )
     default boolean showGryphonSaddle()
     {
@@ -1042,20 +1068,20 @@ public interface RapidUrsaMountsConfig extends Config
     @Range(min = -120, max = 180)
     @ConfigItem(
         keyName = "gryphonSaddleHeight",
-        name = "Gryphon saddle height",
+        name = "Saddle up/down",
         description = "Raise or lower the gryphon saddle",
         section = GRYPHON,
         hidden = true
     )
     default int gryphonSaddleHeight()
     {
-        return 123;
+        return 132;
     }
 
     @Range(min = -80, max = 80)
     @ConfigItem(
         keyName = "gryphonSaddleSideways",
-        name = "Gryphon saddle sideways",
+        name = "Saddle left/right",
         description = "Move the gryphon saddle sideways",
         section = GRYPHON,
         hidden = true
@@ -1148,11 +1174,12 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "gryphonRiderHeight",
         name = "Standard pose rider height",
         description = "Raise or lower the rider when using the Standard riding pose",
-        section = GRYPHON
+        section = GRYPHON,
+        hidden = true
     )
     default int gryphonRiderHeight()
     {
-        return 44;
+        return 57;
     }
 
     @Range(min = 0, max = 300)
@@ -1160,7 +1187,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "gryphonWideRiderHeight",
         name = "Wide pose rider height",
         description = "Raise or lower the rider when using the Wide riding pose",
-        section = GRYPHON
+        section = GRYPHON,
+        hidden = true
     )
     default int gryphonWideRiderHeight()
     {
@@ -1172,7 +1200,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "gryphonRiderForward",
         name = "Gryphon forward/back",
         description = "Move the rider along the direction the gryphon faces",
-        section = GRYPHON
+        section = GRYPHON,
+        hidden = true
     )
     default int gryphonRiderForward()
     {
@@ -1184,7 +1213,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "gryphonRiderSideways",
         name = "Gryphon sideways",
         description = "Move the rider sideways relative to the gryphon",
-        section = GRYPHON
+        section = GRYPHON,
+        hidden = true
     )
     default int gryphonRiderSideways()
     {
@@ -1196,7 +1226,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "gryphonWalkHeightAdjustment",
         name = "Gryphon walk height adjust",
         description = "Change rider height only while the gryphon is moving",
-        section = GRYPHON
+        section = GRYPHON,
+        hidden = true
     )
     default int gryphonWalkHeightAdjustment()
     {
@@ -1208,7 +1239,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "gryphonWalkForwardAdjustment",
         name = "Gryphon walk forward adjust",
         description = "Move the rider forward or backward only while the gryphon is moving",
-        section = GRYPHON
+        section = GRYPHON,
+        hidden = true
     )
     default int gryphonWalkForwardAdjustment()
     {
@@ -1220,7 +1252,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "gryphonIdleBounce",
         name = "Gryphon idle bounce",
         description = "Subtle rider lift synchronized to the gryphon's idle animation",
-        section = GRYPHON
+        section = GRYPHON,
+        hidden = true
     )
     default int gryphonIdleBounce()
     {
@@ -1232,7 +1265,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "gryphonSeatSway",
         name = "Gryphon seat sway",
         description = "Move the rider forward and backward in time with the gryphon's walking stride",
-        section = GRYPHON
+        section = GRYPHON,
+        hidden = true
     )
     default int gryphonSeatSway()
     {
@@ -1244,7 +1278,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "gryphonLateralSway",
         name = "Gryphon left/right sway",
         description = "Move the rider from side to side in time with the gryphon's walking stride",
-        section = GRYPHON
+        section = GRYPHON,
+        hidden = true
     )
     default int gryphonLateralSway()
     {
@@ -1307,7 +1342,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "battleTurtleIdleBounce",
         name = "Battle turtle idle bob",
         description = "Move the rider and saddle together with the turtle's idle animation",
-        section = BATTLE_TURTLE
+        section = BATTLE_TURTLE,
+        hidden = true
     )
     default int battleTurtleIdleBounce()
     {
@@ -1319,7 +1355,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "battleTurtleIdleBobTiming",
         name = "Idle bob timing",
         description = "Shift the idle bob along the animation; positive values move it earlier",
-        section = BATTLE_TURTLE
+        section = BATTLE_TURTLE,
+        hidden = true
     )
     default int battleTurtleIdleBobTiming()
     {
@@ -1331,7 +1368,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "battleTurtleWalkBounce",
         name = "Battle turtle walking bob",
         description = "Move the rider and saddle together with the turtle's walking animation",
-        section = BATTLE_TURTLE
+        section = BATTLE_TURTLE,
+        hidden = true
     )
     default int battleTurtleWalkBounce()
     {
@@ -1343,7 +1381,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "battleTurtleWalkBobTiming",
         name = "Walking bob timing",
         description = "Shift the walking bob along the animation; positive values move it earlier",
-        section = BATTLE_TURTLE
+        section = BATTLE_TURTLE,
+        hidden = true
     )
     default int battleTurtleWalkBobTiming()
     {
@@ -1355,7 +1394,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "battleTurtleWalkForwardAdjustment",
         name = "Walking rider forward/back",
         description = "Move only the rider forward or backward while the Battle turtle is walking",
-        section = BATTLE_TURTLE
+        section = BATTLE_TURTLE,
+        hidden = true
     )
     default int battleTurtleWalkForwardAdjustment()
     {
@@ -1367,7 +1407,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "battleTurtleWalkHeightAdjustment",
         name = "Walking rider height",
         description = "Raise or lower only the rider while the Battle turtle is walking",
-        section = BATTLE_TURTLE
+        section = BATTLE_TURTLE,
+        hidden = true
     )
     default int battleTurtleWalkHeightAdjustment()
     {
@@ -1375,34 +1416,35 @@ public interface RapidUrsaMountsConfig extends Config
     }
 
     @Range(min = 0, max = 200)
-    @ConfigItem(keyName = "battleTurtleCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the Battle turtle", section = BATTLE_TURTLE)
+    @ConfigItem(keyName = "battleTurtleCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Raise or lower the Cross-legged rider on the Battle turtle", section = BATTLE_TURTLE, hidden = true)
     default int battleTurtleCrossLeggedRiderHeight() { return 176; }
 
     @Range(min = -150, max = 150)
-    @ConfigItem(keyName = "battleTurtleCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the Battle turtle", section = BATTLE_TURTLE)
+    @ConfigItem(keyName = "battleTurtleCrossLeggedRiderForward", name = "Cross-legged forward/back", description = "Move the Cross-legged rider forward or backward on the Battle turtle", section = BATTLE_TURTLE, hidden = true)
     default int battleTurtleCrossLeggedRiderForward() { return 18; }
 
     @Range(min = -100, max = 100)
-    @ConfigItem(keyName = "battleTurtleCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the Battle turtle", section = BATTLE_TURTLE)
+    @ConfigItem(keyName = "battleTurtleCrossLeggedRiderSideways", name = "Cross-legged sideways", description = "Move the Cross-legged rider sideways on the Battle turtle", section = BATTLE_TURTLE, hidden = true)
     default int battleTurtleCrossLeggedRiderSideways() { return 0; }
 
     @Range(min = -100, max = 250)
-    @ConfigItem(keyName = "battleTurtleExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the Battle turtle", section = BATTLE_TURTLE)
+    @ConfigItem(keyName = "battleTurtleExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the Battle turtle", section = BATTLE_TURTLE, hidden = true)
     default int battleTurtleExtraWideRiderHeight() { return 176; }
 
     @Range(min = -150, max = 150)
-    @ConfigItem(keyName = "battleTurtleExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the Battle turtle", section = BATTLE_TURTLE)
+    @ConfigItem(keyName = "battleTurtleExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the Battle turtle", section = BATTLE_TURTLE, hidden = true)
     default int battleTurtleExtraWideRiderForward() { return 18; }
 
     @Range(min = -100, max = 100)
-    @ConfigItem(keyName = "battleTurtleExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the Battle turtle", section = BATTLE_TURTLE)
+    @ConfigItem(keyName = "battleTurtleExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the Battle turtle", section = BATTLE_TURTLE, hidden = true)
     default int battleTurtleExtraWideRiderSideways() { return 0; }
 
     @ConfigItem(
         keyName = "showBattleTurtleSaddle",
         name = "Show battle saddle",
         description = "Show the armoured saddle and cannon on the Battle turtle",
-        section = BATTLE_TURTLE
+        section = BATTLE_TURTLE,
+        hidden = true
     )
     default boolean showBattleTurtleSaddle()
     {
@@ -1414,7 +1456,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "battleTurtleSaddleScale",
         name = "Battle saddle scale (%)",
         description = "Resize the Battle turtle saddle while fitting it",
-        section = BATTLE_TURTLE
+        section = BATTLE_TURTLE,
+        hidden = true
     )
     default int battleTurtleSaddleScale()
     {
@@ -1426,7 +1469,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "battleTurtleSaddleForward",
         name = "Battle saddle forward/back",
         description = "Move the battle saddle along the turtle's shell",
-        section = BATTLE_TURTLE
+        section = BATTLE_TURTLE,
+        hidden = true
     )
     default int battleTurtleSaddleForward()
     {
@@ -1438,7 +1482,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "battleTurtleSaddleHeight",
         name = "Battle saddle height",
         description = "Raise or lower the battle saddle",
-        section = BATTLE_TURTLE
+        section = BATTLE_TURTLE,
+        hidden = true
     )
     default int battleTurtleSaddleHeight()
     {
@@ -1450,7 +1495,8 @@ public interface RapidUrsaMountsConfig extends Config
         keyName = "battleTurtleSaddleSideways",
         name = "Battle saddle sideways",
         description = "Move the battle saddle sideways across the shell",
-        section = BATTLE_TURTLE
+        section = BATTLE_TURTLE,
+        hidden = true
     )
     default int battleTurtleSaddleSideways()
     {
@@ -1458,7 +1504,7 @@ public interface RapidUrsaMountsConfig extends Config
     }
 
     @Range(min = 0, max = 30000)
-    @ConfigItem(keyName = "artioNpcId", name = "Battle Bear NPC ID", description = "NPC definition used for the Battle Bear", section = ARTIO, hidden = true)
+    @ConfigItem(keyName = "artioNpcId", name = "Battle Bear NPC ID", description = "NPC definition used for the Battle Bear", section = ARTIO)
     default int artioNpcId() { return 11992; }
 
     @Range(min = 50, max = 180)
@@ -1466,20 +1512,20 @@ public interface RapidUrsaMountsConfig extends Config
     default int artioScale() { return 104; }
 
     @Range(min = -1, max = 30000)
-    @ConfigItem(keyName = "artioIdleAnimationV2", name = "Battle Bear idle animation", description = "Battle Bear idle animation ID", section = ARTIO, hidden = true)
+    @ConfigItem(keyName = "artioIdleAnimationV2", name = "Battle Bear idle animation", description = "Battle Bear idle animation ID", section = ARTIO)
     default int artioIdleAnimation() { return 10011; }
 
     @Range(min = -1, max = 30000)
-    @ConfigItem(keyName = "artioWalkAnimationV2", name = "Battle Bear walk animation", description = "Battle Bear walking animation ID", section = ARTIO, hidden = true)
+    @ConfigItem(keyName = "artioWalkAnimationV2", name = "Battle Bear walk animation", description = "Battle Bear walking animation ID", section = ARTIO)
     default int artioWalkAnimation() { return 10009; }
 
     @Range(min = -100, max = 250)
     @ConfigItem(keyName = "artioRiderHeight", name = "Rider height", description = "Raise or lower the rider on the Battle Bear", section = ARTIO)
-    default int artioRiderHeight() { return 118; }
+    default int artioRiderHeight() { return 120; }
 
     @Range(min = -150, max = 150)
     @ConfigItem(keyName = "artioRiderForward", name = "Rider forward/back", description = "Move the rider forward or backward on the Battle Bear", section = ARTIO)
-    default int artioRiderForward() { return 10; }
+    default int artioRiderForward() { return 3; }
 
     @Range(min = -100, max = 100)
     @ConfigItem(keyName = "artioRiderSideways", name = "Rider sideways", description = "Move the rider sideways on the Battle Bear", section = ARTIO)
@@ -1499,7 +1545,7 @@ public interface RapidUrsaMountsConfig extends Config
 
     @Range(min = -100, max = 250)
     @ConfigItem(keyName = "artioExtraWideRiderHeight", name = "Extra Wide rider height", description = "Raise or lower the Extra Wide rider on the Battle Bear", section = ARTIO)
-    default int artioExtraWideRiderHeight() { return 169; }
+    default int artioExtraWideRiderHeight() { return 159; }
 
     @Range(min = -150, max = 150)
     @ConfigItem(keyName = "artioExtraWideRiderForward", name = "Extra Wide forward/back", description = "Move the Extra Wide rider forward or backward on the Battle Bear", section = ARTIO)
@@ -1508,6 +1554,18 @@ public interface RapidUrsaMountsConfig extends Config
     @Range(min = -100, max = 100)
     @ConfigItem(keyName = "artioExtraWideRiderSideways", name = "Extra Wide sideways", description = "Move the Extra Wide rider sideways on the Battle Bear", section = ARTIO)
     default int artioExtraWideRiderSideways() { return -3; }
+
+    @Range(min = -100, max = 250)
+    @ConfigItem(keyName = "artioNoSaddleRiderHeight", name = "No Saddle rider height", description = "Raise or lower the bareback Extra Wide rider", section = ARTIO)
+    default int artioNoSaddleRiderHeight() { return 99; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioNoSaddleRiderForward", name = "No Saddle forward/back", description = "Move the bareback Extra Wide rider forward or backward", section = ARTIO)
+    default int artioNoSaddleRiderForward() { return -51; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioNoSaddleRiderSideways", name = "No Saddle sideways", description = "Move the bareback Extra Wide rider sideways", section = ARTIO)
+    default int artioNoSaddleRiderSideways() { return -3; }
 
     @Range(min = 25, max = 250)
     @ConfigItem(keyName = "artioExtraWideSaddleWidth", name = "Extra Wide saddle width (%)", description = "Resize the ribbed Extra Wide saddle from side to side", section = ARTIO)
@@ -1565,6 +1623,54 @@ public interface RapidUrsaMountsConfig extends Config
     @ConfigItem(keyName = "artioExtraWideHandlebarAngle", name = "Extra Wide handlebar angle", description = "Angle the outer grips upward or downward", section = ARTIO)
     default int artioExtraWideHandlebarAngle() { return 11; }
 
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioExtraWideReinHandForward", name = "Extra Wide reins hand forward/back", description = "Move both rein hand ends forward or backward from the grips", section = ARTIO)
+    default int artioExtraWideReinHandForward() { return 0; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioExtraWideReinHandHeight", name = "Extra Wide reins hand height", description = "Raise or lower both rein hand ends", section = ARTIO)
+    default int artioExtraWideReinHandHeight() { return -2; }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(keyName = "artioExtraWideReinHandSideways", name = "Extra Wide reins hand spread", description = "Move both rein hand ends inward or outward", section = ARTIO)
+    default int artioExtraWideReinHandSideways() { return 0; }
+
+    @Range(min = -100, max = 300)
+    @ConfigItem(keyName = "artioExtraWideReinHeadForward", name = "Extra Wide reins head forward/back", description = "Move both rein head ends forward or backward", section = ARTIO)
+    default int artioExtraWideReinHeadForward() { return 148; }
+
+    @Range(min = -100, max = 160)
+    @ConfigItem(keyName = "artioExtraWideReinHeadHeight", name = "Extra Wide reins head height", description = "Raise or lower both rein head ends", section = ARTIO)
+    default int artioExtraWideReinHeadHeight() { return -19; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "artioExtraWideReinHeadSideways", name = "Extra Wide reins head sideways", description = "Move both rein ends and the mouth bar left or right", section = ARTIO)
+    default int artioExtraWideReinHeadSideways() { return -3; }
+
+    @Range(min = 2, max = 80)
+    @ConfigItem(keyName = "artioExtraWideReinHeadSpread", name = "Extra Wide reins head spread", description = "Move the left and right rein ends across the Battle Bear's head", section = ARTIO)
+    default int artioExtraWideReinHeadSpread() { return 18; }
+
+    @Range(min = -40, max = 80)
+    @ConfigItem(keyName = "artioExtraWideReinSag", name = "Extra Wide reins sag", description = "Increase or reduce the curve between the hands and head", section = ARTIO)
+    default int artioExtraWideReinSag() { return 28; }
+
+    @Range(min = 0, max = 100)
+    @ConfigItem(keyName = "artioExtraWideReinNeckClearance", name = "Extra Wide reins neck clearance", description = "Curve the final section of each rein outward around the Battle Bear's neck", section = ARTIO)
+    default int artioExtraWideReinNeckClearance() { return 22; }
+
+    @Range(min = 1, max = 6)
+    @ConfigItem(keyName = "artioExtraWideReinThickness", name = "Extra Wide reins thickness", description = "Resize both leather reins", section = ARTIO)
+    default int artioExtraWideReinThickness() { return 1; }
+
+    @Range(min = 1, max = 8)
+    @ConfigItem(keyName = "artioExtraWideMouthBarThickness", name = "Extra Wide mouth bar thickness", description = "Resize the black mouth bar between the reins", section = ARTIO)
+    default int artioExtraWideMouthBarThickness() { return 3; }
+
+    @Range(min = 0, max = 20)
+    @ConfigItem(keyName = "artioExtraWideMouthBarExtension", name = "Extra Wide mouth bar extension", description = "Extend the black mouth bar beyond each rein", section = ARTIO)
+    default int artioExtraWideMouthBarExtension() { return 6; }
+
     @Range(min = 0, max = 20)
     @ConfigItem(keyName = "artioIdleBounce", name = "Battle Bear idle bob", description = "Move the rider with the Battle Bear's idle animation", section = ARTIO)
     default int artioIdleBounce() { return 2; }
@@ -1618,7 +1724,7 @@ public interface RapidUrsaMountsConfig extends Config
 
     @Range(min = -60, max = 60)
     @ConfigItem(keyName = "artioShieldHeight", name = "V's Shield height", description = "Raise or lower V's Shield", section = ARTIO)
-    default int artioShieldHeight() { return 7; }
+    default int artioShieldHeight() { return 1; }
 
     @Range(min = -60, max = 60)
     @ConfigItem(keyName = "artioShieldSideways", name = "V's Shield sideways", description = "Move V's Shield left or right across the backrest", section = ARTIO)
@@ -1662,7 +1768,7 @@ public interface RapidUrsaMountsConfig extends Config
 
     @Range(min = -60, max = 60)
     @ConfigItem(keyName = "artioSpearBarForward", name = "Spear bars forward/back", description = "Move both saddle-to-spear mounting bars forward or backward", section = ARTIO)
-    default int artioSpearBarForward() { return 13; }
+    default int artioSpearBarForward() { return 2; }
 
     @Range(min = -60, max = 60)
     @ConfigItem(keyName = "artioSpearBarHeight", name = "Spear bars outer height", description = "Raise or lower only the outer ends to change the mounting-bar angle", section = ARTIO)
@@ -1756,15 +1862,15 @@ public interface RapidUrsaMountsConfig extends Config
     @ConfigItem(keyName = "artioLowerSeatSideways", name = "Dark orange seat sideways", description = "Move the darker orange seat across the saddle", section = ARTIO)
     default int artioLowerSeatSideways() { return 0; }
 
-    @ConfigItem(keyName = "showArtioAnchorProbeV2", name = "Show anchor probe", description = "Temporarily label animated Battle Bear vertices used to fit the armour", section = ARTIO, hidden = true)
+    @ConfigItem(keyName = "showArtioAnchorProbeV2", name = "Show anchor probe", description = "Temporarily label animated Battle Bear vertices used to fit the armour", section = ARTIO)
     default boolean showArtioAnchorProbe() { return false; }
 
     @Range(min = 0, max = 3000)
-    @ConfigItem(keyName = "artioAnchorProbeStart", name = "Anchor probe start", description = "First Battle Bear vertex index to label", section = ARTIO, hidden = true)
+    @ConfigItem(keyName = "artioAnchorProbeStart", name = "Anchor probe start", description = "First Battle Bear vertex index to label", section = ARTIO)
     default int artioAnchorProbeStart() { return 180; }
 
     @Range(min = 1, max = 25)
-    @ConfigItem(keyName = "artioAnchorProbeSpacingV2", name = "Anchor probe spacing", description = "Label every Nth vertex; use 1 when narrowing down a body part", section = ARTIO, hidden = true)
+    @ConfigItem(keyName = "artioAnchorProbeSpacingV2", name = "Anchor probe spacing", description = "Label every Nth vertex; use 1 when narrowing down a body part", section = ARTIO)
     default int artioAnchorProbeSpacing() { return 1; }
 
     @Range(min = 24, max = 96)

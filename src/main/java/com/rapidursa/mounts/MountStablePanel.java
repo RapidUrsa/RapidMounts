@@ -37,8 +37,7 @@ final class MountStablePanel extends PluginPanel
     private final ConfigManager configManager;
     private final ClientThread clientThread;
     private final Map<MountType, JButton> mountButtons = new EnumMap<>(MountType.class);
-    private final JComboBox<RidingPose> poseSelector = new JComboBox<>(RidingPose.values());
-    private final JButton saddleButton = new JButton();
+    private final JComboBox<RidingPose> poseSelector = new JComboBox<>();
     private final JButton mountedButton = new JButton();
     private final BufferedImage sidebarIcon;
     private RapidUrsaMountsPlugin plugin;
@@ -111,47 +110,12 @@ final class MountStablePanel extends PluginPanel
                 RidingPose pose = (RidingPose) poseSelector.getSelectedItem();
                 if (pose != null)
                 {
-                    clientThread.invokeLater(() -> configManager.setConfiguration(
-                        RapidUrsaMountsConfig.GROUP, "ridingPose", pose));
+                    MountType mount = config.mountType();
+                    clientThread.invokeLater(() -> savePose(mount, pose));
                 }
             }
         });
         content.add(poseSelector);
-        content.add(Box.createRigidArea(new Dimension(0, 8)));
-
-        saddleButton.setFont(FontManager.getRunescapeBoldFont());
-        saddleButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
-        saddleButton.setAlignmentX(LEFT_ALIGNMENT);
-        saddleButton.setFocusPainted(false);
-        saddleButton.addActionListener(event ->
-        {
-            MountType selected = config.mountType();
-            if (selected == MountType.BLACK_UNICORN)
-            {
-                clientThread.invokeLater(() -> configManager.setConfiguration(
-                    RapidUrsaMountsConfig.GROUP, "showSaddleAndReins",
-                    !config.showSaddleAndReins()));
-            }
-            else if (selected == MountType.GRYPHON)
-            {
-                clientThread.invokeLater(() -> configManager.setConfiguration(
-                    RapidUrsaMountsConfig.GROUP, "showGryphonSaddle",
-                    !config.showGryphonSaddle()));
-            }
-            else if (selected == MountType.BATTLE_TURTLE)
-            {
-                clientThread.invokeLater(() -> configManager.setConfiguration(
-                    RapidUrsaMountsConfig.GROUP, "showBattleTurtleSaddle",
-                    !config.showBattleTurtleSaddle()));
-            }
-            else if (selected == MountType.ARTIO)
-            {
-                clientThread.invokeLater(() -> configManager.setConfiguration(
-                    RapidUrsaMountsConfig.GROUP, "showArtioArmour",
-                    !config.showArtioArmour()));
-            }
-        });
-        content.add(saddleButton);
         content.add(Box.createRigidArea(new Dimension(0, 14)));
 
         mountedButton.setFont(FontManager.getRunescapeBoldFont());
@@ -183,7 +147,11 @@ final class MountStablePanel extends PluginPanel
         button.setForeground(Color.WHITE);
         button.setFont(FontManager.getRunescapeBoldFont());
         button.addActionListener(event -> clientThread.invokeLater(() ->
-            configManager.setConfiguration(RapidUrsaMountsConfig.GROUP, "mountType", type)));
+        {
+            RidingPose pose = storedPose(type);
+            configManager.setConfiguration(RapidUrsaMountsConfig.GROUP, "mountType", type);
+            savePose(type, pose);
+        }));
         mountButtons.put(type, button);
         return button;
     }
@@ -221,38 +189,84 @@ final class MountStablePanel extends PluginPanel
                 BorderFactory.createLineBorder(active ? ACTIVE_BORDER : INACTIVE_BORDER, active ? 2 : 1),
                 BorderFactory.createEmptyBorder(active ? 5 : 6, 8, active ? 5 : 6, 8)));
         }
-        poseSelector.setSelectedItem(config.ridingPose());
-        boolean supportsSaddle = selected == MountType.BLACK_UNICORN
-            || selected == MountType.GRYPHON
-            || selected == MountType.BATTLE_TURTLE
-            || selected == MountType.ARTIO;
-        boolean saddleEnabled = selected == MountType.BLACK_UNICORN
-            ? config.showSaddleAndReins()
-            : selected == MountType.GRYPHON
-                ? config.showGryphonSaddle()
-                : selected == MountType.BATTLE_TURTLE
-                    ? config.showBattleTurtleSaddle()
-                    : selected == MountType.ARTIO
-                        && config.showArtioArmour();
-        saddleButton.setEnabled(supportsSaddle);
-        String saddleLabel = selected == MountType.BATTLE_TURTLE
-            ? "Battle saddle & cannon"
-            : selected == MountType.ARTIO
-                ? "Fremennik saddle & weapons"
-                : "Saddle & reins";
-        saddleButton.setText(supportsSaddle
-            ? saddleLabel + ": " + (saddleEnabled ? "On" : "Off")
-            : "Saddle & reins: Unavailable");
-        saddleButton.setBackground(saddleEnabled
-            ? new Color(104, 73, 42)
-            : ColorScheme.DARKER_GRAY_COLOR);
-        saddleButton.setForeground(supportsSaddle ? Color.WHITE : Color.GRAY);
+        RidingPose pose = resolvedCurrentPose(selected);
+        poseSelector.removeAllItems();
+        RidingPose[] supported = RidingPose.supportedFor(selected);
+        for (RidingPose option : supported)
+        {
+            poseSelector.addItem(option);
+        }
+        poseSelector.setSelectedItem(pose);
+        poseSelector.setEnabled(supported.length > 1);
+        if (config.ridingPose() != pose)
+        {
+            clientThread.invokeLater(() -> savePose(selected, pose));
+        }
         boolean mounted = plugin != null && plugin.isMounted();
         mountedButton.setText(mounted ? "Dismount" : "Mount");
         mountedButton.setBackground(mounted ? new Color(104, 73, 42) : new Color(48, 93, 58));
         refreshing = false;
         revalidate();
         repaint();
+    }
+
+    private static String poseKey(MountType mount)
+    {
+        return "selectedPose." + mount.name();
+    }
+
+    private RidingPose storedPose(MountType mount)
+    {
+        String saved = configManager.getConfiguration(
+            RapidUrsaMountsConfig.GROUP, poseKey(mount));
+        if (saved != null)
+        {
+            RidingPose pose = parsePose(saved);
+            if (RidingPose.supports(mount, pose))
+            {
+                return pose;
+            }
+        }
+        return RidingPose.defaultFor(mount);
+    }
+
+    private RidingPose resolvedCurrentPose(MountType mount)
+    {
+        String saved = configManager.getConfiguration(
+            RapidUrsaMountsConfig.GROUP, poseKey(mount));
+        if (saved == null)
+        {
+            String legacy = configManager.getConfiguration(
+                RapidUrsaMountsConfig.GROUP, "ridingPose");
+            if (legacy != null && RidingPose.supports(mount, config.ridingPose()))
+            {
+                return config.ridingPose();
+            }
+        }
+        return storedPose(mount);
+    }
+
+    private void savePose(MountType mount, RidingPose pose)
+    {
+        RidingPose valid = RidingPose.supports(mount, pose)
+            ? pose
+            : RidingPose.defaultFor(mount);
+        configManager.setConfiguration(
+            RapidUrsaMountsConfig.GROUP, poseKey(mount), valid);
+        configManager.setConfiguration(
+            RapidUrsaMountsConfig.GROUP, "ridingPose", valid);
+    }
+
+    private static RidingPose parsePose(String saved)
+    {
+        for (RidingPose pose : RidingPose.values())
+        {
+            if (pose.name().equals(saved) || pose.toString().equals(saved))
+            {
+                return pose;
+            }
+        }
+        return null;
     }
 
     private static BufferedImage resize(BufferedImage source, int width, int height)
