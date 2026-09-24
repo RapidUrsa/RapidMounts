@@ -23,6 +23,7 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 @Singleton
 final class MountToggleOverlay extends Overlay implements MouseListener
 {
+    private static final int EEK_ITEM_ID = 22684;
     private RapidUrsaMountsPlugin plugin;
     private final ClientThread clientThread;
     private final RapidUrsaMountsConfig config;
@@ -32,6 +33,7 @@ final class MountToggleOverlay extends Overlay implements MouseListener
     private final BufferedImage gryphonIcon;
     private final BufferedImage battleTurtleIcon;
     private final BufferedImage artioIcon;
+    private final BufferedImage araxxorIcon;
 
     @Inject
     MountToggleOverlay(
@@ -47,6 +49,7 @@ final class MountToggleOverlay extends Overlay implements MouseListener
         this.gryphonIcon = itemManager.getImage(net.runelite.api.gameval.ItemID.GRYPHONBOSSPET);
         this.battleTurtleIcon = itemManager.getImage(ItemID.SEA_TURTLE);
         this.artioIcon = itemManager.getImage(ItemID.CALLISTO_CUB);
+        this.araxxorIcon = itemManager.getImage(EEK_ITEM_ID);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
         setPosition(OverlayPosition.TOP_LEFT);
     }
@@ -87,6 +90,10 @@ final class MountToggleOverlay extends Overlay implements MouseListener
         else if (config.mountType() == MountType.ARTIO)
         {
             icon = artioIcon;
+        }
+        else if (config.mountType() == MountType.ARAXXOR)
+        {
+            icon = araxxorIcon;
         }
 
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

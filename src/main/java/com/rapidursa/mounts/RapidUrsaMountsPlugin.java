@@ -33,6 +33,7 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.input.MouseManager;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -43,7 +44,7 @@ import net.runelite.client.util.HotkeyListener;
 @PluginDescriptor(
     name = "Rapid Mounts",
     description = "Ride client-side cosmetic mounts",
-    tags = {"mount", "unicorn", "terrorbird", "dragon", "gryphon", "turtle", "artio", "bear", "cosmetic", "transmog"}
+    tags = {"mount", "unicorn", "terrorbird", "dragon", "gryphon", "turtle", "artio", "bear", "araxxor", "cosmetic", "transmog"}
 )
 public class RapidUrsaMountsPlugin extends Plugin
 {
@@ -63,6 +64,7 @@ public class RapidUrsaMountsPlugin extends Plugin
     private static final int LAVA_DRAGON_WALK_ANIMATION_ID = 79;
     private static final int GRYPHON_IDLE_ANIMATION_ID = 12547;
     private static final int GRYPHON_WALK_ANIMATION_ID = 12549;
+    private static final int ARAXXOR_NPC_ID = 13668;
     private static final int VS_SHIELD_ITEM_ID = 24266;
     private static final int GUTHANS_WARSPEAR_ITEM_ID = 4726;
     private static final int FALLBACK_BODY_MODEL = 25754;
@@ -111,6 +113,14 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     @Inject
     private ModelRepository modelRepository;
+
+    @Inject
+    private ItemManager itemManager;
+
+    private MountedHolsterSettings holsterSettings;
+
+    private MountedHolsterRenderer mountedHolsterRenderer;
+    private boolean holsterHandedOff;
 
     @Inject
     private SpotAnimRepository spotAnimRepository;
@@ -166,6 +176,11 @@ public class RapidUrsaMountsPlugin extends Plugin
     private int currentGryphonSaddleForward;
     private int currentGryphonSaddleSideways;
     private int currentGryphonSaddleHeight;
+    private int[] araxxorRiderAnchorVertices;
+    private int[] baseAraxxorRiderAnchor;
+    private int currentAraxxorSeatForward;
+    private int currentAraxxorSeatSideways;
+    private int currentAraxxorSeatHeight;
     private Model[] saddleMotionModels;
     private int activeSaddleMotionFrame = -1;
     private final List<RuneLiteObject> mountParts = new ArrayList<>();
@@ -213,6 +228,11 @@ public class RapidUrsaMountsPlugin extends Plugin
     @Override
     protected void startUp()
     {
+        setHolsterHandoff(false);
+        holsterSettings = new MountedHolsterSettings(configManager);
+        mountedHolsterRenderer = new MountedHolsterRenderer(
+            client, modelRepository, itemManager, holsterSettings);
+        migrateAraxxorAnimationDefaults();
         migrateExtraWideAnimationDefaults();
         migrateV19FittedDefaults();
         hooks.registerRenderableDrawListener(drawListener);
@@ -231,6 +251,33 @@ public class RapidUrsaMountsPlugin extends Plugin
         overlayManager.add(artioAnchorOverlay);
         mouseManager.registerMouseListener(mountButton);
         keyManager.registerKeyListener(mountHotkey);
+    }
+
+    /** Upgrade the first Araxxor preview's deliberately blank animation IDs. */
+    private void migrateAraxxorAnimationDefaults()
+    {
+        final String migrationKey = "araxxorAnimationDefaultsApplied";
+        if (configManager.getConfiguration(
+            RapidUrsaMountsConfig.GROUP, migrationKey) != null)
+        {
+            return;
+        }
+        String idle = configManager.getConfiguration(
+            RapidUrsaMountsConfig.GROUP, "araxxorIdleAnimation");
+        String walking = configManager.getConfiguration(
+            RapidUrsaMountsConfig.GROUP, "araxxorWalkAnimation");
+        if ("-1".equals(idle))
+        {
+            configManager.setConfiguration(
+                RapidUrsaMountsConfig.GROUP, "araxxorIdleAnimation", 11473);
+        }
+        if ("-1".equals(walking))
+        {
+            configManager.setConfiguration(
+                RapidUrsaMountsConfig.GROUP, "araxxorWalkAnimation", 11474);
+        }
+        configManager.setConfiguration(
+            RapidUrsaMountsConfig.GROUP, migrationKey, true);
     }
 
     /**
@@ -357,6 +404,7 @@ public class RapidUrsaMountsPlugin extends Plugin
     @Override
     protected void shutDown()
     {
+        setHolsterHandoff(false);
         mountedRenderReady = false;
         hooks.unregisterRenderableDrawListener(drawListener);
         if (stableNavigation != null)
@@ -404,7 +452,8 @@ public class RapidUrsaMountsPlugin extends Plugin
             || "lavaDragonScale".equals(event.getKey())
             || "gryphonScale".equals(event.getKey())
             || "artioNpcId".equals(event.getKey())
-            || "artioScale".equals(event.getKey()))
+            || "artioScale".equals(event.getKey())
+            || "araxxorScale".equals(event.getKey()))
         {
             despawn();
         }
@@ -566,6 +615,13 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             actionResumeTicks--;
         }
+        if (holsterHandedOff)
+        {
+            // Expiring the handoff lets Holster recover if Mounts is stopped
+            // unexpectedly before it can remove its transient flag.
+            configManager.setConfiguration(RapidUrsaMountsConfig.GROUP,
+                "mountedHolsterActive", System.currentTimeMillis());
+        }
     }
 
     void toggleMounted()
@@ -590,14 +646,23 @@ public class RapidUrsaMountsPlugin extends Plugin
         mountedRenderReady = false;
         if (!mounted || !config.enabled() || client.getGameState() != GameState.LOGGED_IN)
         {
+            setHolsterHandoff(false);
+            if (mountedHolsterRenderer != null) mountedHolsterRenderer.clear();
             return;
         }
 
         Player player = client.getLocalPlayer();
         if (player == null || player.getLocalLocation() == null)
         {
+            setHolsterHandoff(false);
             return;
         }
+
+        // Claim the weapon before either plugin draws this frame. Holster's
+        // on-foot object must not remain active while the mounted rider moves.
+        boolean mountedHolsterActive = config.mountedHolster()
+            && holsterSettings.holstered() && isMountedHolsterCompatible();
+        setHolsterHandoff(mountedHolsterActive);
 
         if (config.pauseForActions())
         {
@@ -616,6 +681,7 @@ public class RapidUrsaMountsPlugin extends Plugin
 
         if (!ensureObjects())
         {
+            setHolsterHandoff(false);
             return;
         }
 
@@ -726,10 +792,12 @@ public class RapidUrsaMountsPlugin extends Plugin
             int wantedAnimation = currentWalkOrIdleAnimation(moving);
             if (wantedAnimation != activeUnicornAnimation)
             {
-                unicorn.setAnimationController(loopingMountAnimation(wantedAnimation));
+                unicorn.setAnimationController(wantedAnimation < 0
+                    ? null : loopingMountAnimation(wantedAnimation));
                 for (RuneLiteObject part : mountParts)
                 {
-                    part.setAnimationController(loopingAnimation(wantedAnimation));
+                    part.setAnimationController(wantedAnimation < 0
+                        ? null : loopingAnimation(wantedAnimation));
                 }
                 activeUnicornAnimation = wantedAnimation;
             }
@@ -751,6 +819,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         else if (config.mountType() == MountType.ARTIO && saddle != null)
         {
             updateArtioArmour();
+        }
+        if (config.mountType() == MountType.ARAXXOR)
+        {
+            updateAraxxorRiderAnchor();
         }
 
         if (saddle != null && saddleMotionModels != null)
@@ -822,6 +894,14 @@ public class RapidUrsaMountsPlugin extends Plugin
                     riderSideways += currentGryphonSeatSideways;
                     riderHeight += currentGryphonSeatHeight;
                 }
+                if (config.mountType() == MountType.ARAXXOR)
+                {
+                    // Follow a cluster of animated back vertices instead of
+                    // approximating the spider's motion with a sine wave.
+                    riderForward += currentAraxxorSeatForward;
+                    riderSideways += currentAraxxorSeatSideways;
+                    riderHeight += currentAraxxorSeatHeight;
+                }
                 if (config.mountType() != MountType.BLACK_UNICORN
                     && config.mountType() != MountType.GRYPHON && moving)
                 {
@@ -845,6 +925,17 @@ public class RapidUrsaMountsPlugin extends Plugin
                 rider.setLocation(riderPoint, plane);
                 rider.setZ(Perspective.getTileHeight(client, riderPoint, plane) - riderHeight);
                 rider.setOrientation(orientation);
+
+                if (mountedHolsterActive)
+                {
+                    mountedHolsterRenderer.refresh(player, riderPoint, plane,
+                        orientation, Perspective.getTileHeight(client, riderPoint, plane) - riderHeight,
+                        mountedHolsterSideways(), mountedHolsterHeight(), mountedHolsterForward());
+                }
+                else
+                {
+                    mountedHolsterRenderer.clear();
+                }
 
                 if (config.ridingPose() != null)
                 {
@@ -905,6 +996,11 @@ public class RapidUrsaMountsPlugin extends Plugin
             deactivate(rider);
             mountedRenderReady = false;
         }
+        if (!mountedRenderReady && mountedHolsterRenderer != null)
+        {
+            mountedHolsterRenderer.clear();
+        }
+        setHolsterHandoff(mountedHolsterActive);
         // Fitted tack is automatic for each approved mount/style combination.
         if ((config.mountType() == MountType.BLACK_UNICORN
                 && isWidePose())
@@ -2741,6 +2837,99 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
     }
 
+    /**
+     * RuneLite objects do not parent one object to another object's bones.
+     * Track a small cluster of vertices nearest Araxxor's fitted seat and
+     * apply their animated delta to the independently rendered rider instead.
+     * Averaging several nearby vertices avoids the jitter a single triangle
+     * vertex can introduce while retaining the real idle and walking motion.
+     */
+    private void updateAraxxorRiderAnchor()
+    {
+        Model mountModel = unicorn == null ? null : unicorn.getModel();
+        if (mountModel == null || mountModel.getVerticesCount() == 0)
+        {
+            return;
+        }
+
+        int vertexCount = mountModel.getVerticesCount();
+        if (araxxorRiderAnchorVertices == null
+            || araxxorRiderAnchorVertices.length == 0
+            || araxxorRiderAnchorVertices[araxxorRiderAnchorVertices.length - 1] >= vertexCount)
+        {
+            final int wantedCount = Math.min(12, vertexCount);
+            int[] nearest = new int[wantedCount];
+            double[] distances = new double[wantedCount];
+            java.util.Arrays.fill(nearest, -1);
+            java.util.Arrays.fill(distances, Double.MAX_VALUE);
+
+            float[] x = mountModel.getVerticesX();
+            float[] y = mountModel.getVerticesY();
+            float[] z = mountModel.getVerticesZ();
+            float wantedX = config.araxxorRiderSideways();
+            float wantedY = -config.araxxorRiderHeight();
+            float wantedZ = -config.araxxorRiderForward();
+            for (int vertex = 0; vertex < vertexCount; vertex++)
+            {
+                double dx = x[vertex] - wantedX;
+                double dy = y[vertex] - wantedY;
+                double dz = z[vertex] - wantedZ;
+                double distance = dx * dx + dy * dy + dz * dz;
+                for (int slot = 0; slot < wantedCount; slot++)
+                {
+                    if (distance < distances[slot])
+                    {
+                        for (int shift = wantedCount - 1; shift > slot; shift--)
+                        {
+                            distances[shift] = distances[shift - 1];
+                            nearest[shift] = nearest[shift - 1];
+                        }
+                        distances[slot] = distance;
+                        nearest[slot] = vertex;
+                        break;
+                    }
+                }
+            }
+            araxxorRiderAnchorVertices = nearest;
+            baseAraxxorRiderAnchor = null;
+        }
+
+        float[] x = mountModel.getVerticesX();
+        float[] y = mountModel.getVerticesY();
+        float[] z = mountModel.getVerticesZ();
+        double totalX = 0;
+        double totalY = 0;
+        double totalZ = 0;
+        int count = 0;
+        for (int vertex : araxxorRiderAnchorVertices)
+        {
+            if (vertex >= 0 && vertex < vertexCount)
+            {
+                totalX += x[vertex];
+                totalY += y[vertex];
+                totalZ += z[vertex];
+                count++;
+            }
+        }
+        if (count == 0)
+        {
+            return;
+        }
+
+        int[] anchor = {
+            (int) Math.round(totalX / count),
+            (int) Math.round(totalY / count),
+            (int) Math.round(totalZ / count)
+        };
+        if (baseAraxxorRiderAnchor == null)
+        {
+            baseAraxxorRiderAnchor = anchor.clone();
+        }
+        currentAraxxorSeatSideways = anchor[0] - baseAraxxorRiderAnchor[0];
+        currentAraxxorSeatHeight = -(anchor[1] - baseAraxxorRiderAnchor[1]);
+        currentAraxxorSeatForward = anchor[2] - baseAraxxorRiderAnchor[2];
+    }
+
     private static int addSaddleArch(
         float[] x,
         float[] y,
@@ -3390,8 +3579,7 @@ public class RapidUrsaMountsPlugin extends Plugin
     private Model buildUnscaledPostScaleMountModel()
     {
         int npcId = config.mountType() == MountType.ARTIO
-            ? config.artioNpcId()
-            : GRYPHON_NPC_ID;
+            ? config.artioNpcId() : GRYPHON_NPC_ID;
         NPCComposition composition = client.getNpcDefinition(npcId);
         int[] ids = composition == null ? null : composition.getModels();
         if (ids == null || ids.length == 0)
@@ -3500,6 +3688,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             npcId = config.artioNpcId();
         }
+        else if (config.mountType() == MountType.ARAXXOR)
+        {
+            npcId = ARAXXOR_NPC_ID;
+        }
         NPCComposition composition = client.getNpcDefinition(npcId);
         int[] ids = null;
         if (composition != null)
@@ -3592,6 +3784,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             return moving ? config.artioWalkAnimation() : config.artioIdleAnimation();
         }
+        if (config.mountType() == MountType.ARAXXOR)
+        {
+            return moving ? config.araxxorWalkAnimation() : config.araxxorIdleAnimation();
+        }
         return moving ? AnimationID.UNICORN_REWORK_WALK : AnimationID.UNICORN_REWORK_READY;
     }
 
@@ -3611,8 +3807,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
 
         int npcId = config.mountType() == MountType.ARTIO
-            ? config.artioNpcId()
-            : GRYPHON_NPC_ID;
+            ? config.artioNpcId() : GRYPHON_NPC_ID;
         NPCComposition composition = client.getNpcDefinition(npcId);
         int widthBase = composition == null ? 128 : composition.getWidthScale();
         int heightBase = composition == null ? 128 : composition.getHeightScale();
@@ -3659,7 +3854,8 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (config.mountType() == MountType.GRYPHON
             || config.mountType() == MountType.BATTLE_TURTLE
-            || config.mountType() == MountType.ARTIO)
+            || config.mountType() == MountType.ARTIO
+            || config.mountType() == MountType.ARAXXOR)
         {
             return 0;
         }
@@ -3689,7 +3885,8 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentSeatBounce()
     {
-        if (config.mountType() == MountType.GRYPHON)
+        if (config.mountType() == MountType.GRYPHON
+            || config.mountType() == MountType.ARAXXOR)
         {
             return 0;
         }
@@ -3725,6 +3922,10 @@ public class RapidUrsaMountsPlugin extends Plugin
             return 0;
         }
         if (config.mountType() == MountType.ARTIO)
+        {
+            return 0;
+        }
+        if (config.mountType() == MountType.ARAXXOR)
         {
             return 0;
         }
@@ -3785,6 +3986,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         else if (config.mountType() == MountType.ARTIO)
         {
             return currentTurtleBob(config.artioIdleBounce(), config.artioIdleBobTiming());
+        }
+        else if (config.mountType() == MountType.ARAXXOR)
+        {
+            return currentTurtleBob(config.araxxorIdleBounce(), 0);
         }
         else
         {
@@ -3852,6 +4057,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (config.mountType() == MountType.ARTIO)
         {
             return config.artioScale();
+        }
+        if (config.mountType() == MountType.ARAXXOR)
+        {
+            return config.araxxorScale();
         }
         return config.mountScale();
     }
@@ -4059,6 +4268,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentExtraWideRiderHeight()
     {
+        if (config.mountType() == MountType.ARAXXOR)
+        {
+            return config.araxxorRiderHeight();
+        }
         switch (config.mountType())
         {
             case TERRORBIRD: return config.terrorbirdExtraWideRiderHeight();
@@ -4073,6 +4286,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentExtraWideRiderForward()
     {
+        if (config.mountType() == MountType.ARAXXOR)
+        {
+            return config.araxxorRiderForward();
+        }
         switch (config.mountType())
         {
             case TERRORBIRD: return config.terrorbirdExtraWideRiderForward();
@@ -4087,6 +4304,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentExtraWideRiderSideways()
     {
+        if (config.mountType() == MountType.ARAXXOR)
+        {
+            return config.araxxorRiderSideways();
+        }
         switch (config.mountType())
         {
             case TERRORBIRD: return config.terrorbirdExtraWideRiderSideways();
@@ -4101,6 +4322,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentWalkHeightAdjustment()
     {
+        if (config.mountType() == MountType.ARAXXOR)
+        {
+            return config.araxxorWalkHeight();
+        }
         if (config.mountType() == MountType.BATTLE_TURTLE)
         {
             return config.battleTurtleWalkHeightAdjustment();
@@ -4128,6 +4353,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentWalkForwardAdjustment()
     {
+        if (config.mountType() == MountType.ARAXXOR)
+        {
+            return config.araxxorWalkForward();
+        }
         if (config.mountType() == MountType.BATTLE_TURTLE)
         {
             return config.battleTurtleWalkForwardAdjustment();
@@ -4281,6 +4510,117 @@ public class RapidUrsaMountsPlugin extends Plugin
         return mounted && config.mountType() == MountType.ARTIO ? unicorn : null;
     }
 
+    private int mountedHolsterSideways()
+    {
+        if (config.mountType() == MountType.BLACK_UNICORN && config.ridingPose() == RidingPose.STANDARD)
+            return config.unicornStandardMountedHolsterSideways();
+        if (config.mountType() == MountType.TERRORBIRD && config.ridingPose() == RidingPose.WIDE)
+            return config.terrorbirdWideMountedHolsterSideways();
+        if (config.mountType() == MountType.LAVA_DRAGON && config.ridingPose() == RidingPose.CROSS_LEGGED)
+            return config.lavaDragonCrossleggedMountedHolsterSideways();
+        if (config.mountType() == MountType.ARTIO && config.ridingPose() == RidingPose.STANDARD)
+            return config.artioStandardMountedHolsterSideways();
+        if (config.mountType() == MountType.ARTIO && config.ridingPose() == RidingPose.NO_SADDLE)
+            return config.artioNoSaddleMountedHolsterSideways();
+        switch (config.mountType())
+        {
+            case BLACK_UNICORN: return config.unicornMountedHolsterSideways();
+            case TERRORBIRD: return config.terrorbirdMountedHolsterSideways();
+            case LAVA_DRAGON: return config.lavaDragonMountedHolsterSideways();
+            case GRYPHON: return config.gryphonMountedHolsterSideways();
+            case BATTLE_TURTLE: return config.battleTurtleMountedHolsterSideways();
+            case ARTIO: return config.artioMountedHolsterSideways();
+            case ARAXXOR: return config.araxxorMountedHolsterSideways();
+            default: return 0;
+        }
+    }
+
+    private int mountedHolsterHeight()
+    {
+        if (config.mountType() == MountType.BLACK_UNICORN && config.ridingPose() == RidingPose.STANDARD)
+            return config.unicornStandardMountedHolsterHeight();
+        if (config.mountType() == MountType.TERRORBIRD && config.ridingPose() == RidingPose.WIDE)
+            return config.terrorbirdWideMountedHolsterHeight();
+        if (config.mountType() == MountType.LAVA_DRAGON && config.ridingPose() == RidingPose.CROSS_LEGGED)
+            return config.lavaDragonCrossleggedMountedHolsterHeight();
+        if (config.mountType() == MountType.ARTIO && config.ridingPose() == RidingPose.STANDARD)
+            return config.artioStandardMountedHolsterHeight();
+        if (config.mountType() == MountType.ARTIO && config.ridingPose() == RidingPose.NO_SADDLE)
+            return config.artioNoSaddleMountedHolsterHeight();
+        switch (config.mountType())
+        {
+            case BLACK_UNICORN: return config.unicornMountedHolsterHeight();
+            case TERRORBIRD: return config.terrorbirdMountedHolsterHeight();
+            case LAVA_DRAGON: return config.lavaDragonMountedHolsterHeight();
+            case GRYPHON: return config.gryphonMountedHolsterHeight();
+            case BATTLE_TURTLE: return config.battleTurtleMountedHolsterHeight();
+            case ARTIO: return config.artioMountedHolsterHeight();
+            case ARAXXOR: return config.araxxorMountedHolsterHeight();
+            default: return -55;
+        }
+    }
+
+    private int mountedHolsterForward()
+    {
+        if (config.mountType() == MountType.BLACK_UNICORN && config.ridingPose() == RidingPose.STANDARD)
+            return config.unicornStandardMountedHolsterForward();
+        if (config.mountType() == MountType.TERRORBIRD && config.ridingPose() == RidingPose.WIDE)
+            return config.terrorbirdWideMountedHolsterForward();
+        if (config.mountType() == MountType.LAVA_DRAGON && config.ridingPose() == RidingPose.CROSS_LEGGED)
+            return config.lavaDragonCrossleggedMountedHolsterForward();
+        if (config.mountType() == MountType.ARTIO && config.ridingPose() == RidingPose.STANDARD)
+            return config.artioStandardMountedHolsterForward();
+        if (config.mountType() == MountType.ARTIO && config.ridingPose() == RidingPose.NO_SADDLE)
+            return config.artioNoSaddleMountedHolsterForward();
+        switch (config.mountType())
+        {
+            case BLACK_UNICORN: return config.unicornMountedHolsterForward();
+            case TERRORBIRD: return config.terrorbirdMountedHolsterForward();
+            case LAVA_DRAGON: return config.lavaDragonMountedHolsterForward();
+            case GRYPHON: return config.gryphonMountedHolsterForward();
+            case BATTLE_TURTLE: return config.battleTurtleMountedHolsterForward();
+            case ARTIO: return config.artioMountedHolsterForward();
+            case ARAXXOR: return config.araxxorMountedHolsterForward();
+            default: return 0;
+        }
+    }
+
+    /** Only the companion Holster preview advertises mounted handoff support. */
+    private boolean isMountedHolsterCompatible()
+    {
+        String heartbeat = configManager.getConfiguration(
+            "rapidholster", "mountedHandoffSupported");
+        if (heartbeat == null) return false;
+        try
+        {
+            long age = System.currentTimeMillis() - Long.parseLong(heartbeat);
+            return age >= 0 && age < 2000;
+        }
+        catch (NumberFormatException ignored)
+        {
+            return false;
+        }
+    }
+
+    /** Tiny config bridge: both plugins can run independently and share no Java classes. */
+    private void setHolsterHandoff(boolean active)
+    {
+        if (holsterHandedOff == active && (active
+            || configManager.getConfiguration(RapidUrsaMountsConfig.GROUP,
+                "mountedHolsterActive") == null)) return;
+        holsterHandedOff = active;
+        if (active)
+        {
+            configManager.setConfiguration(RapidUrsaMountsConfig.GROUP,
+                "mountedHolsterActive", System.currentTimeMillis());
+        }
+        else
+        {
+            configManager.unsetConfiguration(RapidUrsaMountsConfig.GROUP,
+                "mountedHolsterActive");
+        }
+    }
+
     private static void activate(RuneLiteObject object)
     {
         if (object != null && !object.isActive())
@@ -4300,6 +4640,8 @@ public class RapidUrsaMountsPlugin extends Plugin
     private void suspendCosmetics()
     {
         mountedRenderReady = false;
+        setHolsterHandoff(false);
+        if (mountedHolsterRenderer != null) mountedHolsterRenderer.clear();
         deactivate(rider);
         deactivate(unicorn);
         deactivate(saddle);
@@ -4323,6 +4665,8 @@ public class RapidUrsaMountsPlugin extends Plugin
     private void despawn()
     {
         mountedRenderReady = false;
+        setHolsterHandoff(false);
+        if (mountedHolsterRenderer != null) mountedHolsterRenderer.clear();
         deactivate(rider);
         deactivate(unicorn);
         deactivate(saddle);
@@ -4344,6 +4688,11 @@ public class RapidUrsaMountsPlugin extends Plugin
         currentGryphonSeatForward = 0;
         currentGryphonSeatSideways = 0;
         currentGryphonSeatHeight = 0;
+        araxxorRiderAnchorVertices = null;
+        baseAraxxorRiderAnchor = null;
+        currentAraxxorSeatForward = 0;
+        currentAraxxorSeatSideways = 0;
+        currentAraxxorSeatHeight = 0;
         baseArtioArmourAnchors = null;
         lastArtioArmourAnchors = null;
         artioReinHeadVertices[0] = -1;

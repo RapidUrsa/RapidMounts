@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.0.0 — Araxxor and mounted holster crossover
+
+- Add Araxxor with skeleton-anchored rider, idle and walk animations, sidebar preview, and Eek quick summon.
+- Support mounted Rapid Holster weapons with positioning per mount and pose.
+- Preserve the existing mounts, poses, and saddles.
+
+
+## 2.0.0-alpha.3 — Araxxor skeleton-lock test
+
+- Baked in Araxxor idle animation 11473 and walking animation 11474.
+- Anchored the rider to a twelve-vertex cluster around Araxxor's animated back.
+- Applied the live skeleton's forward, sideways and height deltas to the rider in both animations.
+- Migrated the first preview's saved -1 animation values to the verified IDs once.
+
+## 2.0.0-alpha.2 — Araxxor test preview
+
+- Added Araxxor (NPC 13668) as the seventh cosmetic mount with an Extra Wide bareback pose.
+- Added Araxxor scale, rider fit and idle/walk animation controls for an in-game tuning pass.
+- Added a temporary drawn spider preview and toggle icon.
+- Updated the experimental mounted Holster placements to match Rapid Holster v2 and gated the crossover behind a compatible companion handoff.
+- Araxxor animations are not baked in yet; idle and walk IDs default to -1 pending verification.
+
 ## 1.9.0
 
 - Removed Extra Wide from the approved Terrorbird and Lava Dragon pose lists.

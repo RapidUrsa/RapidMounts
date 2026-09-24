@@ -19,6 +19,7 @@ public interface RapidUrsaMountsConfig extends Config
     String GRYPHON = "gryphon";
     String BATTLE_TURTLE = "battleTurtle";
     String ARTIO = "artio";
+    String ARAXXOR = "araxxor";
     // Keep the existing constant as an alias so saved saddle keys retain
     // their identity while the controls live inside Black unicorn settings.
     String SADDLE = UNICORN;
@@ -46,6 +47,56 @@ public interface RapidUrsaMountsConfig extends Config
 
     @ConfigSection(name = "Battle Bear", description = "Battle Bear model, animation, motion, and rider fitting", position = 7, closedByDefault = true)
     String artioSection = ARTIO;
+
+    @ConfigSection(name = "Araxxor", description = "Initial Araxxor model, animation, and rider fitting", position = 8, closedByDefault = true)
+    String araxxorSection = ARAXXOR;
+
+    @Range(min = 30, max = 180)
+    @ConfigItem(keyName = "araxxorScale", name = "Araxxor scale (%)",
+        description = "Size of the live Araxxor model", section = ARAXXOR)
+    default int araxxorScale() { return 70; }
+
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "araxxorIdleAnimation", name = "Araxxor idle animation",
+        description = "Live Araxxor idle animation ID",
+        section = ARAXXOR)
+    default int araxxorIdleAnimation() { return 11473; }
+
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "araxxorWalkAnimation", name = "Araxxor walk animation",
+        description = "Live Araxxor walking animation ID",
+        section = ARAXXOR)
+    default int araxxorWalkAnimation() { return 11474; }
+
+    @Range(min = -400, max = 400)
+    @ConfigItem(keyName = "araxxorRiderForward", name = "Rider forward/back",
+        description = "Move the seated rider toward the head or tail", section = ARAXXOR)
+    default int araxxorRiderForward() { return -20; }
+
+    @Range(min = -400, max = 400)
+    @ConfigItem(keyName = "araxxorRiderHeight", name = "Rider height",
+        description = "Raise or lower the seated rider", section = ARAXXOR)
+    default int araxxorRiderHeight() { return 110; }
+
+    @Range(min = -200, max = 200)
+    @ConfigItem(keyName = "araxxorRiderSideways", name = "Rider sideways",
+        description = "Move the seated rider across Araxxor's back", section = ARAXXOR)
+    default int araxxorRiderSideways() { return 0; }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(keyName = "araxxorWalkForward", name = "Walking rider forward",
+        description = "Additional rider forward/back offset while moving", section = ARAXXOR)
+    default int araxxorWalkForward() { return 0; }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(keyName = "araxxorWalkHeight", name = "Walking rider height",
+        description = "Additional rider height while moving", section = ARAXXOR)
+    default int araxxorWalkHeight() { return 0; }
+
+    @Range(min = 0, max = 40)
+    @ConfigItem(keyName = "araxxorIdleBounce", name = "Idle rider bob",
+        description = "Rider bounce while Araxxor is idle", section = ARAXXOR)
+    default int araxxorIdleBounce() { return 0; }
 
     @ConfigItem(
         keyName = "showSaddleAndReins",
@@ -434,6 +485,269 @@ public interface RapidUrsaMountsConfig extends Config
     {
         return true;
     }
+
+    @ConfigItem(
+        keyName = "mountedHolster",
+        name = "Rapid Holster while mounted",
+        description = "Show equipped gear on the seated rider when a compatible Rapid Holster crossover build is running",
+        section = RIDER
+    )
+    default boolean mountedHolster()
+    {
+        return true;
+    }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "unicornMountedHolsterSideways",
+        name = "Wide holster sideways",
+        description = "Move mounted gear left or right without changing on-foot placement",
+        section = UNICORN)
+    default int unicornMountedHolsterSideways() { return 0; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "unicornMountedHolsterHeight",
+        name = "Wide holster height",
+        description = "Move mounted gear up or down; negative lowers without changing on-foot placement",
+        section = UNICORN)
+    default int unicornMountedHolsterHeight() { return -17; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "unicornMountedHolsterForward",
+        name = "Wide holster forward",
+        description = "Move mounted gear forward or back without changing on-foot placement",
+        section = UNICORN)
+    default int unicornMountedHolsterForward() { return 0; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "terrorbirdMountedHolsterSideways",
+        name = "Standard holster sideways",
+        description = "Move mounted gear left or right without changing on-foot placement",
+        section = TERRORBIRD)
+    default int terrorbirdMountedHolsterSideways() { return -8; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "terrorbirdMountedHolsterHeight",
+        name = "Standard holster height",
+        description = "Move mounted gear up or down; negative lowers without changing on-foot placement",
+        section = TERRORBIRD)
+    default int terrorbirdMountedHolsterHeight() { return -36; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "terrorbirdMountedHolsterForward",
+        name = "Standard holster forward",
+        description = "Move mounted gear forward or back without changing on-foot placement",
+        section = TERRORBIRD)
+    default int terrorbirdMountedHolsterForward() { return 9; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "lavaDragonMountedHolsterSideways",
+        name = "Standard holster sideways",
+        description = "Move mounted gear left or right without changing on-foot placement",
+        section = LAVA_DRAGON)
+    default int lavaDragonMountedHolsterSideways() { return 0; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "lavaDragonMountedHolsterHeight",
+        name = "Standard holster height",
+        description = "Move mounted gear up or down; negative lowers without changing on-foot placement",
+        section = LAVA_DRAGON)
+    default int lavaDragonMountedHolsterHeight() { return -40; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "lavaDragonMountedHolsterForward",
+        name = "Standard holster forward",
+        description = "Move mounted gear forward or back without changing on-foot placement",
+        section = LAVA_DRAGON)
+    default int lavaDragonMountedHolsterForward() { return 12; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "gryphonMountedHolsterSideways",
+        name = "Standard holster sideways",
+        description = "Move mounted gear left or right without changing on-foot placement",
+        section = GRYPHON)
+    default int gryphonMountedHolsterSideways() { return 0; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "gryphonMountedHolsterHeight",
+        name = "Standard holster height",
+        description = "Move mounted gear up or down; negative lowers without changing on-foot placement",
+        section = GRYPHON)
+    default int gryphonMountedHolsterHeight() { return -34; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "gryphonMountedHolsterForward",
+        name = "Standard holster forward",
+        description = "Move mounted gear forward or back without changing on-foot placement",
+        section = GRYPHON)
+    default int gryphonMountedHolsterForward() { return 8; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "battleTurtleMountedHolsterSideways",
+        name = "Cross-legged holster sideways",
+        description = "Move mounted gear left or right without changing on-foot placement",
+        section = BATTLE_TURTLE)
+    default int battleTurtleMountedHolsterSideways() { return 0; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "battleTurtleMountedHolsterHeight",
+        name = "Cross-legged holster height",
+        description = "Move mounted gear up or down; negative lowers without changing on-foot placement",
+        section = BATTLE_TURTLE)
+    default int battleTurtleMountedHolsterHeight() { return -89; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "battleTurtleMountedHolsterForward",
+        name = "Cross-legged holster forward",
+        description = "Move mounted gear forward or back without changing on-foot placement",
+        section = BATTLE_TURTLE)
+    default int battleTurtleMountedHolsterForward() { return 11; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioMountedHolsterSideways",
+        name = "Extra Wide holster sideways",
+        description = "Move mounted gear left or right without changing on-foot placement",
+        section = ARTIO)
+    default int artioMountedHolsterSideways() { return 0; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioMountedHolsterHeight",
+        name = "Extra Wide holster height",
+        description = "Move mounted gear up or down; negative lowers without changing on-foot placement",
+        section = ARTIO)
+    default int artioMountedHolsterHeight() { return -55; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioMountedHolsterForward",
+        name = "Extra Wide holster forward",
+        description = "Move mounted gear forward or back without changing on-foot placement",
+        section = ARTIO)
+    default int artioMountedHolsterForward() { return 25; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "araxxorMountedHolsterSideways",
+        name = "Extra Wide holster sideways",
+        description = "Move mounted gear left or right without changing on-foot placement",
+        section = ARAXXOR)
+    default int araxxorMountedHolsterSideways() { return 0; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "araxxorMountedHolsterHeight",
+        name = "Extra Wide holster height",
+        description = "Move mounted gear up or down; negative lowers without changing on-foot placement",
+        section = ARAXXOR)
+    default int araxxorMountedHolsterHeight() { return -55; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "araxxorMountedHolsterForward",
+        name = "Extra Wide holster forward",
+        description = "Move mounted gear forward or back without changing on-foot placement",
+        section = ARAXXOR)
+    default int araxxorMountedHolsterForward() { return 28; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "unicornStandardMountedHolsterSideways",
+        name = "Standard holster sideways",
+        description = "Move Unicorn's Standard mounted gear left or right; on-foot settings are unaffected",
+        section = UNICORN)
+    default int unicornStandardMountedHolsterSideways() { return 0; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "unicornStandardMountedHolsterHeight",
+        name = "Standard holster height",
+        description = "Move Unicorn's Standard mounted gear up or down; negative lowers; on-foot settings are unaffected",
+        section = UNICORN)
+    default int unicornStandardMountedHolsterHeight() { return -29; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "unicornStandardMountedHolsterForward",
+        name = "Standard holster forward",
+        description = "Move Unicorn's Standard mounted gear forward or back; on-foot settings are unaffected",
+        section = UNICORN)
+    default int unicornStandardMountedHolsterForward() { return 12; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "terrorbirdWideMountedHolsterSideways",
+        name = "Wide holster sideways",
+        description = "Move Terrorbird's Wide mounted gear left or right; on-foot settings are unaffected",
+        section = TERRORBIRD)
+    default int terrorbirdWideMountedHolsterSideways() { return 0; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "terrorbirdWideMountedHolsterHeight",
+        name = "Wide holster height",
+        description = "Move Terrorbird's Wide mounted gear up or down; negative lowers; on-foot settings are unaffected",
+        section = TERRORBIRD)
+    default int terrorbirdWideMountedHolsterHeight() { return -13; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "terrorbirdWideMountedHolsterForward",
+        name = "Wide holster forward",
+        description = "Move Terrorbird's Wide mounted gear forward or back; on-foot settings are unaffected",
+        section = TERRORBIRD)
+    default int terrorbirdWideMountedHolsterForward() { return -5; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "lavaDragonCrossleggedMountedHolsterSideways",
+        name = "Cross-legged holster sideways",
+        description = "Move Lava dragon's Cross-legged mounted gear left or right; on-foot settings are unaffected",
+        section = LAVA_DRAGON)
+    default int lavaDragonCrossleggedMountedHolsterSideways() { return 0; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "lavaDragonCrossleggedMountedHolsterHeight",
+        name = "Cross-legged holster height",
+        description = "Move Lava dragon's Cross-legged mounted gear up or down; negative lowers; on-foot settings are unaffected",
+        section = LAVA_DRAGON)
+    default int lavaDragonCrossleggedMountedHolsterHeight() { return -93; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "lavaDragonCrossleggedMountedHolsterForward",
+        name = "Cross-legged holster forward",
+        description = "Move Lava dragon's Cross-legged mounted gear forward or back; on-foot settings are unaffected",
+        section = LAVA_DRAGON)
+    default int lavaDragonCrossleggedMountedHolsterForward() { return 5; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioStandardMountedHolsterSideways",
+        name = "Standard holster sideways",
+        description = "Move Battle Bear's Standard mounted gear left or right; on-foot settings are unaffected",
+        section = ARTIO)
+    default int artioStandardMountedHolsterSideways() { return 0; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioStandardMountedHolsterHeight",
+        name = "Standard holster height",
+        description = "Move Battle Bear's Standard mounted gear up or down; negative lowers; on-foot settings are unaffected",
+        section = ARTIO)
+    default int artioStandardMountedHolsterHeight() { return -41; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioStandardMountedHolsterForward",
+        name = "Standard holster forward",
+        description = "Move Battle Bear's Standard mounted gear forward or back; on-foot settings are unaffected",
+        section = ARTIO)
+    default int artioStandardMountedHolsterForward() { return 10; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioNoSaddleMountedHolsterSideways",
+        name = "No Saddle holster sideways",
+        description = "Move Battle Bear's No Saddle mounted gear left or right; on-foot settings are unaffected",
+        section = ARTIO)
+    default int artioNoSaddleMountedHolsterSideways() { return 0; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioNoSaddleMountedHolsterHeight",
+        name = "No Saddle holster height",
+        description = "Move Battle Bear's No Saddle mounted gear up or down; negative lowers; on-foot settings are unaffected",
+        section = ARTIO)
+    default int artioNoSaddleMountedHolsterHeight() { return -55; }
+
+    @Range(min = -150, max = 150)
+    @ConfigItem(keyName = "artioNoSaddleMountedHolsterForward",
+        name = "No Saddle holster forward",
+        description = "Move Battle Bear's No Saddle mounted gear forward or back; on-foot settings are unaffected",
+        section = ARTIO)
+    default int artioNoSaddleMountedHolsterForward() { return 27; }
 
     @ConfigItem(
         keyName = "hideCape",

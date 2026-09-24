@@ -60,6 +60,7 @@ final class MountStablePanel extends PluginPanel
         BufferedImage gryphon = loadPreview("gryphon-preview.png");
         BufferedImage battleTurtle = loadPreview("battle-turtle-preview.png");
         BufferedImage artio = loadPreview("artio-preview.png");
+        BufferedImage araxxor = loadPreview("araxxor-preview.png");
         sidebarIcon = createHorseshoeSidebarIcon();
 
         setLayout(new BorderLayout());
@@ -91,6 +92,7 @@ final class MountStablePanel extends PluginPanel
         cards.add(createMountButton(MountType.ARTIO, artio));
         cards.add(createMountButton(MountType.LAVA_DRAGON, lavaDragon));
         cards.add(createMountButton(MountType.BATTLE_TURTLE, battleTurtle));
+        cards.add(createMountButton(MountType.ARAXXOR, araxxor));
         content.add(cards);
         content.add(Box.createRigidArea(new Dimension(0, 14)));
 

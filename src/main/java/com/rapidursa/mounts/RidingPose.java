@@ -37,6 +37,8 @@ public enum RidingPose
                 return new RidingPose[]{CROSS_LEGGED};
             case ARTIO:
                 return new RidingPose[]{STANDARD, EXTRA_WIDE, NO_SADDLE};
+            case ARAXXOR:
+                return new RidingPose[]{EXTRA_WIDE};
             default:
                 return new RidingPose[]{STANDARD};
         }
@@ -48,7 +50,7 @@ public enum RidingPose
         {
             return WIDE;
         }
-        if (mount == MountType.ARTIO)
+        if (mount == MountType.ARTIO || mount == MountType.ARAXXOR)
         {
             return EXTRA_WIDE;
         }

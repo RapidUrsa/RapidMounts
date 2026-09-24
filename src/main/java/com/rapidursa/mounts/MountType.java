@@ -7,7 +7,8 @@ public enum MountType
     LAVA_DRAGON("Lava dragon"),
     GRYPHON("Gryphon"),
     BATTLE_TURTLE("Battle turtle"),
-    ARTIO("Battle Bear");
+    ARTIO("Battle Bear"),
+    ARAXXOR("Araxxor");
 
     private final String displayName;
 
