@@ -44,7 +44,7 @@ import net.runelite.client.util.HotkeyListener;
 @PluginDescriptor(
     name = "Rapid Mounts",
     description = "Ride client-side cosmetic mounts",
-    tags = {"mount", "unicorn", "terrorbird", "dragon", "gryphon", "turtle", "artio", "bear", "araxxor", "cosmetic", "transmog"}
+    tags = {"mount", "unicorn", "terrorbird", "dragon", "gryphon", "turtle", "artio", "bear", "araxxor", "vorkath", "cosmetic", "transmog"}
 )
 public class RapidUrsaMountsPlugin extends Plugin
 {
@@ -181,6 +181,11 @@ public class RapidUrsaMountsPlugin extends Plugin
     private int currentAraxxorSeatForward;
     private int currentAraxxorSeatSideways;
     private int currentAraxxorSeatHeight;
+    private int[] vorkathRiderAnchorVertices;
+    private int[] baseVorkathRiderAnchor;
+    private int currentVorkathSeatForward;
+    private int currentVorkathSeatSideways;
+    private int currentVorkathSeatHeight;
     private Model[] saddleMotionModels;
     private int activeSaddleMotionFrame = -1;
     private final List<RuneLiteObject> mountParts = new ArrayList<>();
@@ -195,6 +200,9 @@ public class RapidUrsaMountsPlugin extends Plugin
     private Model builtRiderModel;
     private boolean mountedRenderReady;
     private boolean mounted = true;
+    private int lastPlayerLocalX = Integer.MIN_VALUE;
+    private int lastPlayerLocalY = Integer.MIN_VALUE;
+    private long lastPlayerMovementNanos;
     private int actionResumeTicks;
     private final List<RuneLiteObject> activeEffects = new ArrayList<>();
 
@@ -689,7 +697,11 @@ public class RapidUrsaMountsPlugin extends Plugin
         int plane = player.getWorldLocation().getPlane();
         int orientation = player.getCurrentOrientation();
         int terrainZ = Perspective.getTileHeight(client, playerPoint, plane);
-        boolean moving = player.getPoseAnimation() != player.getIdlePoseAnimation();
+        // Rapid Holster temporarily replaces the player's pose set while it owns
+        // the on-foot weapon. That pose can survive for part of the mounted
+        // handoff and report "walking" after the player has stopped. Track real
+        // local movement instead so mount, rider, and weapon share one state.
+        boolean moving = isPlayerMoving(playerPoint);
 
         // The custom saddle and rider are separate RuneLite objects, so give them
         // one shared seat transform to keep them visually locked together.
@@ -824,6 +836,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             updateAraxxorRiderAnchor();
         }
+        else if (config.mountType() == MountType.VORKATH)
+        {
+            updateVorkathRiderAnchor();
+        }
 
         if (saddle != null && saddleMotionModels != null)
         {
@@ -901,6 +917,14 @@ public class RapidUrsaMountsPlugin extends Plugin
                     riderForward += currentAraxxorSeatForward;
                     riderSideways += currentAraxxorSeatSideways;
                     riderHeight += currentAraxxorSeatHeight;
+                }
+                if (config.mountType() == MountType.VORKATH)
+                {
+                    // Share Vorkath's animated back movement with the rider and
+                    // the mounted holster position derived from this rider point.
+                    riderForward += currentVorkathSeatForward;
+                    riderSideways += currentVorkathSeatSideways;
+                    riderHeight += currentVorkathSeatHeight;
                 }
                 if (config.mountType() != MountType.BLACK_UNICORN
                     && config.mountType() != MountType.GRYPHON && moving)
@@ -2930,6 +2954,105 @@ public class RapidUrsaMountsPlugin extends Plugin
         currentAraxxorSeatForward = anchor[2] - baseAraxxorRiderAnchor[2];
     }
 
+    /** Follow a small patch of Vorkath's animated back instead of estimating
+     * its movement from the animation frame. */
+    private void updateVorkathRiderAnchor()
+    {
+        Model mountModel = unicorn == null ? null : unicorn.getModel();
+        if (mountModel == null || mountModel.getVerticesCount() == 0)
+        {
+            return;
+        }
+
+        int vertexCount = mountModel.getVerticesCount();
+        boolean rebuild = vorkathRiderAnchorVertices == null
+            || vorkathRiderAnchorVertices.length == 0;
+        if (!rebuild)
+        {
+            for (int vertex : vorkathRiderAnchorVertices)
+            {
+                if (vertex < 0 || vertex >= vertexCount)
+                {
+                    rebuild = true;
+                    break;
+                }
+            }
+        }
+        if (rebuild)
+        {
+            int wantedCount = Math.min(12, vertexCount);
+            int[] nearest = new int[wantedCount];
+            double[] distances = new double[wantedCount];
+            java.util.Arrays.fill(nearest, -1);
+            java.util.Arrays.fill(distances, Double.MAX_VALUE);
+
+            float[] x = mountModel.getVerticesX();
+            float[] y = mountModel.getVerticesY();
+            float[] z = mountModel.getVerticesZ();
+            float wantedX = config.vorkathRiderSideways();
+            float wantedY = -config.vorkathRiderHeight();
+            float wantedZ = -config.vorkathRiderForward();
+            for (int vertex = 0; vertex < vertexCount; vertex++)
+            {
+                double dx = x[vertex] - wantedX;
+                double dy = y[vertex] - wantedY;
+                double dz = z[vertex] - wantedZ;
+                double distance = dx * dx + dy * dy + dz * dz;
+                for (int slot = 0; slot < wantedCount; slot++)
+                {
+                    if (distance < distances[slot])
+                    {
+                        for (int shift = wantedCount - 1; shift > slot; shift--)
+                        {
+                            distances[shift] = distances[shift - 1];
+                            nearest[shift] = nearest[shift - 1];
+                        }
+                        distances[slot] = distance;
+                        nearest[slot] = vertex;
+                        break;
+                    }
+                }
+            }
+            vorkathRiderAnchorVertices = nearest;
+            baseVorkathRiderAnchor = null;
+        }
+
+        float[] x = mountModel.getVerticesX();
+        float[] y = mountModel.getVerticesY();
+        float[] z = mountModel.getVerticesZ();
+        double totalX = 0;
+        double totalY = 0;
+        double totalZ = 0;
+        int count = 0;
+        for (int vertex : vorkathRiderAnchorVertices)
+        {
+            if (vertex >= 0 && vertex < vertexCount)
+            {
+                totalX += x[vertex];
+                totalY += y[vertex];
+                totalZ += z[vertex];
+                count++;
+            }
+        }
+        if (count == 0)
+        {
+            return;
+        }
+
+        int[] anchor = {
+            (int) Math.round(totalX / count),
+            (int) Math.round(totalY / count),
+            (int) Math.round(totalZ / count)
+        };
+        if (baseVorkathRiderAnchor == null)
+        {
+            baseVorkathRiderAnchor = anchor.clone();
+        }
+        currentVorkathSeatSideways = anchor[0] - baseVorkathRiderAnchor[0];
+        currentVorkathSeatHeight = -(anchor[1] - baseVorkathRiderAnchor[1]);
+        currentVorkathSeatForward = anchor[2] - baseVorkathRiderAnchor[2];
+    }
+
     private static int addSaddleArch(
         float[] x,
         float[] y,
@@ -3692,6 +3815,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             npcId = ARAXXOR_NPC_ID;
         }
+        else if (config.mountType() == MountType.VORKATH)
+        {
+            npcId = config.vorkathNpcId();
+        }
         NPCComposition composition = client.getNpcDefinition(npcId);
         int[] ids = null;
         if (composition != null)
@@ -3788,7 +3915,32 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             return moving ? config.araxxorWalkAnimation() : config.araxxorIdleAnimation();
         }
+        if (config.mountType() == MountType.VORKATH)
+        {
+            return moving ? config.vorkathWalkAnimation() : config.vorkathIdleAnimation();
+        }
         return moving ? AnimationID.UNICORN_REWORK_WALK : AnimationID.UNICORN_REWORK_READY;
+    }
+
+    private boolean isPlayerMoving(LocalPoint point)
+    {
+        long now = System.nanoTime();
+        int x = point.getX();
+        int y = point.getY();
+        if (lastPlayerLocalX == Integer.MIN_VALUE)
+        {
+            lastPlayerLocalX = x;
+            lastPlayerLocalY = y;
+            return false;
+        }
+        if (x != lastPlayerLocalX || y != lastPlayerLocalY)
+        {
+            lastPlayerLocalX = x;
+            lastPlayerLocalY = y;
+            lastPlayerMovementNanos = now;
+        }
+        return lastPlayerMovementNanos != 0L
+            && now - lastPlayerMovementNanos < 250_000_000L;
     }
 
     private AnimationController loopingAnimation(int animationId)
@@ -3855,7 +4007,8 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (config.mountType() == MountType.GRYPHON
             || config.mountType() == MountType.BATTLE_TURTLE
             || config.mountType() == MountType.ARTIO
-            || config.mountType() == MountType.ARAXXOR)
+            || config.mountType() == MountType.ARAXXOR
+            || config.mountType() == MountType.VORKATH)
         {
             return 0;
         }
@@ -3886,7 +4039,8 @@ public class RapidUrsaMountsPlugin extends Plugin
     private int currentSeatBounce()
     {
         if (config.mountType() == MountType.GRYPHON
-            || config.mountType() == MountType.ARAXXOR)
+            || config.mountType() == MountType.ARAXXOR
+            || config.mountType() == MountType.VORKATH)
         {
             return 0;
         }
@@ -3917,6 +4071,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentSeatSway()
     {
+        if (config.mountType() == MountType.VORKATH)
+        {
+            return 0;
+        }
         if (config.mountType() == MountType.BATTLE_TURTLE)
         {
             return 0;
@@ -4030,6 +4188,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentMountScale()
     {
+        if (config.mountType() == MountType.VORKATH)
+        {
+            return config.vorkathScale();
+        }
         if (isWidePose())
         {
             if (config.mountType() == MountType.GRYPHON)
@@ -4268,6 +4430,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentExtraWideRiderHeight()
     {
+        if (config.mountType() == MountType.VORKATH)
+        {
+            return config.vorkathRiderHeight();
+        }
         if (config.mountType() == MountType.ARAXXOR)
         {
             return config.araxxorRiderHeight();
@@ -4286,6 +4452,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentExtraWideRiderForward()
     {
+        if (config.mountType() == MountType.VORKATH)
+        {
+            return config.vorkathRiderForward();
+        }
         if (config.mountType() == MountType.ARAXXOR)
         {
             return config.araxxorRiderForward();
@@ -4304,6 +4474,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentExtraWideRiderSideways()
     {
+        if (config.mountType() == MountType.VORKATH)
+        {
+            return config.vorkathRiderSideways();
+        }
         if (config.mountType() == MountType.ARAXXOR)
         {
             return config.araxxorRiderSideways();
@@ -4322,6 +4496,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentWalkHeightAdjustment()
     {
+        if (config.mountType() == MountType.VORKATH)
+        {
+            return config.vorkathWalkHeight();
+        }
         if (config.mountType() == MountType.ARAXXOR)
         {
             return config.araxxorWalkHeight();
@@ -4353,6 +4531,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentWalkForwardAdjustment()
     {
+        if (config.mountType() == MountType.VORKATH)
+        {
+            return config.vorkathWalkForward();
+        }
         if (config.mountType() == MountType.ARAXXOR)
         {
             return config.araxxorWalkForward();
@@ -4531,6 +4713,7 @@ public class RapidUrsaMountsPlugin extends Plugin
             case BATTLE_TURTLE: return config.battleTurtleMountedHolsterSideways();
             case ARTIO: return config.artioMountedHolsterSideways();
             case ARAXXOR: return config.araxxorMountedHolsterSideways();
+            case VORKATH: return config.vorkathMountedHolsterSideways();
             default: return 0;
         }
     }
@@ -4556,6 +4739,7 @@ public class RapidUrsaMountsPlugin extends Plugin
             case BATTLE_TURTLE: return config.battleTurtleMountedHolsterHeight();
             case ARTIO: return config.artioMountedHolsterHeight();
             case ARAXXOR: return config.araxxorMountedHolsterHeight();
+            case VORKATH: return config.vorkathMountedHolsterHeight();
             default: return -55;
         }
     }
@@ -4581,11 +4765,12 @@ public class RapidUrsaMountsPlugin extends Plugin
             case BATTLE_TURTLE: return config.battleTurtleMountedHolsterForward();
             case ARTIO: return config.artioMountedHolsterForward();
             case ARAXXOR: return config.araxxorMountedHolsterForward();
+            case VORKATH: return config.vorkathMountedHolsterForward();
             default: return 0;
         }
     }
 
-    /** Only the companion Holster preview advertises mounted handoff support. */
+    /** Only a compatible Rapid Holster release advertises mounted handoff support. */
     private boolean isMountedHolsterCompatible()
     {
         String heartbeat = configManager.getConfiguration(
@@ -4665,6 +4850,9 @@ public class RapidUrsaMountsPlugin extends Plugin
     private void despawn()
     {
         mountedRenderReady = false;
+        lastPlayerLocalX = Integer.MIN_VALUE;
+        lastPlayerLocalY = Integer.MIN_VALUE;
+        lastPlayerMovementNanos = 0L;
         setHolsterHandoff(false);
         if (mountedHolsterRenderer != null) mountedHolsterRenderer.clear();
         deactivate(rider);
@@ -4693,6 +4881,11 @@ public class RapidUrsaMountsPlugin extends Plugin
         currentAraxxorSeatForward = 0;
         currentAraxxorSeatSideways = 0;
         currentAraxxorSeatHeight = 0;
+        vorkathRiderAnchorVertices = null;
+        baseVorkathRiderAnchor = null;
+        currentVorkathSeatForward = 0;
+        currentVorkathSeatSideways = 0;
+        currentVorkathSeatHeight = 0;
         baseArtioArmourAnchors = null;
         lastArtioArmourAnchors = null;
         artioReinHeadVertices[0] = -1;

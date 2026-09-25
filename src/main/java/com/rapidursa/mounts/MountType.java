@@ -8,7 +8,8 @@ public enum MountType
     GRYPHON("Gryphon"),
     BATTLE_TURTLE("Battle turtle"),
     ARTIO("Battle Bear"),
-    ARAXXOR("Araxxor");
+    ARAXXOR("Araxxor"),
+    VORKATH("Vorkath");
 
     private final String displayName;
 

@@ -1,24 +1,20 @@
 # Rapid Mounts
 
-## v2 Araxxor test preview
+## v2.1.0 — Vorkath
 
-Araxxor is the seventh mount. The first test uses live NPC model **13668**,
-the **Extra Wide** rider pose, and no saddle. Select Araxxor at the bottom of
-the Mount Stable. Its Araxxor settings expose scale, rider position, walking
-position, and idle bounce for fitting the model in-game. The spider icon is
-temporary artwork; a clean in-game side screenshot can replace it later.
+Vorkath is the eighth cosmetic mount. It uses NPC model **8061**, idle
+animation **7948**, moving animation **7947**, and the approved **65%** scale.
+Its rider is anchored to Vorkath's animated skeleton so the mount and rider move
+together while idle and walking.
 
-Araxxor uses verified animation IDs **11473** while idle and **11474** while
-walking. The rider is locked to a cluster of animated vertices around the
-fitted point on Araxxor's back, so idle and walking skeleton motion is applied
-directly to the independently rendered rider. The normal Araxxor position
-controls remain available for fitting the rider around that anchor.
+This release also includes the final side-on Vorkath artwork, places Vorkath
+above Lava dragon and Araxxor above Battle turtle in the Mount Stable, and uses
+the Black unicorn horse artwork as the Plugin Hub icon.
 
-This preview includes a mounted Holster renderer. Use it with the matching
-Rapid Holster crossover preview in the paired test package: Holster hands its
-weapon display to Mounts while riding, and the mounted rider uses your saved
-Holster placements. Mounts reads those placements without registering the
-Holster settings page under Rapid Mounts.
+Rapid Mounts can coordinate with Rapid Holster while riding: Holster hands its
+weapon display to Mounts, and the mounted rider uses the saved Holster
+placements. Mounts reads those placements without registering the Holster
+settings page under Rapid Mounts.
 Each supported mount-and-pose combination has its own mounted holster sideways,
 height, and forward adjustments in that mount's settings section. These controls
 do not change Rapid Holster's on-foot placements.
@@ -28,15 +24,16 @@ The source passed Java syntax and configuration checks here. A complete Gradle
 compile and visual test need your local RuneLite development environment.
 
 Rapid Mounts is a visual-only RuneLite plugin that lets your local player ride
-seven cosmetic mounts:
+eight cosmetic mounts:
 
 - Terrorbird
 - Black unicorn
 - Gryphon
 - Battle Bear
+- Vorkath
 - Lava dragon
+- Araxxor
 - Battle turtle
-- Araxxor (first fit preview)
 
 The plugin changes only what is drawn by your own RuneLite client. Other
 players cannot see the mount, and it does not change movement, pathing, speed,
@@ -44,7 +41,7 @@ clicks, combat, or any other gameplay.
 
 ## Features
 
-- Animated idle and walking cycles for the existing six mounts; Araxxor animation IDs are pending in-game verification.
+- Animated idle and walking cycles for all eight mounts.
 - A reconstructed rider that keeps the local player's equipment and appearance.
 - Selectable Standard, Wide, Extra Wide, and Cross-legged riding poses, with
   mount-specific positioning controls.

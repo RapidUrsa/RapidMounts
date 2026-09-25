@@ -34,6 +34,7 @@ final class MountToggleOverlay extends Overlay implements MouseListener
     private final BufferedImage battleTurtleIcon;
     private final BufferedImage artioIcon;
     private final BufferedImage araxxorIcon;
+    private final BufferedImage vorkathIcon;
 
     @Inject
     MountToggleOverlay(
@@ -50,6 +51,7 @@ final class MountToggleOverlay extends Overlay implements MouseListener
         this.battleTurtleIcon = itemManager.getImage(ItemID.SEA_TURTLE);
         this.artioIcon = itemManager.getImage(ItemID.CALLISTO_CUB);
         this.araxxorIcon = itemManager.getImage(EEK_ITEM_ID);
+        this.vorkathIcon = itemManager.getImage(ItemID.VORKATHS_HEAD);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
         setPosition(OverlayPosition.TOP_LEFT);
     }
@@ -94,6 +96,10 @@ final class MountToggleOverlay extends Overlay implements MouseListener
         else if (config.mountType() == MountType.ARAXXOR)
         {
             icon = araxxorIcon;
+        }
+        else if (config.mountType() == MountType.VORKATH)
+        {
+            icon = vorkathIcon;
         }
 
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

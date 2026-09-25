@@ -20,6 +20,7 @@ public interface RapidUrsaMountsConfig extends Config
     String BATTLE_TURTLE = "battleTurtle";
     String ARTIO = "artio";
     String ARAXXOR = "araxxor";
+    String VORKATH = "vorkath";
     // Keep the existing constant as an alias so saved saddle keys retain
     // their identity while the controls live inside Black unicorn settings.
     String SADDLE = UNICORN;
@@ -50,6 +51,57 @@ public interface RapidUrsaMountsConfig extends Config
 
     @ConfigSection(name = "Araxxor", description = "Initial Araxxor model, animation, and rider fitting", position = 8, closedByDefault = true)
     String araxxorSection = ARAXXOR;
+
+    @ConfigSection(name = "Vorkath", description = "Vorkath model, animations, and rider fitting", position = 9, closedByDefault = true)
+    String vorkathSection = VORKATH;
+
+    @Range(min = 1, max = 30000)
+    @ConfigItem(keyName = "vorkathNpcId", name = "Vorkath NPC ID", description = "Model variant used for Vorkath", section = VORKATH)
+    default int vorkathNpcId() { return 8061; }
+
+    @Range(min = 30, max = 180)
+    @ConfigItem(keyName = "vorkathScale", name = "Vorkath scale (%)", description = "Size of Vorkath", section = VORKATH)
+    default int vorkathScale() { return 65; }
+
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "vorkathIdleAnimation", name = "Vorkath idle animation", description = "Set after verifying the animation in game; -1 shows the base model", section = VORKATH)
+    default int vorkathIdleAnimation() { return 7948; }
+
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "vorkathWalkAnimation", name = "Vorkath moving animation", description = "Set after verifying the animation in game; -1 shows the base model", section = VORKATH)
+    default int vorkathWalkAnimation() { return 7947; }
+
+    @Range(min = -400, max = 400)
+    @ConfigItem(keyName = "vorkathRiderForward", name = "Rider forward/back", description = "Position the rider along Vorkath's back", section = VORKATH)
+    default int vorkathRiderForward() { return -59; }
+
+    @Range(min = -400, max = 400)
+    @ConfigItem(keyName = "vorkathRiderHeight", name = "Rider height", description = "Raise or lower the rider", section = VORKATH)
+    default int vorkathRiderHeight() { return 98; }
+
+    @Range(min = -200, max = 200)
+    @ConfigItem(keyName = "vorkathRiderSideways", name = "Rider sideways", description = "Move the rider across Vorkath's back", section = VORKATH)
+    default int vorkathRiderSideways() { return 0; }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(keyName = "vorkathWalkForward", name = "Walking rider forward", description = "Additional rider position while moving", section = VORKATH)
+    default int vorkathWalkForward() { return 0; }
+
+    @Range(min = -60, max = 60)
+    @ConfigItem(keyName = "vorkathWalkHeight", name = "Walking rider height", description = "Additional rider height while moving", section = VORKATH)
+    default int vorkathWalkHeight() { return 0; }
+
+    @Range(min = -200, max = 200)
+    @ConfigItem(keyName = "vorkathMountedHolsterSideways", name = "Mounted weapon sideways", description = "Move the holstered weapon across the Vorkath rider", section = VORKATH)
+    default int vorkathMountedHolsterSideways() { return 0; }
+
+    @Range(min = -200, max = 200)
+    @ConfigItem(keyName = "vorkathMountedHolsterHeight", name = "Mounted weapon height", description = "Raise or lower the holstered weapon on the Vorkath rider", section = VORKATH)
+    default int vorkathMountedHolsterHeight() { return -55; }
+
+    @Range(min = -200, max = 200)
+    @ConfigItem(keyName = "vorkathMountedHolsterForward", name = "Mounted weapon forward/back", description = "Move the holstered weapon along the Vorkath rider", section = VORKATH)
+    default int vorkathMountedHolsterForward() { return 0; }
 
     @Range(min = 30, max = 180)
     @ConfigItem(keyName = "araxxorScale", name = "Araxxor scale (%)",

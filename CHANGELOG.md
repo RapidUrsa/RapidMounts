@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.0 — Vorkath
+
+- Add Vorkath as the eighth cosmetic mount using NPC model 8061, idle
+  animation 7948, moving animation 7947, and the approved 65% scale.
+- Anchor Vorkath's rider to its animated skeleton so the mount and rider move
+  together while idle and walking.
+- Add the final side-on Vorkath artwork to the Mount Stable.
+- Reorder the sidebar so Vorkath appears above Lava dragon and Araxxor appears
+  above Battle turtle.
+- Use the Black unicorn horse artwork as the Plugin Hub icon.
+- Preserve the mounted Rapid Holster handoff and per-mount weapon positioning.
+
 ## 2.0.0 — Araxxor and mounted holster crossover
 
 - Add Araxxor with skeleton-anchored rider, idle and walk animations, sidebar preview, and Eek quick summon.
