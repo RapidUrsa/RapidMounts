@@ -9,7 +9,10 @@ public enum MountType
     BATTLE_TURTLE("Battle turtle"),
     ARTIO("Battle Bear"),
     ARAXXOR("Araxxor"),
-    VORKATH("Vorkath");
+    VORKATH("Vorkath"),
+    BIG_WOLF("Big wolf"),
+    CATABLEPON("Catablepon"),
+    SHEEP("Sheep?");
 
     private final String displayName;
 

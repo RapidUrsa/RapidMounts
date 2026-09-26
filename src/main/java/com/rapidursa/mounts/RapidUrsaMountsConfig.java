@@ -21,6 +21,9 @@ public interface RapidUrsaMountsConfig extends Config
     String ARTIO = "artio";
     String ARAXXOR = "araxxor";
     String VORKATH = "vorkath";
+    String BIG_WOLF = "bigWolf";
+    String CATABLEPON = "catablepon";
+    String SHEEP = "sheep";
     // Keep the existing constant as an alias so saved saddle keys retain
     // their identity while the controls live inside Black unicorn settings.
     String SADDLE = UNICORN;
@@ -54,6 +57,105 @@ public interface RapidUrsaMountsConfig extends Config
 
     @ConfigSection(name = "Vorkath", description = "Vorkath model, animations, and rider fitting", position = 9, closedByDefault = true)
     String vorkathSection = VORKATH;
+
+    @ConfigSection(name = "Big wolf", description = "Large wolf mount and rider fitting", position = 10, closedByDefault = true)
+    String bigWolfSection = BIG_WOLF;
+
+    @ConfigSection(name = "Catablepon", description = "Catablepon mount and rider fitting", position = 11, closedByDefault = true)
+    String catableponSection = CATABLEPON;
+
+    @Range(min = 30, max = 200)
+    @ConfigItem(keyName = "bigWolfScale", name = "Big wolf scale (%)", description = "Size of the big wolf", section = BIG_WOLF)
+    default int bigWolfScale() { return 120; }
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "bigWolfIdleAnimation", name = "Idle animation ID", description = "-1 freezes the model until an animation is verified", section = BIG_WOLF)
+    default int bigWolfIdleAnimation() { return 6580; }
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "bigWolfWalkAnimation", name = "Walking animation ID", description = "-1 freezes the model until an animation is verified", section = BIG_WOLF)
+    default int bigWolfWalkAnimation() { return 6556; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "bigWolfRiderForward", name = "Rider forward/back", description = "Position the rider along the wolf's back", section = BIG_WOLF)
+    default int bigWolfRiderForward() { return -36; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "bigWolfRiderHeight", name = "Rider height", description = "Position the rider above the wolf", section = BIG_WOLF)
+    default int bigWolfRiderHeight() { return 125; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "bigWolfRiderSideways", name = "Rider sideways", description = "Position the rider across the wolf's back", section = BIG_WOLF)
+    default int bigWolfRiderSideways() { return 0; }
+
+    @Range(min = 30, max = 200)
+    @ConfigItem(keyName = "catableponScale", name = "Catablepon scale (%)", description = "Size of the catablepon", section = CATABLEPON)
+    default int catableponScale() { return 120; }
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "catableponIdleAnimation", name = "Idle animation ID", description = "-1 freezes the model until an animation is verified", section = CATABLEPON)
+    default int catableponIdleAnimation() { return 4269; }
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "catableponWalkAnimation", name = "Walking animation ID", description = "-1 freezes the model until an animation is verified", section = CATABLEPON)
+    default int catableponWalkAnimation() { return 4268; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "catableponRiderForward", name = "Rider forward/back", description = "Position the rider along the catablepon's back", section = CATABLEPON)
+    default int catableponRiderForward() { return -65; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "catableponRiderHeight", name = "Rider height", description = "Position the rider above the catablepon", section = CATABLEPON)
+    default int catableponRiderHeight() { return 62; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "catableponRiderSideways", name = "Rider sideways", description = "Position the rider across the catablepon's back", section = CATABLEPON)
+    default int catableponRiderSideways() { return 0; }
+
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "bigWolfMountedHolsterSideways", name = "Mounted weapon sideways", description = "Adjust the weapon relative to the big wolf rider", section = BIG_WOLF)
+    default int bigWolfMountedHolsterSideways() { return 0; }
+
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "bigWolfMountedHolsterHeight", name = "Mounted weapon height", description = "Adjust the weapon relative to the big wolf rider", section = BIG_WOLF)
+    default int bigWolfMountedHolsterHeight() { return -55; }
+
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "bigWolfMountedHolsterForward", name = "Mounted weapon forward/back", description = "Adjust the weapon relative to the big wolf rider", section = BIG_WOLF)
+    default int bigWolfMountedHolsterForward() { return 30; }
+
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "catableponMountedHolsterSideways", name = "Mounted weapon sideways", description = "Adjust the weapon relative to the catablepon rider", section = CATABLEPON)
+    default int catableponMountedHolsterSideways() { return 0; }
+
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "catableponMountedHolsterHeight", name = "Mounted weapon height", description = "Adjust the weapon relative to the catablepon rider", section = CATABLEPON)
+    default int catableponMountedHolsterHeight() { return -55; }
+
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "catableponMountedHolsterForward", name = "Mounted weapon forward/back", description = "Adjust the weapon relative to the catablepon rider", section = CATABLEPON)
+    default int catableponMountedHolsterForward() { return 38; }
+
+    @ConfigSection(name = "Sheep?", description = "Sheep? model, animation and rider fitting", position = 12, closedByDefault = true)
+    String sheepSection = SHEEP;
+
+    @Range(min = 30, max = 200)
+    @ConfigItem(keyName = "sheepScale", name = "Sheep? scale (%)", description = "Size of Sheep?", section = SHEEP)
+    default int sheepScale() { return 100; }
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "sheepIdleAnimation", name = "Idle animation ID", description = "-1 shows the base model until an animation is selected", section = SHEEP)
+    default int sheepIdleAnimation() { return 3569; }
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "sheepWalkAnimation", name = "Walking animation ID", description = "-1 shows the base model until an animation is selected", section = SHEEP)
+    default int sheepWalkAnimation() { return 3568; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "sheepRiderForward", name = "Rider forward/back", description = "Position the rider along Sheep?'s back", section = SHEEP)
+    default int sheepRiderForward() { return 0; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "sheepRiderHeight", name = "Rider height", description = "Position the rider above Sheep?", section = SHEEP)
+    default int sheepRiderHeight() { return 90; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "sheepRiderSideways", name = "Rider sideways", description = "Position the rider across Sheep?'s back", section = SHEEP)
+    default int sheepRiderSideways() { return 0; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "sheepMountedHolsterForward", name = "Mounted weapon forward/back", description = "Position the holstered weapon relative to Sheep?'s rider", section = SHEEP)
+    default int sheepMountedHolsterForward() { return 0; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "sheepMountedHolsterHeight", name = "Mounted weapon height", description = "Raise or lower the mounted weapon", section = SHEEP)
+    default int sheepMountedHolsterHeight() { return -55; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "sheepMountedHolsterSideways", name = "Mounted weapon sideways", description = "Move the mounted weapon across the rider", section = SHEEP)
+    default int sheepMountedHolsterSideways() { return 0; }
 
     @Range(min = 1, max = 30000)
     @ConfigItem(keyName = "vorkathNpcId", name = "Vorkath NPC ID", description = "Model variant used for Vorkath", section = VORKATH)
@@ -1062,6 +1164,66 @@ public interface RapidUrsaMountsConfig extends Config
     {
         return 100;
     }
+
+    @Range(min = -120, max = 120)
+    @ConfigItem(keyName = "terrorbirdSeatRiderForward", name = "Standard rider forward/back", description = "Fine-tune the Standard pose Terrorbird rider independently of its saddle", section = TERRORBIRD)
+    default int terrorbirdSeatRiderForward() { return 0; }
+
+    @Range(min = -120, max = 120)
+    @ConfigItem(keyName = "terrorbirdSeatRiderHeight", name = "Standard rider up/down", description = "Fine-tune the Standard pose Terrorbird rider height independently of its saddle", section = TERRORBIRD)
+    default int terrorbirdSeatRiderHeight() { return 0; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "terrorbirdSeatRiderSideways", name = "Standard rider left/right", description = "Fine-tune the Standard pose Terrorbird rider sideways independently of its saddle", section = TERRORBIRD)
+    default int terrorbirdSeatRiderSideways() { return 0; }
+
+    @Range(min = -120, max = 120)
+    @ConfigItem(keyName = "terrorbirdSeatSaddleForward", name = "Saddle forward/back", description = "Fine-tune the Terrorbird saddle independently of its rider", section = TERRORBIRD)
+    default int terrorbirdSeatSaddleForward() { return 0; }
+
+    @Range(min = -120, max = 120)
+    @ConfigItem(keyName = "terrorbirdSeatSaddleHeight", name = "Saddle up/down", description = "Fine-tune the Terrorbird saddle height independently of its rider", section = TERRORBIRD)
+    default int terrorbirdSeatSaddleHeight() { return 0; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "terrorbirdSeatSaddleSideways", name = "Saddle left/right", description = "Fine-tune the Terrorbird saddle sideways independently of its rider", section = TERRORBIRD)
+    default int terrorbirdSeatSaddleSideways() { return 0; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "terrorbirdLeftReinHandForward", name = "Left rein hand forward/back", description = "Move the left Terrorbird rein end forward or backward at the rider's hand", section = TERRORBIRD)
+    default int terrorbirdLeftReinHandForward() { return 5; }
+
+    @Range(min = -100, max = 120)
+    @ConfigItem(keyName = "terrorbirdLeftReinHandHeight", name = "Left rein hand height", description = "Raise or lower the left Terrorbird rein end at the rider's hand", section = TERRORBIRD)
+    default int terrorbirdLeftReinHandHeight() { return 48; }
+
+    @Range(min = -80, max = 80)
+    @ConfigItem(keyName = "terrorbirdLeftReinHandSideways", name = "Left rein hand sideways", description = "Move the left Terrorbird rein end sideways", section = TERRORBIRD)
+    default int terrorbirdLeftReinHandSideways() { return -18; }
+
+    @Range(min = -100, max = 100)
+    @ConfigItem(keyName = "terrorbirdRightReinHandForward", name = "Right rein hand forward/back", description = "Move the right Terrorbird rein end forward or backward at the rider's hand", section = TERRORBIRD)
+    default int terrorbirdRightReinHandForward() { return 5; }
+
+    @Range(min = -100, max = 120)
+    @ConfigItem(keyName = "terrorbirdRightReinHandHeight", name = "Right rein hand height", description = "Raise or lower the right Terrorbird rein end at the rider's hand", section = TERRORBIRD)
+    default int terrorbirdRightReinHandHeight() { return 48; }
+
+    @Range(min = -80, max = 80)
+    @ConfigItem(keyName = "terrorbirdRightReinHandSideways", name = "Right rein hand sideways", description = "Move the right Terrorbird rein end sideways", section = TERRORBIRD)
+    default int terrorbirdRightReinHandSideways() { return 18; }
+
+    @Range(min = 40, max = 180)
+    @ConfigItem(keyName = "terrorbirdReinHeadForward", name = "Reins head forward/back", description = "Fine-tune both animated rein ends at the Terrorbird's beak", section = TERRORBIRD)
+    default int terrorbirdReinHeadForward() { return 90; }
+
+    @Range(min = -60, max = 100)
+    @ConfigItem(keyName = "terrorbirdReinHeadHeight", name = "Reins head height", description = "Raise or lower both animated rein ends at the Terrorbird's beak", section = TERRORBIRD)
+    default int terrorbirdReinHeadHeight() { return 25; }
+
+    @Range(min = 2, max = 50)
+    @ConfigItem(keyName = "terrorbirdReinHeadSpread", name = "Reins head spread", description = "Move the animated rein ends across the Terrorbird's beak", section = TERRORBIRD)
+    default int terrorbirdReinHeadSpread() { return 12; }
 
     @Range(min = 0, max = 200)
     @ConfigItem(
@@ -2238,6 +2400,17 @@ public interface RapidUrsaMountsConfig extends Config
     @Range(min = 1, max = 25)
     @ConfigItem(keyName = "artioAnchorProbeSpacingV2", name = "Anchor probe spacing", description = "Label every Nth vertex; use 1 when narrowing down a body part", section = ARTIO)
     default int artioAnchorProbeSpacing() { return 1; }
+
+    @ConfigItem(
+        keyName = "showQuickMountButton",
+        name = "Show quick mount button",
+        description = "Show the movable mount and dismount button",
+        section = GENERAL
+    )
+    default boolean showQuickMountButton()
+    {
+        return true;
+    }
 
     @Range(min = 24, max = 96)
     @ConfigItem(

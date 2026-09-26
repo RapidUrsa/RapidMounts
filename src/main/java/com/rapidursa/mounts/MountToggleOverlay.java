@@ -24,6 +24,8 @@ import net.runelite.client.ui.overlay.OverlayPosition;
 final class MountToggleOverlay extends Overlay implements MouseListener
 {
     private static final int EEK_ITEM_ID = 22684;
+    private static final int WOLF_MASK_ITEM_ID = 23407;
+    private static final int TECU_SALAMANDER_ITEM_ID = 28834;
     private RapidUrsaMountsPlugin plugin;
     private final ClientThread clientThread;
     private final RapidUrsaMountsConfig config;
@@ -35,6 +37,9 @@ final class MountToggleOverlay extends Overlay implements MouseListener
     private final BufferedImage artioIcon;
     private final BufferedImage araxxorIcon;
     private final BufferedImage vorkathIcon;
+    private final BufferedImage bigWolfIcon;
+    private final BufferedImage catableponIcon;
+    private final BufferedImage sheepIcon;
 
     @Inject
     MountToggleOverlay(
@@ -52,6 +57,9 @@ final class MountToggleOverlay extends Overlay implements MouseListener
         this.artioIcon = itemManager.getImage(ItemID.CALLISTO_CUB);
         this.araxxorIcon = itemManager.getImage(EEK_ITEM_ID);
         this.vorkathIcon = itemManager.getImage(ItemID.VORKATHS_HEAD);
+        this.bigWolfIcon = itemManager.getImage(WOLF_MASK_ITEM_ID);
+        this.catableponIcon = itemManager.getImage(TECU_SALAMANDER_ITEM_ID);
+        this.sheepIcon = itemManager.getImage(ItemID.WOOL);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
         setPosition(OverlayPosition.TOP_LEFT);
     }
@@ -69,6 +77,10 @@ final class MountToggleOverlay extends Overlay implements MouseListener
     @Override
     public Dimension render(Graphics2D graphics)
     {
+        if (!config.showQuickMountButton())
+        {
+            return null;
+        }
         int size = Math.max(24, Math.min(96, config.buttonSize()));
         int padding = Math.max(2, size / 12);
         boolean mounted = plugin != null && plugin.isMounted();
@@ -101,6 +113,18 @@ final class MountToggleOverlay extends Overlay implements MouseListener
         {
             icon = vorkathIcon;
         }
+        else if (config.mountType() == MountType.BIG_WOLF)
+        {
+            icon = bigWolfIcon;
+        }
+        else if (config.mountType() == MountType.CATABLEPON)
+        {
+            icon = catableponIcon;
+        }
+        else if (config.mountType() == MountType.SHEEP)
+        {
+            icon = sheepIcon;
+        }
 
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         graphics.setColor(new Color(18, 20, 24, 210));
@@ -125,7 +149,9 @@ final class MountToggleOverlay extends Overlay implements MouseListener
     @Override
     public MouseEvent mousePressed(MouseEvent event)
     {
-        if (SwingUtilities.isLeftMouseButton(event) && getBounds().contains(event.getPoint()))
+        if (config.showQuickMountButton()
+            && SwingUtilities.isLeftMouseButton(event)
+            && getBounds().contains(event.getPoint()))
         {
             event.consume();
             RapidUrsaMountsPlugin current = plugin;

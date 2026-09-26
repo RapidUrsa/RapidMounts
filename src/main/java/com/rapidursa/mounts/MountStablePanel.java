@@ -87,8 +87,11 @@ final class MountStablePanel extends PluginPanel
         JPanel cards = new JPanel(new GridLayout(0, 1, 0, 8));
         cards.setBackground(ColorScheme.DARK_GRAY_COLOR);
         cards.setAlignmentX(LEFT_ALIGNMENT);
-        cards.add(createMountButton(MountType.TERRORBIRD, terrorbird));
         cards.add(createMountButton(MountType.BLACK_UNICORN, unicorn));
+        cards.add(createMountButton(MountType.TERRORBIRD, terrorbird));
+        cards.add(createMountButton(MountType.SHEEP, loadPreview("sheep-preview.png")));
+        cards.add(createMountButton(MountType.CATABLEPON, loadPreview("catablepon-preview.png")));
+        cards.add(createMountButton(MountType.BIG_WOLF, loadPreview("big-wolf-preview.png")));
         cards.add(createMountButton(MountType.GRYPHON, gryphon));
         cards.add(createMountButton(MountType.ARTIO, artio));
         cards.add(createMountButton(MountType.VORKATH, vorkath));

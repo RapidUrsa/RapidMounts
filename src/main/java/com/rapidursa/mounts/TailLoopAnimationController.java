@@ -20,11 +20,21 @@ final class TailLoopAnimationController extends AnimationController
         startFrame = Math.max(0, Math.min(requestedStart, lastFrame));
         endFrame = Math.max(startFrame + 1, Math.min(requestedEnd, lastFrame));
         setFrame(startFrame);
+        // A one-shot sequence can finish inside super.tick before our frame
+        // range check runs. Keep it active when that happens as well.
+        setOnFinished(controller -> {
+            controller.loop();
+            controller.setFrame(startFrame);
+        });
     }
 
     @Override
     public void tick(int ticks)
     {
+        if (getFrame() < startFrame || getFrame() >= endFrame)
+        {
+            setFrame(startFrame);
+        }
         super.tick(ticks);
         int frame = getFrame();
         if (frame < startFrame || frame >= endFrame)

@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.2.0 — Big wolf, Catablepon, and Sheep?
+
+- Add Big wolf, Catablepon, and Sheep? with Extra Wide riding poses, sidebar
+  previews, quick summon items, and individual rider and mounted holster settings.
+- Anchor Big wolf and Sheep? riders to their animated backs; keep Catablepon's
+  rider on its tuned position.
+- Loop Sheep?'s idle forward and backward through its full animation; keep its
+  walking animation and rider sway in sync.
+- Add Terrorbird saddle and reins matched to its colours and animated rider.
+- Add the option to hide the quick mount button.
+- Update the Plugin Hub description and README for eleven cosmetic mounts.
+
 ## 2.1.0 — Vorkath
 
 - Add Vorkath as the eighth cosmetic mount using NPC model 8061, idle

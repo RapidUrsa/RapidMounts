@@ -1,15 +1,16 @@
 # Rapid Mounts
 
-## v2.1.0 — Vorkath
+Thanks for trying my plugin! This started as a plugin I really wanted, and it
+grew from there! I'm so happy so many people seem to like it! I'm always looking
+for new pose suggestions and mounts, so please send requests and I'll see what
+I can do :)
 
-Vorkath is the eighth cosmetic mount. It uses NPC model **8061**, idle
-animation **7948**, moving animation **7947**, and the approved **65%** scale.
-Its rider is anchored to Vorkath's animated skeleton so the mount and rider move
-together while idle and walking.
+## v2.2.0 — More mounts and riding polish
 
-This release also includes the final side-on Vorkath artwork, places Vorkath
-above Lava dragon and Araxxor above Battle turtle in the Mount Stable, and uses
-the Black unicorn horse artwork as the Plugin Hub icon.
+This release adds Big wolf, Catablepon, and Sheep? to the Mount Stable. It also
+adds fitted tack and reins for the Terrorbird and updates rider movement to
+follow the bird's animated back. Sheep?, Catablepon, and Big wolf have Extra Wide riding
+poses, with individual rider and mounted weapon positions.
 
 Rapid Mounts can coordinate with Rapid Holster while riding: Holster hands its
 weapon display to Mounts, and the mounted rider uses the saved Holster
@@ -19,14 +20,13 @@ Each supported mount-and-pose combination has its own mounted holster sideways,
 height, and forward adjustments in that mount's settings section. These controls
 do not change Rapid Holster's on-foot placements.
 
-To test on Windows, open this source folder and run `gradlew.bat clean runClient`.
-The source passed Java syntax and configuration checks here. A complete Gradle
-compile and visual test need your local RuneLite development environment.
-
 Rapid Mounts is a visual-only RuneLite plugin that lets your local player ride
-eight cosmetic mounts:
+eleven cosmetic mounts:
 
 - Terrorbird
+- Sheep?
+- Catablepon
+- Big wolf
 - Black unicorn
 - Gryphon
 - Battle Bear
@@ -41,11 +41,11 @@ clicks, combat, or any other gameplay.
 
 ## Features
 
-- Animated idle and walking cycles for all eight mounts.
+- Animated idle and walking cycles for all eleven mounts.
 - A reconstructed rider that keeps the local player's equipment and appearance.
 - Selectable Standard, Wide, Extra Wide, and Cross-legged riding poses, with
   mount-specific positioning controls.
-- Fitted, animated tack for the Black unicorn, Gryphon, Battle turtle, and Battle Bear.
+- Fitted, animated tack for the Black unicorn, Terrorbird, Gryphon, Battle turtle, and Battle Bear.
 - A sidebar toggle for showing or hiding supported saddle-and-reins sets.
 - Weapons and shields are hidden from the cosmetic rider by default for a cleaner seated pose.
 - Optional cape hiding and position adjustments to reduce clipping while mounted.
@@ -167,8 +167,6 @@ network, or affect the game server. Mounts temporarily disappear during player
 actions so normal gameplay animations remain clear.
 
 The mount definitions and animations are loaded from the active OSRS cache.
-Appearance-composition code derived from Follower Buddy remains subject to its
-original licence and attribution requirements.
 
 See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution.
 

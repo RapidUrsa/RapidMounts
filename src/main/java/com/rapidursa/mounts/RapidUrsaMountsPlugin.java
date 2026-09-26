@@ -65,6 +65,9 @@ public class RapidUrsaMountsPlugin extends Plugin
     private static final int GRYPHON_IDLE_ANIMATION_ID = 12547;
     private static final int GRYPHON_WALK_ANIMATION_ID = 12549;
     private static final int ARAXXOR_NPC_ID = 13668;
+    private static final int BIG_WOLF_NPC_ID = 109;
+    private static final int CATABLEPON_NPC_ID = 2474;
+    private static final int SHEEP_NPC_ID = 731;
     private static final int VS_SHIELD_ITEM_ID = 24266;
     private static final int GUTHANS_WARSPEAR_ITEM_ID = 4726;
     private static final int FALLBACK_BODY_MODEL = 25754;
@@ -159,6 +162,13 @@ public class RapidUrsaMountsPlugin extends Plugin
     private RuneLiteObject artioShield;
     private RuneLiteObject artioWarspears;
     private int[] lastGryphonReinAnchors;
+    private int[] lastUnicornReinAnchors;
+    private final int[] unicornReinHeadVertices = {-1, -1};
+    private int[] lastTerrorbirdReinAnchors;
+    private final int[] terrorbirdReinHeadVertices = {-1, -1};
+    private int currentTerrorbirdSaddleForward;
+    private int currentTerrorbirdSaddleSideways;
+    private int currentTerrorbirdSaddleHeight;
     private int gryphonSaddleAnchorVertex = -1;
     private int[] baseGryphonSaddleAnchor;
     private int currentGryphonSeatForward;
@@ -186,6 +196,11 @@ public class RapidUrsaMountsPlugin extends Plugin
     private int currentVorkathSeatForward;
     private int currentVorkathSeatSideways;
     private int currentVorkathSeatHeight;
+    // Each species needs its own back vertex set: their skeletons use different meshes.
+    private final RiderAnchorState bigWolfRiderAnchor = new RiderAnchorState();
+    private final RiderAnchorState sheepRiderAnchor = new RiderAnchorState();
+    private static final int TERRORBIRD_WALK_SEAT_BACK = 55;
+    private final RiderAnchorState terrorbirdRiderAnchor = new RiderAnchorState();
     private Model[] saddleMotionModels;
     private int activeSaddleMotionFrame = -1;
     private final List<RuneLiteObject> mountParts = new ArrayList<>();
@@ -461,7 +476,10 @@ public class RapidUrsaMountsPlugin extends Plugin
             || "gryphonScale".equals(event.getKey())
             || "artioNpcId".equals(event.getKey())
             || "artioScale".equals(event.getKey())
-            || "araxxorScale".equals(event.getKey()))
+            || "araxxorScale".equals(event.getKey())
+            || "bigWolfScale".equals(event.getKey())
+            || "catableponScale".equals(event.getKey())
+            || "sheepScale".equals(event.getKey()))
         {
             despawn();
         }
@@ -484,6 +502,15 @@ public class RapidUrsaMountsPlugin extends Plugin
             || "rightReinHandForward".equals(event.getKey())
             || "rightReinHandHeight".equals(event.getKey())
             || "rightReinHandSideways".equals(event.getKey())
+            || "terrorbirdLeftReinHandForward".equals(event.getKey())
+            || "terrorbirdLeftReinHandHeight".equals(event.getKey())
+            || "terrorbirdLeftReinHandSideways".equals(event.getKey())
+            || "terrorbirdRightReinHandForward".equals(event.getKey())
+            || "terrorbirdRightReinHandHeight".equals(event.getKey())
+            || "terrorbirdRightReinHandSideways".equals(event.getKey())
+            || "terrorbirdReinHeadForward".equals(event.getKey())
+            || "terrorbirdReinHeadHeight".equals(event.getKey())
+            || "terrorbirdReinHeadSpread".equals(event.getKey())
             || "showGryphonSaddle".equals(event.getKey())
             || "gryphonSaddleScale".equals(event.getKey())
             || "gryphonLeftReinHandForward".equals(event.getKey())
@@ -572,6 +599,12 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             despawn();
         }
+        else if (("sheepIdleAnimation".equals(event.getKey())
+            || "sheepWalkAnimation".equals(event.getKey())) && unicorn != null)
+        {
+            unicorn.setAnimationController(null);
+            activeUnicornAnimation = -1;
+        }
         else if (("battleTurtleIdleAnimation".equals(event.getKey())
             || "battleTurtleWalkAnimation".equals(event.getKey())
             || "artioIdleAnimationV2".equals(event.getKey())
@@ -601,6 +634,18 @@ public class RapidUrsaMountsPlugin extends Plugin
             rider.setAnimationController(null);
             activeRiderAnimation = -1;
             activeRiderFrame = -1;
+        }
+        else if ("bigWolfRiderForward".equals(event.getKey())
+            || "bigWolfRiderHeight".equals(event.getKey())
+            || "bigWolfRiderSideways".equals(event.getKey()))
+        {
+            bigWolfRiderAnchor.reset();
+        }
+        else if ("sheepRiderForward".equals(event.getKey())
+            || "sheepRiderHeight".equals(event.getKey())
+            || "sheepRiderSideways".equals(event.getKey()))
+        {
+            sheepRiderAnchor.reset();
         }
         else if ("hideCape".equals(event.getKey())
             || "capeBackwardOffset".equals(event.getKey())
@@ -726,6 +771,13 @@ public class RapidUrsaMountsPlugin extends Plugin
             }
         }
 
+        if (config.mountType() == MountType.TERRORBIRD)
+        {
+            // Probe the bird's central back, not the rider's pose-specific
+            // location, which can sit above the head in model space.
+            updateRiderAnchor(terrorbirdRiderAnchor, 0, 80, 0);
+        }
+
         unicorn.setLocation(playerPoint, plane);
         unicorn.setZ(terrainZ);
         unicorn.setOrientation(orientation);
@@ -748,6 +800,28 @@ public class RapidUrsaMountsPlugin extends Plugin
                 currentGryphonSaddleForward = saddleForward;
                 currentGryphonSaddleSideways = saddleSideways;
                 currentGryphonSaddleHeight = saddleHeight;
+            }
+            else if (config.mountType() == MountType.TERRORBIRD)
+            {
+                saddleForward = currentRiderForward() + config.terrorbirdSeatSaddleForward()
+                    + (moving ? TERRORBIRD_WALK_SEAT_BACK : 0);
+                saddleSideways = currentRiderSideways() + config.terrorbirdSeatSaddleSideways();
+                saddleHeight = currentRiderHeight() - 10 + config.terrorbirdSeatSaddleHeight();
+                if (moving && terrorbirdRiderAnchor.moving)
+                {
+                    saddleForward += terrorbirdRiderAnchor.forward;
+                    saddleSideways += terrorbirdRiderAnchor.sideways;
+                    saddleHeight += terrorbirdRiderAnchor.height;
+                }
+                else if (!moving)
+                {
+                    // The rider uses this same idle lift below. Sharing it
+                    // keeps the independent saddle object locked to the seat.
+                    saddleHeight += currentIdleBounce();
+                }
+                currentTerrorbirdSaddleForward = saddleForward;
+                currentTerrorbirdSaddleSideways = saddleSideways;
+                currentTerrorbirdSaddleHeight = saddleHeight;
             }
             else if (config.mountType() == MountType.BATTLE_TURTLE)
             {
@@ -779,6 +853,17 @@ public class RapidUrsaMountsPlugin extends Plugin
                 saddleForward = config.saddleForward() + linkedSeatForward;
                 saddleSideways = config.saddleSideways() + linkedSeatSideways;
                 saddleHeight = config.saddleHeight() + linkedSeatHeight;
+                if (config.mountType() == MountType.TERRORBIRD && moving)
+                {
+                    saddleForward += TERRORBIRD_WALK_SEAT_BACK;
+                }
+                if (config.mountType() == MountType.TERRORBIRD
+                    && moving && terrorbirdRiderAnchor.moving)
+                {
+                    saddleForward += terrorbirdRiderAnchor.forward;
+                    saddleSideways += terrorbirdRiderAnchor.sideways;
+                    saddleHeight += terrorbirdRiderAnchor.height;
+                }
             }
             LocalPoint saddlePoint = offsetFromPlayer(
                 playerPoint,
@@ -824,7 +909,11 @@ public class RapidUrsaMountsPlugin extends Plugin
             activeUnicornAnimation = -1;
         }
 
-        if (config.mountType() == MountType.GRYPHON && saddle != null)
+        if (config.mountType() == MountType.TERRORBIRD && saddle != null)
+        {
+            updateTerrorbirdSaddle(moving);
+        }
+        else if (config.mountType() == MountType.GRYPHON && saddle != null)
         {
             updateGryphonSaddle();
         }
@@ -839,6 +928,16 @@ public class RapidUrsaMountsPlugin extends Plugin
         else if (config.mountType() == MountType.VORKATH)
         {
             updateVorkathRiderAnchor();
+        }
+        else if (config.mountType() == MountType.BIG_WOLF)
+        {
+            updateBackRiderAnchor(bigWolfRiderAnchor,
+                config.bigWolfRiderSideways(), config.bigWolfRiderHeight(), config.bigWolfRiderForward());
+        }
+        else if (config.mountType() == MountType.SHEEP)
+        {
+            updateSheepRiderAnchor(sheepRiderAnchor,
+                config.sheepRiderSideways(), config.sheepRiderHeight(), config.sheepRiderForward());
         }
 
         if (saddle != null && saddleMotionModels != null)
@@ -884,6 +983,12 @@ public class RapidUrsaMountsPlugin extends Plugin
             }
         }
 
+        if (config.mountType() == MountType.BLACK_UNICORN
+            && saddle != null && config.useCustomSaddle())
+        {
+            updateUnicornSaddle(linkedSeatForward, linkedSeatSideways, linkedSeatHeight);
+        }
+
         boolean riderReady = false;
         if (config.showRider())
         {
@@ -891,8 +996,19 @@ public class RapidUrsaMountsPlugin extends Plugin
             if (playerModel != null)
             {
                 int riderForward = currentRiderForward() + linkedSeatForward;
+                if (config.mountType() == MountType.TERRORBIRD && moving)
+                {
+                    riderForward += TERRORBIRD_WALK_SEAT_BACK;
+                }
                 int riderSideways = currentRiderSideways() + linkedSeatSideways;
                 int riderHeight = currentRiderHeight() + linkedSeatHeight;
+                if (config.mountType() == MountType.TERRORBIRD
+                    && config.ridingPose() == RidingPose.STANDARD)
+                {
+                    riderForward += config.terrorbirdSeatRiderForward();
+                    riderSideways += config.terrorbirdSeatRiderSideways();
+                    riderHeight += config.terrorbirdSeatRiderHeight();
+                }
                 if (config.mountType() == MountType.ARTIO)
                 {
                     // Use the exact same animated upper-torso vertex delta as
@@ -926,8 +1042,39 @@ public class RapidUrsaMountsPlugin extends Plugin
                     riderSideways += currentVorkathSeatSideways;
                     riderHeight += currentVorkathSeatHeight;
                 }
+                if (config.mountType() == MountType.BIG_WOLF)
+                {
+                    riderForward += bigWolfRiderAnchor.forward;
+                    riderSideways += bigWolfRiderAnchor.sideways;
+                    riderHeight += bigWolfRiderAnchor.height;
+                }
+                if (config.mountType() == MountType.SHEEP)
+                {
+                    riderForward += sheepRiderAnchor.forward;
+                    riderSideways += sheepRiderAnchor.sideways;
+                    riderHeight += sheepRiderAnchor.height;
+                    if (moving)
+                    {
+                        // Sheep?'s walk twists the body from side to side.
+                        // Follow the same animation clock even when its mesh
+                        // has little displacement at the sampled back vertices.
+                        double phase = currentSheepWalkPhase();
+                        if (phase >= 0)
+                        {
+                            riderSideways += (int) Math.round(8.0 * Math.sin(phase));
+                            riderHeight += (int) Math.round(3.0 * Math.abs(Math.sin(phase)));
+                        }
+                    }
+                }
+                if (config.mountType() == MountType.TERRORBIRD && moving && terrorbirdRiderAnchor.moving)
+                {
+                    riderForward += terrorbirdRiderAnchor.forward;
+                    riderSideways += terrorbirdRiderAnchor.sideways;
+                    riderHeight += terrorbirdRiderAnchor.height;
+                }
                 if (config.mountType() != MountType.BLACK_UNICORN
-                    && config.mountType() != MountType.GRYPHON && moving)
+                    && config.mountType() != MountType.GRYPHON
+                    && !(config.mountType() == MountType.TERRORBIRD && terrorbirdRiderAnchor.moving) && moving)
                 {
                     riderForward += currentWalkForwardAdjustment();
                     riderForward += currentSeatSway();
@@ -937,7 +1084,8 @@ public class RapidUrsaMountsPlugin extends Plugin
                     riderHeight += currentSeatBounce();
                 }
                 else if (config.mountType() != MountType.BLACK_UNICORN
-                    && config.mountType() != MountType.GRYPHON && !moving)
+                    && config.mountType() != MountType.GRYPHON
+                    && !moving)
                 {
                     riderHeight += currentIdleBounce();
                 }
@@ -1028,6 +1176,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         // Fitted tack is automatic for each approved mount/style combination.
         if ((config.mountType() == MountType.BLACK_UNICORN
                 && isWidePose())
+            || config.mountType() == MountType.TERRORBIRD
             || (config.mountType() == MountType.GRYPHON
                 && config.ridingPose() == RidingPose.STANDARD)
             || (config.mountType() == MountType.BATTLE_TURTLE
@@ -1140,23 +1289,33 @@ public class RapidUrsaMountsPlugin extends Plugin
             Model saddleModel;
             if (config.useCustomSaddle())
             {
-                saddleMotionModels = new Model[SADDLE_MOTION_FRAMES];
-                for (int i = 0; i < saddleMotionModels.length; i++)
-                {
-                    saddleMotionModels[i] = buildCustomSaddleModel(i);
-                    if (saddleMotionModels[i] == null)
-                    {
-                        despawn();
-                        return false;
-                    }
-                }
-                saddleModel = saddleMotionModels[0];
-                activeSaddleMotionFrame = 0;
+                // The live unicorn mouth anchors rebuild the reins from the
+                // actual animated model, so a synthetic frame cache is no
+                // longer needed.
+                saddleMotionModels = null;
+                saddleModel = buildCustomSaddleModel(0);
+                activeSaddleMotionFrame = -1;
             }
             else
             {
                 saddleModel = buildSaddlePrototypeModel();
             }
+            if (saddleModel != null)
+            {
+                saddle = client.createRuneLiteObject();
+                if (saddle == null)
+                {
+                    despawn();
+                    return false;
+                }
+                saddle.setModel(saddleModel);
+                saddle.setRenderMode(Renderable.RENDERMODE_SORTED_NO_DEPTH);
+                saddle.setDrawFrontTilesFirst(true);
+            }
+        }
+        else if (config.mountType() == MountType.TERRORBIRD)
+        {
+            Model saddleModel = buildTerrorbirdSaddleModel();
             if (saddleModel != null)
             {
                 saddle = client.createRuneLiteObject();
@@ -1379,6 +1538,11 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private Model buildCustomSaddleModel(int motionFrame)
     {
+        return buildCustomSaddleModel(motionFrame, null);
+    }
+
+    private Model buildCustomSaddleModel(int motionFrame, int[] reinAnchors)
+    {
         ModelData template = client.loadModelData(FALLBACK_BODY_MODEL);
         if (template == null)
         {
@@ -1519,17 +1683,56 @@ public class RapidUrsaMountsPlugin extends Plugin
             // pulling the bit backwards into the unicorn's neck and body.
             reinHeadForwardMotion = (int) Math.round(-5.6 * bowAmount);
         }
-        int[][][] reinPaths =
+        int[][][] reinPaths;
+        int[][] mouthEnds = null;
+        if (reinAnchors != null && reinAnchors.length == 6)
         {
-            buildReinPath(-1, reinLength, reinEndHeight, reinSpread,
-                reinHeadHeightMotion, reinHeadForwardMotion,
-                config.leftReinHandForward(), config.leftReinHandHeight(),
-                config.leftReinHandSideways()),
-            buildReinPath(1, reinLength, reinEndHeight, reinSpread,
-                reinHeadHeightMotion, reinHeadForwardMotion,
-                config.rightReinHandForward(), config.rightReinHandHeight(),
-                config.rightReinHandSideways())
-        };
+            mouthEnds = new int[][]{
+                {reinAnchors[0], reinAnchors[1], reinAnchors[2]},
+                {reinAnchors[3], reinAnchors[4], reinAnchors[5]}
+            };
+            int[][] handEnds =
+            {
+                {-16 + config.leftReinHandSideways(),
+                    -18 - config.leftReinHandHeight(),
+                    -25 - config.leftReinHandForward()},
+                {16 + config.rightReinHandSideways(),
+                    -18 - config.rightReinHandHeight(),
+                    -25 - config.rightReinHandForward()}
+            };
+            reinPaths = new int[2][][];
+            for (int side = 0; side < 2; side++)
+            {
+                int[] hand = handEnds[side];
+                int[] mouth = mouthEnds[side];
+                int outward = side == 0 ? -24 : 24;
+                int[] control1 = {
+                    hand[0] + (mouth[0] - hand[0]) / 3 + outward,
+                    hand[1] + (mouth[1] - hand[1]) / 3 + 8,
+                    hand[2] + (mouth[2] - hand[2]) / 3
+                };
+                int[] control2 = {
+                    mouth[0] + (hand[0] - mouth[0]) / 4 + outward,
+                    mouth[1] + 16,
+                    mouth[2] + (hand[2] - mouth[2]) / 5
+                };
+                reinPaths[side] = buildCubicReinPath(
+                    hand, control1, control2, mouth, 4);
+            }
+        }
+        else
+        {
+            reinPaths = new int[][][]{
+                buildReinPath(-1, reinLength, reinEndHeight, reinSpread,
+                    reinHeadHeightMotion, reinHeadForwardMotion,
+                    config.leftReinHandForward(), config.leftReinHandHeight(),
+                    config.leftReinHandSideways()),
+                buildReinPath(1, reinLength, reinEndHeight, reinSpread,
+                    reinHeadHeightMotion, reinHeadForwardMotion,
+                    config.rightReinHandForward(), config.rightReinHandHeight(),
+                    config.rightReinHandSideways())
+            };
+        }
         for (int[][] reinPath : reinPaths)
         {
             for (int i = 0; i < reinPath.length - 1; i++)
@@ -1546,9 +1749,15 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
 
         // Steel-grey bit across the mouth, joining the two rein endpoints.
-        int bitHalfWidth = Math.max(2, 11 + reinSpread) + 6;
-        int bitY = -47 + reinEndHeight + reinHeadHeightMotion;
-        int bitZ = -reinLength + reinHeadForwardMotion;
+        int bitHalfWidth = mouthEnds == null
+            ? Math.max(2, 11 + reinSpread) + 6
+            : Math.max(Math.abs(mouthEnds[0][0]), Math.abs(mouthEnds[1][0])) + 6;
+        int bitY = mouthEnds == null
+            ? -47 + reinEndHeight + reinHeadHeightMotion
+            : (mouthEnds[0][1] + mouthEnds[1][1]) / 2;
+        int bitZ = mouthEnds == null
+            ? -reinLength + reinHeadForwardMotion
+            : (mouthEnds[0][2] + mouthEnds[1][2]) / 2;
         addSaddleBox(x, y, z, face1, face2, face3, colors,
             vertex, face,
             -bitHalfWidth, bitHalfWidth,
@@ -1562,6 +1771,132 @@ public class RapidUrsaMountsPlugin extends Plugin
     }
 
     /** Purpose-built low-poly siege saddle for the Battle turtle. */
+    private Model buildTerrorbirdSaddleModel()
+    {
+        return buildTerrorbirdSaddleModel(null);
+    }
+
+    private Model buildTerrorbirdSaddleModel(int[] reinAnchors)
+    {
+        ModelData template = client.loadModelData(FALLBACK_BODY_MODEL);
+        if (template == null)
+        {
+            return null;
+        }
+        ModelData data = client.mergeModels(new ModelData[]{
+            template, template.shallowCopy(), template.shallowCopy(),
+            template.shallowCopy(), template.shallowCopy(), template.shallowCopy()
+        });
+        if (data == null || data.getVerticesCount() < 80 || data.getFaceCount() < 110)
+        {
+            return null;
+        }
+        data = data.cloneVertices().cloneColors();
+        float[] x = data.getVerticesX();
+        float[] y = data.getVerticesY();
+        float[] z = data.getVerticesZ();
+        int[] face1 = data.getFaceIndices1();
+        int[] face2 = data.getFaceIndices2();
+        int[] face3 = data.getFaceIndices3();
+        short[] colors = data.getFaceColors();
+        java.util.Arrays.fill(x, 0);
+        java.util.Arrays.fill(y, 0);
+        java.util.Arrays.fill(z, 0);
+        java.util.Arrays.fill(face1, 0);
+        java.util.Arrays.fill(face2, 0);
+        java.util.Arrays.fill(face3, 0);
+        java.util.Arrays.fill(colors, (short) 0);
+
+        // A shallow, rounded olive pad follows the bird's narrow torso.
+        // The warm orange piping picks up its beak and leg markings.
+        short green = (short) 20896;
+        short darkGreen = (short) 20758;
+        short orange = (short) 7110;
+        short reinOrange = (short) 6046; // Saturated orange matching the Terrorbird tail feathers.
+        short mouthBarColor = (short) 6840;
+        int vertex = 0;
+        int face = 0;
+        face = addSaddleArch(x, y, z, face1, face2, face3, colors,
+            vertex, face,
+            new int[]{-24, -18, 0, 18, 24},
+            new int[]{-8, -13, -15, -13, -8},
+            new int[]{-1, -4, -5, -4, -1},
+            -22, 24, green);
+        vertex += 20;
+        face = addSaddleBox(x, y, z, face1, face2, face3, colors,
+            vertex, face, -24, 24, -7, -4, -24, -20, orange);
+        vertex += 8;
+        face = addSaddleBox(x, y, z, face1, face2, face3, colors,
+            vertex, face, -23, 23, -7, -4, 21, 26, orange);
+        vertex += 8;
+
+        // The rear support is thin, tapered and low enough to read as tack.
+        face = addSaddleBox(x, y, z, face1, face2, face3, colors,
+            vertex, face, -22, 22, -43, -7, 23, 28, darkGreen);
+        vertex += 8;
+        face = addSaddleBox(x, y, z, face1, face2, face3, colors,
+            vertex, face, -21, 21, -45, -42, 22, 29, orange);
+        vertex += 8;
+        face = addSaddleBox(x, y, z, face1, face2, face3, colors,
+            vertex, face, -28, -25, -3, 11, -16, 16, darkGreen);
+        vertex += 8;
+        face = addSaddleBox(x, y, z, face1, face2, face3, colors,
+            vertex, face, 25, 28, -3, 11, -16, 16, darkGreen);
+        vertex += 8;
+
+        if (reinAnchors != null && reinAnchors.length == 6)
+        {
+            int[][] mouthEnds = {
+                {reinAnchors[0], reinAnchors[1], reinAnchors[2]},
+                {reinAnchors[3], reinAnchors[4], reinAnchors[5]}
+            };
+            int[][] handEnds = {
+                {config.terrorbirdLeftReinHandSideways(),
+                    -config.terrorbirdLeftReinHandHeight(),
+                    -config.terrorbirdLeftReinHandForward()},
+                {config.terrorbirdRightReinHandSideways(),
+                    -config.terrorbirdRightReinHandHeight(),
+                    -config.terrorbirdRightReinHandForward()}
+            };
+            for (int side = 0; side < 2; side++)
+            {
+                int[] hand = handEnds[side];
+                int[] mouth = mouthEnds[side];
+                int outward = side == 0 ? -18 : 18;
+                int[] control1 = {
+                    hand[0] + (mouth[0] - hand[0]) / 3 + outward,
+                    hand[1] + (mouth[1] - hand[1]) / 3 + 7,
+                    hand[2] + (mouth[2] - hand[2]) / 3
+                };
+                int[] control2 = {
+                    mouth[0] + (hand[0] - mouth[0]) / 4 + outward,
+                    mouth[1] + 12,
+                    mouth[2] + (hand[2] - mouth[2]) / 5
+                };
+                int[][] path = buildCubicReinPath(
+                    hand, control1, control2, mouth, 4);
+                for (int i = 0; i < path.length - 1; i++)
+                {
+                    face = addSaddleStrap(x, y, z, face1, face2, face3, colors,
+                        vertex, face,
+                        path[i][0], path[i][1], path[i][2],
+                        path[i + 1][0], path[i + 1][1], path[i + 1][2],
+                        2, 1, reinOrange);
+                    vertex += 8;
+                }
+            }
+
+            int mouthY = (mouthEnds[0][1] + mouthEnds[1][1]) / 2;
+            int mouthZ = (mouthEnds[0][2] + mouthEnds[1][2]) / 2;
+            int mouthMinX = Math.min(mouthEnds[0][0], mouthEnds[1][0]) - 6;
+            int mouthMaxX = Math.max(mouthEnds[0][0], mouthEnds[1][0]) + 6;
+            face = addSaddleCylinderX(x, y, z, face1, face2, face3, colors,
+                vertex, face, mouthMinX, mouthMaxX, mouthY, mouthZ, 3, mouthBarColor);
+            vertex += 16;
+        }
+        return data.light(AMBIENT, CONTRAST, LIGHT_X, LIGHT_Y, LIGHT_Z);
+    }
+
     private Model buildBattleTurtleSaddleModel()
     {
         ModelData template = client.loadModelData(FALLBACK_BODY_MODEL);
@@ -2764,6 +3099,183 @@ public class RapidUrsaMountsPlugin extends Plugin
         return data.light(AMBIENT, CONTRAST, LIGHT_X, LIGHT_Y, LIGHT_Z);
     }
 
+    private void updateTerrorbirdSaddle(boolean moving)
+    {
+        Model mountModel = unicorn == null ? null : unicorn.getModel();
+        if (mountModel == null || mountModel.getVerticesCount() == 0)
+        {
+            return;
+        }
+
+        float[] mountX = mountModel.getVerticesX();
+        float[] mountY = mountModel.getVerticesY();
+        float[] mountZ = mountModel.getVerticesZ();
+        final int defaultForward = 90;
+        final int defaultHeight = 25;
+        final int defaultSpread = 12;
+        int[] targetX = {-defaultSpread, defaultSpread};
+        int targetY = -defaultHeight;
+        int targetZ = -defaultForward;
+
+        for (int side = 0; side < 2; side++)
+        {
+            if (terrorbirdReinHeadVertices[side] >= 0
+                && terrorbirdReinHeadVertices[side] < mountModel.getVerticesCount())
+            {
+                continue;
+            }
+            float wantedX = currentTerrorbirdSaddleSideways + targetX[side];
+            float wantedY = -currentTerrorbirdSaddleHeight + targetY;
+            // The fitted Terrorbird seat moves backward by the walking
+            // offset. Convert the beak from the mount's model coordinates
+            // into that translated saddle space with the opposite sign.
+            int walkingCorrection = moving ? 2 * TERRORBIRD_WALK_SEAT_BACK : 0;
+            float wantedZ = -currentTerrorbirdSaddleForward
+                + walkingCorrection + targetZ;
+            double bestDistance = Double.MAX_VALUE;
+            int bestVertex = -1;
+            for (int vertex = 0; vertex < mountModel.getVerticesCount(); vertex++)
+            {
+                if (vertex == terrorbirdReinHeadVertices[1 - side])
+                {
+                    continue;
+                }
+                double dx = mountX[vertex] - wantedX;
+                double dy = mountY[vertex] - wantedY;
+                double dz = mountZ[vertex] - wantedZ;
+                double distance = dx * dx + dy * dy + dz * dz;
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    bestVertex = vertex;
+                }
+            }
+            terrorbirdReinHeadVertices[side] = bestVertex;
+        }
+
+        int[] anchors = new int[6];
+        for (int side = 0; side < 2; side++)
+        {
+            int vertex = terrorbirdReinHeadVertices[side];
+            if (vertex < 0)
+            {
+                return;
+            }
+            int offset = side * 3;
+            int sideSign = side == 0 ? -1 : 1;
+            anchors[offset] = Math.round(
+                mountX[vertex] - currentTerrorbirdSaddleSideways)
+                + sideSign * (config.terrorbirdReinHeadSpread() - defaultSpread);
+            anchors[offset + 1] = Math.round(
+                mountY[vertex] + currentTerrorbirdSaddleHeight)
+                - config.terrorbirdReinHeadHeight() + defaultHeight;
+            anchors[offset + 2] = Math.round(
+                mountZ[vertex] + currentTerrorbirdSaddleForward)
+                - (moving ? 2 * TERRORBIRD_WALK_SEAT_BACK : 0)
+                - config.terrorbirdReinHeadForward() + defaultForward;
+        }
+
+        if (java.util.Arrays.equals(anchors, lastTerrorbirdReinAnchors))
+        {
+            return;
+        }
+        Model model = buildTerrorbirdSaddleModel(anchors);
+        if (model != null)
+        {
+            saddle.setModel(model);
+            lastTerrorbirdReinAnchors = anchors;
+        }
+    }
+
+    private void updateUnicornSaddle(
+        int linkedSeatForward,
+        int linkedSeatSideways,
+        int linkedSeatHeight)
+    {
+        Model mountModel = unicorn == null ? null : unicorn.getModel();
+        if (mountModel == null || mountModel.getVerticesCount() == 0)
+        {
+            return;
+        }
+
+        float[] mountX = mountModel.getVerticesX();
+        float[] mountY = mountModel.getVerticesY();
+        float[] mountZ = mountModel.getVerticesZ();
+        int scale = Math.max(1, 128 * config.saddleScale() / 100);
+        int saddleForward = config.saddleForward() + linkedSeatForward;
+        int saddleSideways = config.saddleSideways() + linkedSeatSideways;
+        int saddleHeight = config.saddleHeight() + linkedSeatHeight;
+        final int defaultSpread = 15;
+        final int defaultEndHeight = 30;
+        final int defaultLength = 205;
+        int[] targetX = {-11 - defaultSpread, 11 + defaultSpread};
+        int targetY = -47 + defaultEndHeight;
+        int targetZ = -defaultLength;
+
+        for (int side = 0; side < 2; side++)
+        {
+            if (unicornReinHeadVertices[side] >= 0
+                && unicornReinHeadVertices[side] < mountModel.getVerticesCount())
+            {
+                continue;
+            }
+            float wantedX = saddleSideways + targetX[side] * scale / 128f;
+            float wantedY = -saddleHeight + targetY * scale / 128f;
+            float wantedZ = -saddleForward + targetZ * scale / 128f;
+            double bestDistance = Double.MAX_VALUE;
+            int bestVertex = -1;
+            for (int vertex = 0; vertex < mountModel.getVerticesCount(); vertex++)
+            {
+                if (vertex == unicornReinHeadVertices[1 - side])
+                {
+                    continue;
+                }
+                double dx = mountX[vertex] - wantedX;
+                double dy = mountY[vertex] - wantedY;
+                double dz = mountZ[vertex] - wantedZ;
+                double distance = dx * dx + dy * dy + dz * dz;
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    bestVertex = vertex;
+                }
+            }
+            unicornReinHeadVertices[side] = bestVertex;
+        }
+
+        int[] anchors = new int[6];
+        for (int side = 0; side < 2; side++)
+        {
+            int vertex = unicornReinHeadVertices[side];
+            if (vertex < 0)
+            {
+                return;
+            }
+            int offset = side * 3;
+            int sideSign = side == 0 ? -1 : 1;
+            anchors[offset] = Math.round(
+                (mountX[vertex] - saddleSideways) * 128f / scale)
+                + sideSign * (config.reinSpread() - defaultSpread);
+            anchors[offset + 1] = Math.round(
+                (mountY[vertex] + saddleHeight) * 128f / scale)
+                + config.reinEndHeight() - defaultEndHeight;
+            anchors[offset + 2] = Math.round(
+                (mountZ[vertex] + saddleForward) * 128f / scale)
+                - config.reinLength() + defaultLength;
+        }
+
+        if (java.util.Arrays.equals(anchors, lastUnicornReinAnchors))
+        {
+            return;
+        }
+        Model model = buildCustomSaddleModel(0, anchors);
+        if (model != null)
+        {
+            saddle.setModel(model);
+            lastUnicornReinAnchors = anchors;
+        }
+    }
+
     private void updateGryphonSaddle()
     {
         Model mountModel = unicorn == null ? null : unicorn.getModel();
@@ -2861,6 +3373,142 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
     }
 
+    private static final class RiderAnchorState
+    {
+        private int[] vertices;
+        private int[] base;
+        private int forward;
+        private int sideways;
+        private int height;
+        private boolean moving;
+
+        private void reset()
+        {
+            vertices = null;
+            base = null;
+            forward = 0;
+            sideways = 0;
+            height = 0;
+            moving = false;
+        }
+    }
+
+    /**
+     * Locks an independently rendered rider to a small animated patch on the
+     * selected mount's back. The rider's fitted position supplies the probe
+     * point, while averaging nearby vertices keeps the resulting motion stable.
+     */
+    private void updateRiderAnchor(
+        RiderAnchorState state,
+        int riderSideways,
+        int riderHeight,
+        int riderForward)
+    {
+        Model mountModel = unicorn == null ? null : unicorn.getModel();
+        if (mountModel == null || mountModel.getVerticesCount() == 0)
+        {
+            return;
+        }
+
+        int vertexCount = mountModel.getVerticesCount();
+        boolean rebuild = state.vertices == null || state.vertices.length == 0;
+        if (!rebuild)
+        {
+            for (int vertex : state.vertices)
+            {
+                if (vertex < 0 || vertex >= vertexCount)
+                {
+                    rebuild = true;
+                    break;
+                }
+            }
+        }
+
+        if (rebuild)
+        {
+            int wantedCount = Math.min(12, vertexCount);
+            int[] nearest = new int[wantedCount];
+            double[] distances = new double[wantedCount];
+            java.util.Arrays.fill(nearest, -1);
+            java.util.Arrays.fill(distances, Double.MAX_VALUE);
+
+            float[] x = mountModel.getVerticesX();
+            float[] y = mountModel.getVerticesY();
+            float[] z = mountModel.getVerticesZ();
+            float wantedX = riderSideways;
+            float wantedY = -riderHeight;
+            float wantedZ = -riderForward;
+            for (int vertex = 0; vertex < vertexCount; vertex++)
+            {
+                if (Math.abs(x[vertex]) > 55 || Math.abs(z[vertex]) > 55)
+                {
+                    continue;
+                }
+                double dx = x[vertex] - wantedX;
+                double dy = y[vertex] - wantedY;
+                double dz = z[vertex] - wantedZ;
+                double distance = dx * dx + dy * dy + dz * dz;
+                for (int slot = 0; slot < wantedCount; slot++)
+                {
+                    if (distance < distances[slot])
+                    {
+                        for (int shift = wantedCount - 1; shift > slot; shift--)
+                        {
+                            distances[shift] = distances[shift - 1];
+                            nearest[shift] = nearest[shift - 1];
+                        }
+                        distances[slot] = distance;
+                        nearest[slot] = vertex;
+                        break;
+                    }
+                }
+            }
+            state.vertices = nearest;
+            state.base = null;
+        }
+
+        float[] x = mountModel.getVerticesX();
+        float[] y = mountModel.getVerticesY();
+        float[] z = mountModel.getVerticesZ();
+        double totalX = 0;
+        double totalY = 0;
+        double totalZ = 0;
+        int count = 0;
+        for (int vertex : state.vertices)
+        {
+            if (vertex >= 0 && vertex < vertexCount)
+            {
+                totalX += x[vertex];
+                totalY += y[vertex];
+                totalZ += z[vertex];
+                count++;
+            }
+        }
+        if (count == 0)
+        {
+            return;
+        }
+
+        int[] anchor = {
+            (int) Math.round(totalX / count),
+            (int) Math.round(totalY / count),
+            (int) Math.round(totalZ / count)
+        };
+        if (state.base == null)
+        {
+            state.base = anchor.clone();
+        }
+        // Restrict the rider and seat to body-sized stride motion. A neck
+        // vertex or animation transition must never move them onto the beak.
+        state.sideways = Math.max(-6, Math.min(6, anchor[0] - state.base[0]));
+        state.height = Math.max(-14, Math.min(14, -(anchor[1] - state.base[1])));
+        state.forward = Math.max(-8, Math.min(8, -(anchor[2] - state.base[2])));
+        if (Math.abs(state.forward) + Math.abs(state.sideways) + Math.abs(state.height) >= 3)
+        {
+            state.moving = true;
+        }
+    }
+
     /**
      * RuneLite objects do not parent one object to another object's bones.
      * Track a small cluster of vertices nearest Araxxor's fitted seat and
@@ -2952,6 +3600,120 @@ public class RapidUrsaMountsPlugin extends Plugin
         currentAraxxorSeatSideways = anchor[0] - baseAraxxorRiderAnchor[0];
         currentAraxxorSeatHeight = -(anchor[1] - baseAraxxorRiderAnchor[1]);
         currentAraxxorSeatForward = anchor[2] - baseAraxxorRiderAnchor[2];
+    }
+
+    /** Use the mount's animated back vertices for both idle and walking rider motion. */
+    private void updateBackRiderAnchor(RiderAnchorState state,
+        int seatSideways, int seatHeight, int seatForward)
+    {
+        Model mountModel = unicorn == null ? null : unicorn.getModel();
+        updateBackRiderAnchor(state, mountModel, mountModel,
+            seatSideways, seatHeight, seatForward);
+    }
+
+    /** Sample the sheep's undeformed back, then follow those vertices after animation. */
+    private void updateSheepRiderAnchor(RiderAnchorState state,
+        int seatSideways, int seatHeight, int seatForward)
+    {
+        if (unicorn == null)
+        {
+            return;
+        }
+        Model baseModel = unicorn.getBaseModel();
+        AnimationController controller = unicorn.getAnimationController();
+        Model animatedModel = baseModel == null || controller == null
+            ? unicorn.getModel() : controller.animate(baseModel);
+        updateBackRiderAnchor(state, baseModel == null ? animatedModel : baseModel,
+            animatedModel, seatSideways, seatHeight, seatForward);
+    }
+
+    private void updateBackRiderAnchor(RiderAnchorState state, Model selectionModel,
+        Model mountModel, int seatSideways, int seatHeight, int seatForward)
+    {
+        if (mountModel == null || mountModel.getVerticesCount() == 0)
+        {
+            return;
+        }
+        int vertexCount = mountModel.getVerticesCount();
+        boolean rebuild = state.vertices == null || state.vertices.length == 0;
+        if (!rebuild)
+        {
+            for (int vertex : state.vertices)
+            {
+                if (vertex < 0 || vertex >= vertexCount)
+                {
+                    rebuild = true;
+                    break;
+                }
+            }
+        }
+        if (rebuild)
+        {
+            int count = Math.min(12, vertexCount);
+            int[] nearest = new int[count];
+            double[] distances = new double[count];
+            java.util.Arrays.fill(nearest, -1);
+            java.util.Arrays.fill(distances, Double.MAX_VALUE);
+            float[] x = selectionModel.getVerticesX();
+            float[] y = selectionModel.getVerticesY();
+            float[] z = selectionModel.getVerticesZ();
+            for (int vertex = 0; vertex < Math.min(vertexCount, selectionModel.getVerticesCount()); vertex++)
+            {
+                double dx = x[vertex] - seatSideways;
+                double dy = y[vertex] + seatHeight;
+                double dz = z[vertex] + seatForward;
+                double distance = dx * dx + dy * dy + dz * dz;
+                for (int slot = 0; slot < count; slot++)
+                {
+                    if (distance < distances[slot])
+                    {
+                        for (int shift = count - 1; shift > slot; shift--)
+                        {
+                            distances[shift] = distances[shift - 1];
+                            nearest[shift] = nearest[shift - 1];
+                        }
+                        distances[slot] = distance;
+                        nearest[slot] = vertex;
+                        break;
+                    }
+                }
+            }
+            state.vertices = nearest;
+            state.base = null;
+        }
+        float[] x = mountModel.getVerticesX();
+        float[] y = mountModel.getVerticesY();
+        float[] z = mountModel.getVerticesZ();
+        double totalX = 0;
+        double totalY = 0;
+        double totalZ = 0;
+        int count = 0;
+        for (int vertex : state.vertices)
+        {
+            if (vertex >= 0 && vertex < vertexCount)
+            {
+                totalX += x[vertex];
+                totalY += y[vertex];
+                totalZ += z[vertex];
+                count++;
+            }
+        }
+        if (count == 0)
+        {
+            return;
+        }
+        int[] anchor = {
+            (int) Math.round(totalX / count),
+            (int) Math.round(totalY / count),
+            (int) Math.round(totalZ / count)
+        };
+        if (state.base == null)
+        {
+            state.base = anchor.clone();
+        }
+        state.sideways = anchor[0] - state.base[0];
+        state.height = -(anchor[1] - state.base[1]);
+        state.forward = anchor[2] - state.base[2];
     }
 
     /** Follow a small patch of Vorkath's animated back instead of estimating
@@ -3819,6 +4581,18 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             npcId = config.vorkathNpcId();
         }
+        else if (config.mountType() == MountType.BIG_WOLF)
+        {
+            npcId = BIG_WOLF_NPC_ID;
+        }
+        else if (config.mountType() == MountType.CATABLEPON)
+        {
+            npcId = CATABLEPON_NPC_ID;
+        }
+        else if (config.mountType() == MountType.SHEEP)
+        {
+            npcId = SHEEP_NPC_ID;
+        }
         NPCComposition composition = client.getNpcDefinition(npcId);
         int[] ids = null;
         if (composition != null)
@@ -3919,6 +4693,18 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             return moving ? config.vorkathWalkAnimation() : config.vorkathIdleAnimation();
         }
+        if (config.mountType() == MountType.BIG_WOLF)
+        {
+            return moving ? config.bigWolfWalkAnimation() : config.bigWolfIdleAnimation();
+        }
+        if (config.mountType() == MountType.CATABLEPON)
+        {
+            return moving ? config.catableponWalkAnimation() : config.catableponIdleAnimation();
+        }
+        if (config.mountType() == MountType.SHEEP)
+        {
+            return moving ? config.sheepWalkAnimation() : config.sheepIdleAnimation();
+        }
         return moving ? AnimationID.UNICORN_REWORK_WALK : AnimationID.UNICORN_REWORK_READY;
     }
 
@@ -3952,6 +4738,21 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private AnimationController loopingMountAnimation(int animationId)
     {
+        if (config.mountType() == MountType.SHEEP
+            && animationId == config.sheepIdleAnimation())
+        {
+            Animation idle = client.loadAnimation(animationId);
+            if (idle != null)
+            {
+                return new FullIdlePingPongController(client, idle);
+            }
+        }
+        if (config.mountType() == MountType.SHEEP)
+        {
+            AnimationController controller = new AnimationController(client, animationId);
+            controller.setOnFinished(AnimationController::loop);
+            return controller;
+        }
         if (config.mountType() != MountType.GRYPHON
             && config.mountType() != MountType.ARTIO)
         {
@@ -4004,6 +4805,12 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentStrideFollow()
     {
+        if (config.mountType() == MountType.BIG_WOLF
+            || config.mountType() == MountType.CATABLEPON
+            || config.mountType() == MountType.SHEEP)
+        {
+            return 0;
+        }
         if (config.mountType() == MountType.GRYPHON
             || config.mountType() == MountType.BATTLE_TURTLE
             || config.mountType() == MountType.ARTIO
@@ -4038,6 +4845,12 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentSeatBounce()
     {
+        if (config.mountType() == MountType.BIG_WOLF
+            || config.mountType() == MountType.CATABLEPON
+            || config.mountType() == MountType.SHEEP)
+        {
+            return 0;
+        }
         if (config.mountType() == MountType.GRYPHON
             || config.mountType() == MountType.ARAXXOR
             || config.mountType() == MountType.VORKATH)
@@ -4071,6 +4884,12 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentSeatSway()
     {
+        if (config.mountType() == MountType.BIG_WOLF
+            || config.mountType() == MountType.CATABLEPON
+            || config.mountType() == MountType.SHEEP)
+        {
+            return 0;
+        }
         if (config.mountType() == MountType.VORKATH)
         {
             return 0;
@@ -4122,6 +4941,12 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentIdleBounce()
     {
+        if (config.mountType() == MountType.BIG_WOLF
+            || config.mountType() == MountType.CATABLEPON
+            || config.mountType() == MountType.SHEEP)
+        {
+            return 0;
+        }
         int amount;
         if (config.mountType() == MountType.TERRORBIRD)
         {
@@ -4171,6 +4996,22 @@ public class RapidUrsaMountsPlugin extends Plugin
         return 4.0 * Math.PI * frame / frameCount;
     }
 
+    private double currentSheepWalkPhase()
+    {
+        AnimationController controller = unicorn == null ? null : unicorn.getAnimationController();
+        Animation animation = controller == null ? null : controller.getAnimation();
+        if (animation == null || animation.getId() != config.sheepWalkAnimation())
+        {
+            return -1;
+        }
+        int frameCount = animation.isMayaAnim() ? animation.getDuration() : animation.getNumFrames();
+        if (frameCount < 2)
+        {
+            return -1;
+        }
+        return 2.0 * Math.PI * Math.floorMod(controller.getFrame(), frameCount) / frameCount;
+    }
+
     private int currentTurtleBob(int amount, int timingOffset)
     {
         AnimationController controller = unicorn == null ? null : unicorn.getAnimationController();
@@ -4191,6 +5032,18 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (config.mountType() == MountType.VORKATH)
         {
             return config.vorkathScale();
+        }
+        if (config.mountType() == MountType.BIG_WOLF)
+        {
+            return config.bigWolfScale();
+        }
+        if (config.mountType() == MountType.CATABLEPON)
+        {
+            return config.catableponScale();
+        }
+        if (config.mountType() == MountType.SHEEP)
+        {
+            return config.sheepScale();
         }
         if (isWidePose())
         {
@@ -4229,6 +5082,14 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderHeight()
     {
+        if (config.mountType() == MountType.BIG_WOLF)
+        {
+            return config.bigWolfRiderHeight();
+        }
+        if (config.mountType() == MountType.CATABLEPON)
+        {
+            return config.catableponRiderHeight();
+        }
         if (isNoSaddlePose())
         {
             return config.artioNoSaddleRiderHeight();
@@ -4282,6 +5143,14 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderForward()
     {
+        if (config.mountType() == MountType.BIG_WOLF)
+        {
+            return config.bigWolfRiderForward();
+        }
+        if (config.mountType() == MountType.CATABLEPON)
+        {
+            return config.catableponRiderForward();
+        }
         if (isNoSaddlePose())
         {
             return config.artioNoSaddleRiderForward();
@@ -4335,6 +5204,14 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderSideways()
     {
+        if (config.mountType() == MountType.BIG_WOLF)
+        {
+            return config.bigWolfRiderSideways();
+        }
+        if (config.mountType() == MountType.CATABLEPON)
+        {
+            return config.catableponRiderSideways();
+        }
         if (isNoSaddlePose())
         {
             return config.artioNoSaddleRiderSideways();
@@ -4430,6 +5307,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentExtraWideRiderHeight()
     {
+        if (config.mountType() == MountType.SHEEP)
+        {
+            return config.sheepRiderHeight();
+        }
         if (config.mountType() == MountType.VORKATH)
         {
             return config.vorkathRiderHeight();
@@ -4437,6 +5318,14 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (config.mountType() == MountType.ARAXXOR)
         {
             return config.araxxorRiderHeight();
+        }
+        if (config.mountType() == MountType.BIG_WOLF)
+        {
+            return config.bigWolfRiderHeight();
+        }
+        if (config.mountType() == MountType.CATABLEPON)
+        {
+            return config.catableponRiderHeight();
         }
         switch (config.mountType())
         {
@@ -4452,6 +5341,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentExtraWideRiderForward()
     {
+        if (config.mountType() == MountType.SHEEP)
+        {
+            return config.sheepRiderForward();
+        }
         if (config.mountType() == MountType.VORKATH)
         {
             return config.vorkathRiderForward();
@@ -4459,6 +5352,14 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (config.mountType() == MountType.ARAXXOR)
         {
             return config.araxxorRiderForward();
+        }
+        if (config.mountType() == MountType.BIG_WOLF)
+        {
+            return config.bigWolfRiderForward();
+        }
+        if (config.mountType() == MountType.CATABLEPON)
+        {
+            return config.catableponRiderForward();
         }
         switch (config.mountType())
         {
@@ -4474,6 +5375,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentExtraWideRiderSideways()
     {
+        if (config.mountType() == MountType.SHEEP)
+        {
+            return config.sheepRiderSideways();
+        }
         if (config.mountType() == MountType.VORKATH)
         {
             return config.vorkathRiderSideways();
@@ -4481,6 +5386,14 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (config.mountType() == MountType.ARAXXOR)
         {
             return config.araxxorRiderSideways();
+        }
+        if (config.mountType() == MountType.BIG_WOLF)
+        {
+            return config.bigWolfRiderSideways();
+        }
+        if (config.mountType() == MountType.CATABLEPON)
+        {
+            return config.catableponRiderSideways();
         }
         switch (config.mountType())
         {
@@ -4496,6 +5409,12 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentWalkHeightAdjustment()
     {
+        if (config.mountType() == MountType.BIG_WOLF
+            || config.mountType() == MountType.CATABLEPON
+            || config.mountType() == MountType.SHEEP)
+        {
+            return 0;
+        }
         if (config.mountType() == MountType.VORKATH)
         {
             return config.vorkathWalkHeight();
@@ -4531,6 +5450,12 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentWalkForwardAdjustment()
     {
+        if (config.mountType() == MountType.BIG_WOLF
+            || config.mountType() == MountType.CATABLEPON
+            || config.mountType() == MountType.SHEEP)
+        {
+            return 0;
+        }
         if (config.mountType() == MountType.VORKATH)
         {
             return config.vorkathWalkForward();
@@ -4714,6 +5639,9 @@ public class RapidUrsaMountsPlugin extends Plugin
             case ARTIO: return config.artioMountedHolsterSideways();
             case ARAXXOR: return config.araxxorMountedHolsterSideways();
             case VORKATH: return config.vorkathMountedHolsterSideways();
+            case BIG_WOLF: return config.bigWolfMountedHolsterSideways();
+            case CATABLEPON: return config.catableponMountedHolsterSideways();
+            case SHEEP: return config.sheepMountedHolsterSideways();
             default: return 0;
         }
     }
@@ -4740,6 +5668,9 @@ public class RapidUrsaMountsPlugin extends Plugin
             case ARTIO: return config.artioMountedHolsterHeight();
             case ARAXXOR: return config.araxxorMountedHolsterHeight();
             case VORKATH: return config.vorkathMountedHolsterHeight();
+            case BIG_WOLF: return config.bigWolfMountedHolsterHeight();
+            case CATABLEPON: return config.catableponMountedHolsterHeight();
+            case SHEEP: return config.sheepMountedHolsterHeight();
             default: return -55;
         }
     }
@@ -4766,6 +5697,9 @@ public class RapidUrsaMountsPlugin extends Plugin
             case ARTIO: return config.artioMountedHolsterForward();
             case ARAXXOR: return config.araxxorMountedHolsterForward();
             case VORKATH: return config.vorkathMountedHolsterForward();
+            case BIG_WOLF: return config.bigWolfMountedHolsterForward();
+            case CATABLEPON: return config.catableponMountedHolsterForward();
+            case SHEEP: return config.sheepMountedHolsterForward();
             default: return 0;
         }
     }
@@ -4871,6 +5805,15 @@ public class RapidUrsaMountsPlugin extends Plugin
         artioShield = null;
         artioWarspears = null;
         lastGryphonReinAnchors = null;
+        lastUnicornReinAnchors = null;
+        unicornReinHeadVertices[0] = -1;
+        unicornReinHeadVertices[1] = -1;
+        lastTerrorbirdReinAnchors = null;
+        terrorbirdReinHeadVertices[0] = -1;
+        terrorbirdReinHeadVertices[1] = -1;
+        currentTerrorbirdSaddleForward = 0;
+        currentTerrorbirdSaddleSideways = 0;
+        currentTerrorbirdSaddleHeight = 0;
         gryphonSaddleAnchorVertex = -1;
         baseGryphonSaddleAnchor = null;
         currentGryphonSeatForward = 0;
@@ -4886,6 +5829,9 @@ public class RapidUrsaMountsPlugin extends Plugin
         currentVorkathSeatForward = 0;
         currentVorkathSeatSideways = 0;
         currentVorkathSeatHeight = 0;
+        terrorbirdRiderAnchor.reset();
+        bigWolfRiderAnchor.reset();
+        sheepRiderAnchor.reset();
         baseArtioArmourAnchors = null;
         lastArtioArmourAnchors = null;
         artioReinHeadVertices[0] = -1;
