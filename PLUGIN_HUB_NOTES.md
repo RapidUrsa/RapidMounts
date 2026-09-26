@@ -13,9 +13,9 @@ Rapid Mounts is a visual-only cosmetic plugin.
   rider; it never modifies the real `PlayerComposition` or equipment.
 - Temporarily removes the cosmetics while the real player performs an action.
 - The overlay button and optional hotkey only toggle local cosmetic state.
-- Includes eleven selectable mounts: black unicorn, terrorbird, gryphon,
+- Includes twelve selectable mounts: black unicorn, terrorbird, gryphon,
   Battle Bear, Vorkath, lava dragon, Araxxor, Battle turtle, Big wolf,
-  Catablepon, and Sheep?, with independently tuned riding poses.
+  Catablepon, Sheep?, and TzRek-Zuk, with independently tuned riding poses.
 - Adds fitted, animated tack for the Black unicorn, gryphon, Battle turtle, and
   Battle Bear, with user-facing visibility toggles.
 - Provides cosmetic cape visibility and positioning controls to reduce clipping.
@@ -62,9 +62,9 @@ repository=https://github.com/RapidUrsa/RapidMounts.git
 commit=YOUR-40-CHARACTER-COMMIT-HASH
 ```
 
-Suggested v2.2.0 pull-request description:
+Suggested v2.3.0 pull-request description:
 
-> Updates Rapid Mounts to v2.2.0, adding Big wolf, Catablepon, and Sheep?,
-> Terrorbird saddle and reins, and updated rider animation and mounting controls.
+> Updates Rapid Mounts to v2.3.0, adding TzRek-Zuk as a cosmetic mount with
+> three selectable riding poses and an animated shoulder-mounted rider.
 > The plugin remains visual-only and does not alter movement, input, menus,
 > gameplay, or server-visible state.

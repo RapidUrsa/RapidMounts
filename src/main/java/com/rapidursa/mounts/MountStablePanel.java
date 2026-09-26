@@ -23,6 +23,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
@@ -47,7 +48,8 @@ final class MountStablePanel extends PluginPanel
     MountStablePanel(
         RapidUrsaMountsConfig config,
         ConfigManager configManager,
-        ClientThread clientThread)
+        ClientThread clientThread,
+        ItemManager itemManager)
     {
         super(false);
         this.config = config;
@@ -98,6 +100,7 @@ final class MountStablePanel extends PluginPanel
         cards.add(createMountButton(MountType.LAVA_DRAGON, lavaDragon));
         cards.add(createMountButton(MountType.ARAXXOR, araxxor));
         cards.add(createMountButton(MountType.BATTLE_TURTLE, battleTurtle));
+        cards.add(createMountButton(MountType.TZREK_ZUK, loadPreview("tzrek-zuk-preview.png")));
         content.add(cards);
         content.add(Box.createRigidArea(new Dimension(0, 14)));
 

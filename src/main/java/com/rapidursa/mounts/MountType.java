@@ -12,7 +12,8 @@ public enum MountType
     VORKATH("Vorkath"),
     BIG_WOLF("Big wolf"),
     CATABLEPON("Catablepon"),
-    SHEEP("Sheep?");
+    SHEEP("Sheep?"),
+    TZREK_ZUK("TzRek-Zuk");
 
     private final String displayName;
 

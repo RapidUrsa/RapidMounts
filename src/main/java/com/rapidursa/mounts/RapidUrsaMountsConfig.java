@@ -24,6 +24,7 @@ public interface RapidUrsaMountsConfig extends Config
     String BIG_WOLF = "bigWolf";
     String CATABLEPON = "catablepon";
     String SHEEP = "sheep";
+    String TZREK_ZUK = "tzrekZuk";
     // Keep the existing constant as an alias so saved saddle keys retain
     // their identity while the controls live inside Black unicorn settings.
     String SADDLE = UNICORN;
@@ -128,6 +129,61 @@ public interface RapidUrsaMountsConfig extends Config
 
     @ConfigSection(name = "Sheep?", description = "Sheep? model, animation and rider fitting", position = 12, closedByDefault = true)
     String sheepSection = SHEEP;
+
+    @ConfigSection(name = "TzRek-Zuk", description = "Pet Zuk model, animations and shoulder rider fitting", position = 13, closedByDefault = true)
+    String zukSection = TZREK_ZUK;
+
+    @Range(min = 1, max = 30000)
+    @ConfigItem(keyName = "zukNpcId", name = "Pet NPC ID", description = "TzRek-Zuk form of Jal-Nib-Rek", section = TZREK_ZUK)
+    default int zukNpcId() { return 8009; }
+    @Range(min = 100, max = 800)
+    @ConfigItem(keyName = "zukScale", name = "Zuk scale (%)", description = "Enlarge the pet model to mount size", section = TZREK_ZUK)
+    default int zukScale() { return 350; }
+    @Range(min = -500, max = 500)
+    @ConfigItem(keyName = "zukMountForward", name = "Mount forward/back", description = "Move Zuk and the seated rider together relative to the player tile", section = TZREK_ZUK)
+    default int zukMountForward() { return -128; }
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "zukIdleAnimation", name = "Idle animation ID", description = "TzRek-Zuk pet idle animation", section = TZREK_ZUK)
+    default int zukIdleAnimation() { return 7975; }
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "zukWalkAnimation", name = "Walking animation ID", description = "TzRek-Zuk pet walking animation", section = TZREK_ZUK)
+    default int zukWalkAnimation() { return 7977; }
+    @Range(min = -500, max = 500)
+    @ConfigItem(keyName = "zukRiderForward", name = "Standard rider forward/back", description = "Position the Standard pose along Zuk's shoulder", section = TZREK_ZUK)
+    default int zukRiderForward() { return 130; }
+    @Range(min = -500, max = 500)
+    @ConfigItem(keyName = "zukRiderHeight", name = "Standard rider height", description = "Move the Standard pose up or down the shoulder", section = TZREK_ZUK)
+    default int zukRiderHeight() { return 153; }
+    @Range(min = -500, max = 500)
+    @ConfigItem(keyName = "zukRiderSideways", name = "Standard rider sideways", description = "Move the Standard pose from the shoulder toward the centre or outside", section = TZREK_ZUK)
+    default int zukRiderSideways() { return 76; }
+    @Range(min = -500, max = 500)
+    @ConfigItem(keyName = "zukCrossLeggedRiderForward", name = "Cross-legged rider forward/back", description = "Position the Cross-legged pose along Zuk's shoulder", section = TZREK_ZUK)
+    default int zukCrossLeggedRiderForward() { return 110; }
+    @Range(min = -500, max = 500)
+    @ConfigItem(keyName = "zukCrossLeggedRiderHeight", name = "Cross-legged rider height", description = "Move the Cross-legged pose up or down the shoulder", section = TZREK_ZUK)
+    default int zukCrossLeggedRiderHeight() { return 323; }
+    @Range(min = -500, max = 500)
+    @ConfigItem(keyName = "zukCrossLeggedRiderSideways", name = "Cross-legged rider sideways", description = "Move the Cross-legged pose across Zuk's shoulder", section = TZREK_ZUK)
+    default int zukCrossLeggedRiderSideways() { return -5; }
+    @Range(min = -500, max = 500)
+    @ConfigItem(keyName = "zukExtraWideRiderForward", name = "Extra Wide rider forward/back", description = "Position the Extra Wide pose along Zuk's shoulder", section = TZREK_ZUK)
+    default int zukExtraWideRiderForward() { return 109; }
+    @Range(min = -500, max = 500)
+    @ConfigItem(keyName = "zukExtraWideRiderHeight", name = "Extra Wide rider height", description = "Move the Extra Wide pose up or down the shoulder", section = TZREK_ZUK)
+    default int zukExtraWideRiderHeight() { return 305; }
+    @Range(min = -500, max = 500)
+    @ConfigItem(keyName = "zukExtraWideRiderSideways", name = "Extra Wide rider sideways", description = "Move the Extra Wide pose across Zuk's shoulder", section = TZREK_ZUK)
+    default int zukExtraWideRiderSideways() { return -7; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "zukMountedHolsterForward", name = "Mounted weapon forward/back", description = "Position a mounted holster relative to Zuk's rider", section = TZREK_ZUK)
+    default int zukMountedHolsterForward() { return 16; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "zukMountedHolsterHeight", name = "Mounted weapon height", description = "Raise or lower the mounted holster", section = TZREK_ZUK)
+    default int zukMountedHolsterHeight() { return -90; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "zukMountedHolsterSideways", name = "Mounted weapon sideways", description = "Move the mounted holster across the rider", section = TZREK_ZUK)
+    default int zukMountedHolsterSideways() { return 0; }
 
     @Range(min = 30, max = 200)
     @ConfigItem(keyName = "sheepScale", name = "Sheep? scale (%)", description = "Size of Sheep?", section = SHEEP)

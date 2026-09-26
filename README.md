@@ -5,6 +5,24 @@ grew from there! I'm so happy so many people seem to like it! I'm always looking
 for new pose suggestions and mounts, so please send requests and I'll see what
 I can do :)
 
+## v2.3.0 — TzRek-Zuk
+
+This release adds the TzRek-Zuk form of the Jal-Nib-Rek pet as a scaled
+cosmetic mount. It offers Standard, Cross-legged, and Extra Wide poses on one
+shoulder, with Extra Wide selected by default. The TzRek-Zuk
+settings let you adjust the pet NPC ID, model scale, the mount's forward/back
+placement, separate rider positions for each pose, and the mounted Rapid
+Holster position. The rider follows a group of
+vertices on the animated shoulder when a mount animation is selected.
+
+The pet's idle (7975) and walking (7977) animation IDs come from the
+TzRek-Zuk entry in Rapid Companions. NPC ID 8009 and item ID 22319 are the
+pet-form defaults. Adjust the shoulder controls while idle and walking;
+the mount forward/back setting starts at -128 local units to bring the visible
+model toward the player tile. The shipped rider positions for Standard,
+Cross-legged, and Extra Wide and the mounted weapon position use the final
+in-game fitting values.
+
 ## v2.2.0 — More mounts and riding polish
 
 This release adds Big wolf, Catablepon, and Sheep? to the Mount Stable. It also

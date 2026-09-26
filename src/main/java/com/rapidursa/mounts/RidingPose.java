@@ -43,6 +43,8 @@ public enum RidingPose
             case CATABLEPON:
             case SHEEP:
                 return new RidingPose[]{EXTRA_WIDE};
+            case TZREK_ZUK:
+                return new RidingPose[]{STANDARD, CROSS_LEGGED, EXTRA_WIDE};
             default:
                 return new RidingPose[]{STANDARD};
         }
@@ -56,7 +58,7 @@ public enum RidingPose
         }
         if (mount == MountType.ARTIO || mount == MountType.ARAXXOR || mount == MountType.VORKATH
             || mount == MountType.BIG_WOLF || mount == MountType.CATABLEPON
-            || mount == MountType.SHEEP)
+            || mount == MountType.SHEEP || mount == MountType.TZREK_ZUK)
         {
             return EXTRA_WIDE;
         }

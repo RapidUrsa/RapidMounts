@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.3.0 — TzRek-Zuk
+
+- Add the scaled TzRek-Zuk pet mount with its idle (7975) and walking (7977)
+  animations and an animated shoulder rider anchor.
+- Offer Standard, Cross-legged, and Extra Wide poses with separate rider fit
+  controls; make Extra Wide the default and add a mount forward/back control
+  defaulting to -128.
+- Add mounted Rapid Holster placement, quick mount icon, and a compact
+  side-profile Mount Stable preview at the bottom of the mount list.
+- Bake the approved Standard (130, 153, 76), Cross-legged (110, 323, -5),
+  Extra Wide (109, 305, -7), and mounted weapon (16, -90, 0) offsets.
+
 ## 2.2.0 — Big wolf, Catablepon, and Sheep?
 
 - Add Big wolf, Catablepon, and Sheep? with Extra Wide riding poses, sidebar

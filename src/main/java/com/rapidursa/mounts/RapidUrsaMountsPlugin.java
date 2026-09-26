@@ -199,6 +199,7 @@ public class RapidUrsaMountsPlugin extends Plugin
     // Each species needs its own back vertex set: their skeletons use different meshes.
     private final RiderAnchorState bigWolfRiderAnchor = new RiderAnchorState();
     private final RiderAnchorState sheepRiderAnchor = new RiderAnchorState();
+    private final RiderAnchorState zukShoulderAnchor = new RiderAnchorState();
     private static final int TERRORBIRD_WALK_SEAT_BACK = 55;
     private final RiderAnchorState terrorbirdRiderAnchor = new RiderAnchorState();
     private Model[] saddleMotionModels;
@@ -256,6 +257,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         mountedHolsterRenderer = new MountedHolsterRenderer(
             client, modelRepository, itemManager, holsterSettings);
         migrateAraxxorAnimationDefaults();
+        migrateZukPreviewDefaults();
         migrateExtraWideAnimationDefaults();
         migrateV19FittedDefaults();
         hooks.registerRenderableDrawListener(drawListener);
@@ -298,6 +300,52 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             configManager.setConfiguration(
                 RapidUrsaMountsConfig.GROUP, "araxxorWalkAnimation", 11474);
+        }
+        configManager.setConfiguration(
+            RapidUrsaMountsConfig.GROUP, migrationKey, true);
+    }
+
+    /** Replace only the temporary values saved by earlier Zuk test builds. */
+    private void migrateZukPreviewDefaults()
+    {
+        final String migrationKey = "zukReleaseDefaultsApplied";
+        if (configManager.getConfiguration(
+            RapidUrsaMountsConfig.GROUP, migrationKey) != null)
+        {
+            return;
+        }
+        String forward = configManager.getConfiguration(
+            RapidUrsaMountsConfig.GROUP, "zukMountForward");
+        if ("128".equals(forward))
+        {
+            configManager.setConfiguration(
+                RapidUrsaMountsConfig.GROUP, "zukMountForward", -128);
+        }
+        if ("-1".equals(configManager.getConfiguration(
+            RapidUrsaMountsConfig.GROUP, "zukIdleAnimation")))
+        {
+            configManager.setConfiguration(
+                RapidUrsaMountsConfig.GROUP, "zukIdleAnimation", 7975);
+        }
+        if ("-1".equals(configManager.getConfiguration(
+            RapidUrsaMountsConfig.GROUP, "zukWalkAnimation")))
+        {
+            configManager.setConfiguration(
+                RapidUrsaMountsConfig.GROUP, "zukWalkAnimation", 7977);
+        }
+        String poseKey = "selectedPose.TZREK_ZUK";
+        String savedPose = configManager.getConfiguration(
+            RapidUrsaMountsConfig.GROUP, poseKey);
+        if ("STANDARD".equals(savedPose))
+        {
+            configManager.setConfiguration(
+                RapidUrsaMountsConfig.GROUP, poseKey, RidingPose.EXTRA_WIDE);
+        }
+        if (config.mountType() == MountType.TZREK_ZUK
+            && config.ridingPose() == RidingPose.STANDARD)
+        {
+            configManager.setConfiguration(
+                RapidUrsaMountsConfig.GROUP, "ridingPose", RidingPose.EXTRA_WIDE);
         }
         configManager.setConfiguration(
             RapidUrsaMountsConfig.GROUP, migrationKey, true);
@@ -479,7 +527,9 @@ public class RapidUrsaMountsPlugin extends Plugin
             || "araxxorScale".equals(event.getKey())
             || "bigWolfScale".equals(event.getKey())
             || "catableponScale".equals(event.getKey())
-            || "sheepScale".equals(event.getKey()))
+            || "sheepScale".equals(event.getKey())
+            || "zukNpcId".equals(event.getKey())
+            || "zukScale".equals(event.getKey()))
         {
             despawn();
         }
@@ -631,6 +681,11 @@ public class RapidUrsaMountsPlugin extends Plugin
                 mountStablePanel.refresh();
                 return;
             }
+            if ("ridingPose".equals(event.getKey())
+                && config.mountType() == MountType.TZREK_ZUK)
+            {
+                zukShoulderAnchor.reset();
+            }
             rider.setAnimationController(null);
             activeRiderAnimation = -1;
             activeRiderFrame = -1;
@@ -646,6 +701,18 @@ public class RapidUrsaMountsPlugin extends Plugin
             || "sheepRiderSideways".equals(event.getKey()))
         {
             sheepRiderAnchor.reset();
+        }
+        else if ("zukRiderForward".equals(event.getKey())
+            || "zukRiderHeight".equals(event.getKey())
+            || "zukRiderSideways".equals(event.getKey())
+            || "zukCrossLeggedRiderForward".equals(event.getKey())
+            || "zukCrossLeggedRiderHeight".equals(event.getKey())
+            || "zukCrossLeggedRiderSideways".equals(event.getKey())
+            || "zukExtraWideRiderForward".equals(event.getKey())
+            || "zukExtraWideRiderHeight".equals(event.getKey())
+            || "zukExtraWideRiderSideways".equals(event.getKey()))
+        {
+            zukShoulderAnchor.reset();
         }
         else if ("hideCape".equals(event.getKey())
             || "capeBackwardOffset".equals(event.getKey())
@@ -741,7 +808,11 @@ public class RapidUrsaMountsPlugin extends Plugin
         LocalPoint playerPoint = player.getLocalLocation();
         int plane = player.getWorldLocation().getPlane();
         int orientation = player.getCurrentOrientation();
-        int terrainZ = Perspective.getTileHeight(client, playerPoint, plane);
+        int zukMountForward = config.mountType() == MountType.TZREK_ZUK
+            ? config.zukMountForward() : 0;
+        LocalPoint mountPoint = zukMountForward == 0 ? playerPoint
+            : offsetFromPlayer(playerPoint, orientation, zukMountForward, 0);
+        int terrainZ = Perspective.getTileHeight(client, mountPoint, plane);
         // Rapid Holster temporarily replaces the player's pose set while it owns
         // the on-foot weapon. That pose can survive for part of the mounted
         // handoff and report "walking" after the player has stopped. Track real
@@ -778,12 +849,12 @@ public class RapidUrsaMountsPlugin extends Plugin
             updateRiderAnchor(terrorbirdRiderAnchor, 0, 80, 0);
         }
 
-        unicorn.setLocation(playerPoint, plane);
+        unicorn.setLocation(mountPoint, plane);
         unicorn.setZ(terrainZ);
         unicorn.setOrientation(orientation);
         for (RuneLiteObject part : mountParts)
         {
-            part.setLocation(playerPoint, plane);
+            part.setLocation(mountPoint, plane);
             part.setZ(terrainZ);
             part.setOrientation(orientation);
         }
@@ -939,6 +1010,13 @@ public class RapidUrsaMountsPlugin extends Plugin
             updateSheepRiderAnchor(sheepRiderAnchor,
                 config.sheepRiderSideways(), config.sheepRiderHeight(), config.sheepRiderForward());
         }
+        else if (config.mountType() == MountType.TZREK_ZUK)
+        {
+            // Select a fixed cluster at the shoulder on the base mesh, then
+            // follow the same vertices through the pet's idle and walk frames.
+            updateSheepRiderAnchor(zukShoulderAnchor,
+                currentRiderSideways(), currentRiderHeight(), currentRiderForward());
+        }
 
         if (saddle != null && saddleMotionModels != null)
         {
@@ -1066,6 +1144,12 @@ public class RapidUrsaMountsPlugin extends Plugin
                         }
                     }
                 }
+                if (config.mountType() == MountType.TZREK_ZUK)
+                {
+                    riderForward += zukShoulderAnchor.forward;
+                    riderSideways += zukShoulderAnchor.sideways;
+                    riderHeight += zukShoulderAnchor.height;
+                }
                 if (config.mountType() == MountType.TERRORBIRD && moving && terrorbirdRiderAnchor.moving)
                 {
                     riderForward += terrorbirdRiderAnchor.forward;
@@ -1090,7 +1174,7 @@ public class RapidUrsaMountsPlugin extends Plugin
                     riderHeight += currentIdleBounce();
                 }
                 LocalPoint riderPoint = offsetFromPlayer(
-                    playerPoint,
+                    config.mountType() == MountType.TZREK_ZUK ? mountPoint : playerPoint,
                     orientation,
                     riderForward,
                     riderSideways);
@@ -4593,6 +4677,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             npcId = SHEEP_NPC_ID;
         }
+        else if (config.mountType() == MountType.TZREK_ZUK)
+        {
+            npcId = config.zukNpcId();
+        }
         NPCComposition composition = client.getNpcDefinition(npcId);
         int[] ids = null;
         if (composition != null)
@@ -4705,6 +4793,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             return moving ? config.sheepWalkAnimation() : config.sheepIdleAnimation();
         }
+        if (config.mountType() == MountType.TZREK_ZUK)
+        {
+            return moving ? config.zukWalkAnimation() : config.zukIdleAnimation();
+        }
         return moving ? AnimationID.UNICORN_REWORK_WALK : AnimationID.UNICORN_REWORK_READY;
     }
 
@@ -4807,7 +4899,8 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (config.mountType() == MountType.BIG_WOLF
             || config.mountType() == MountType.CATABLEPON
-            || config.mountType() == MountType.SHEEP)
+            || config.mountType() == MountType.SHEEP
+            || config.mountType() == MountType.TZREK_ZUK)
         {
             return 0;
         }
@@ -4847,7 +4940,8 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (config.mountType() == MountType.BIG_WOLF
             || config.mountType() == MountType.CATABLEPON
-            || config.mountType() == MountType.SHEEP)
+            || config.mountType() == MountType.SHEEP
+            || config.mountType() == MountType.TZREK_ZUK)
         {
             return 0;
         }
@@ -4886,7 +4980,8 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (config.mountType() == MountType.BIG_WOLF
             || config.mountType() == MountType.CATABLEPON
-            || config.mountType() == MountType.SHEEP)
+            || config.mountType() == MountType.SHEEP
+            || config.mountType() == MountType.TZREK_ZUK)
         {
             return 0;
         }
@@ -4943,7 +5038,8 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (config.mountType() == MountType.BIG_WOLF
             || config.mountType() == MountType.CATABLEPON
-            || config.mountType() == MountType.SHEEP)
+            || config.mountType() == MountType.SHEEP
+            || config.mountType() == MountType.TZREK_ZUK)
         {
             return 0;
         }
@@ -5045,6 +5141,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             return config.sheepScale();
         }
+        if (config.mountType() == MountType.TZREK_ZUK)
+        {
+            return config.zukScale();
+        }
         if (isWidePose())
         {
             if (config.mountType() == MountType.GRYPHON)
@@ -5082,6 +5182,18 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderHeight()
     {
+        if (config.mountType() == MountType.TZREK_ZUK)
+        {
+            if (config.ridingPose() == RidingPose.CROSS_LEGGED)
+            {
+                return config.zukCrossLeggedRiderHeight();
+            }
+            if (config.ridingPose() == RidingPose.EXTRA_WIDE)
+            {
+                return config.zukExtraWideRiderHeight();
+            }
+            return config.zukRiderHeight();
+        }
         if (config.mountType() == MountType.BIG_WOLF)
         {
             return config.bigWolfRiderHeight();
@@ -5143,6 +5255,18 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderForward()
     {
+        if (config.mountType() == MountType.TZREK_ZUK)
+        {
+            if (config.ridingPose() == RidingPose.CROSS_LEGGED)
+            {
+                return config.zukCrossLeggedRiderForward();
+            }
+            if (config.ridingPose() == RidingPose.EXTRA_WIDE)
+            {
+                return config.zukExtraWideRiderForward();
+            }
+            return config.zukRiderForward();
+        }
         if (config.mountType() == MountType.BIG_WOLF)
         {
             return config.bigWolfRiderForward();
@@ -5204,6 +5328,18 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderSideways()
     {
+        if (config.mountType() == MountType.TZREK_ZUK)
+        {
+            if (config.ridingPose() == RidingPose.CROSS_LEGGED)
+            {
+                return config.zukCrossLeggedRiderSideways();
+            }
+            if (config.ridingPose() == RidingPose.EXTRA_WIDE)
+            {
+                return config.zukExtraWideRiderSideways();
+            }
+            return config.zukRiderSideways();
+        }
         if (config.mountType() == MountType.BIG_WOLF)
         {
             return config.bigWolfRiderSideways();
@@ -5411,7 +5547,8 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (config.mountType() == MountType.BIG_WOLF
             || config.mountType() == MountType.CATABLEPON
-            || config.mountType() == MountType.SHEEP)
+            || config.mountType() == MountType.SHEEP
+            || config.mountType() == MountType.TZREK_ZUK)
         {
             return 0;
         }
@@ -5452,7 +5589,8 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (config.mountType() == MountType.BIG_WOLF
             || config.mountType() == MountType.CATABLEPON
-            || config.mountType() == MountType.SHEEP)
+            || config.mountType() == MountType.SHEEP
+            || config.mountType() == MountType.TZREK_ZUK)
         {
             return 0;
         }
@@ -5642,6 +5780,7 @@ public class RapidUrsaMountsPlugin extends Plugin
             case BIG_WOLF: return config.bigWolfMountedHolsterSideways();
             case CATABLEPON: return config.catableponMountedHolsterSideways();
             case SHEEP: return config.sheepMountedHolsterSideways();
+            case TZREK_ZUK: return config.zukMountedHolsterSideways();
             default: return 0;
         }
     }
@@ -5671,6 +5810,7 @@ public class RapidUrsaMountsPlugin extends Plugin
             case BIG_WOLF: return config.bigWolfMountedHolsterHeight();
             case CATABLEPON: return config.catableponMountedHolsterHeight();
             case SHEEP: return config.sheepMountedHolsterHeight();
+            case TZREK_ZUK: return config.zukMountedHolsterHeight();
             default: return -55;
         }
     }
@@ -5700,6 +5840,7 @@ public class RapidUrsaMountsPlugin extends Plugin
             case BIG_WOLF: return config.bigWolfMountedHolsterForward();
             case CATABLEPON: return config.catableponMountedHolsterForward();
             case SHEEP: return config.sheepMountedHolsterForward();
+            case TZREK_ZUK: return config.zukMountedHolsterForward();
             default: return 0;
         }
     }
@@ -5832,6 +5973,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         terrorbirdRiderAnchor.reset();
         bigWolfRiderAnchor.reset();
         sheepRiderAnchor.reset();
+        zukShoulderAnchor.reset();
         baseArtioArmourAnchors = null;
         lastArtioArmourAnchors = null;
         artioReinHeadVertices[0] = -1;
