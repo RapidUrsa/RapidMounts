@@ -150,6 +150,7 @@ final class MountToggleOverlay extends Overlay implements MouseListener
             graphics.drawImage(icon, padding, padding, size - 2 * padding, size - 2 * padding, null);
             graphics.setComposite(previous);
         }
+
         return new Dimension(size, size);
     }
 

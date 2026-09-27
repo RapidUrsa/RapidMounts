@@ -34,6 +34,7 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.input.MouseManager;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.ItemStats;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -147,6 +148,9 @@ public class RapidUrsaMountsPlugin extends Plugin
     private MountToggleOverlay mountButton;
 
     @Inject
+    private BattleReadyOverlay battleReadyButton;
+
+    @Inject
     private ArtioAnchorOverlay artioAnchorOverlay;
 
     @Inject
@@ -201,16 +205,35 @@ public class RapidUrsaMountsPlugin extends Plugin
     private final RiderAnchorState sheepRiderAnchor = new RiderAnchorState();
     private final RiderAnchorState zukShoulderAnchor = new RiderAnchorState();
     private static final int TERRORBIRD_WALK_SEAT_BACK = 55;
+    // The combat rider is rendered as seated legs plus an attacking upper body.
+    // Sink the upper half slightly into the legs so animation frames cannot
+    // expose a seam at the waist.
+    private static final int TERRORBIRD_COMBAT_UPPER_OVERLAP = 10;
+    private static final int TERRORBIRD_COMBAT_UPPER_FORWARD = 7;
+    private static final int TERRORBIRD_ONE_HAND_READY_ANIMATION = AnimationID.HUMAN_SPECIAL_VOIDWAKER;
     private final RiderAnchorState terrorbirdRiderAnchor = new RiderAnchorState();
     private Model[] saddleMotionModels;
     private int activeSaddleMotionFrame = -1;
     private final List<RuneLiteObject> mountParts = new ArrayList<>();
     private RuneLiteObject rider;
+    private RuneLiteObject terrorbirdUpperRider;
+    private Model terrorbirdLowerModel;
+    private Model terrorbirdUpperModel;
+    private boolean terrorbirdSplitVisible;
     private int builtScale = -1;
     private int builtSaddleScale = -1;
     private MountType builtMountType;
     private int activeUnicornAnimation = -1;
     private int activeRiderAnimation = -1;
+    private int terrorbirdAttackAnimation = -1;
+    private int terrorbirdHeldCombatAnimation = -1;
+    private boolean terrorbirdCombatActive;
+    private boolean terrorbirdBattleReady;
+    private int terrorbirdCombatGraceTicks;
+    private int lastTerrorbirdAttackFrame = -1;
+    private int activeTerrorbirdUpperAnimation = -1;
+    private boolean activeTerrorbirdUpperReadyPose;
+    private boolean activeTerrorbirdUpperTwoHandReadyPose;
     private int activeRiderFrame = -1;
     private Outfit builtRiderOutfit;
     private Model builtRiderModel;
@@ -263,6 +286,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         hooks.registerRenderableDrawListener(drawListener);
         mounted = true;
         mountButton.bind(this);
+        battleReadyButton.bind(this);
         artioAnchorOverlay.bind(this);
         mountStablePanel.bind(this);
         stableNavigation = NavigationButton.builder()
@@ -273,8 +297,10 @@ public class RapidUrsaMountsPlugin extends Plugin
             .build();
         clientToolbar.addNavigation(stableNavigation);
         overlayManager.add(mountButton);
+        overlayManager.add(battleReadyButton);
         overlayManager.add(artioAnchorOverlay);
         mouseManager.registerMouseListener(mountButton);
+        mouseManager.registerMouseListener(battleReadyButton);
         keyManager.registerKeyListener(mountHotkey);
     }
 
@@ -486,10 +512,13 @@ public class RapidUrsaMountsPlugin extends Plugin
         mountStablePanel.unbind();
         keyManager.unregisterKeyListener(mountHotkey);
         mouseManager.unregisterMouseListener(mountButton);
+        mouseManager.unregisterMouseListener(battleReadyButton);
         overlayManager.remove(mountButton);
+        overlayManager.remove(battleReadyButton);
         overlayManager.remove(artioAnchorOverlay);
         artioAnchorOverlay.unbind();
         mountButton.unbind();
+        battleReadyButton.unbind();
         despawn();
         clearEffects();
         mounted = false;
@@ -511,6 +540,15 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (!RapidUrsaMountsConfig.GROUP.equals(event.getGroup()))
         {
             return;
+        }
+
+        if (!config.enabled()
+            || ("mountType".equals(event.getKey())
+                && config.mountType() != MountType.TERRORBIRD)
+            || ("ridingPose".equals(event.getKey())
+                && config.ridingPose() != RidingPose.STANDARD))
+        {
+            terrorbirdBattleReady = false;
         }
 
         if (!config.enabled())
@@ -671,7 +709,7 @@ public class RapidUrsaMountsPlugin extends Plugin
             || "crossLeggedLoopStartFrame".equals(event.getKey())
             || "crossLeggedLoopEndFrame".equals(event.getKey())) && rider != null)
         {
-            // Battle Bear's Extra Wide pose has its own saddle silhouette, so
+            // Callisto's Extra Wide pose has its own saddle silhouette, so
             // changing pose must rebuild the tack as well as the rider.
             if (("useRidingPose".equals(event.getKey())
                 || "ridingPose".equals(event.getKey()))
@@ -731,6 +769,10 @@ public class RapidUrsaMountsPlugin extends Plugin
     @Subscribe
     public void onGameTick(GameTick event)
     {
+        if (terrorbirdCombatGraceTicks > 0)
+        {
+            terrorbirdCombatGraceTicks--;
+        }
         if (actionResumeTicks > 0)
         {
             actionResumeTicks--;
@@ -750,9 +792,26 @@ public class RapidUrsaMountsPlugin extends Plugin
         mounted = !mounted;
         if (!mounted)
         {
+            terrorbirdBattleReady = false;
             despawn();
         }
         mountStablePanel.refresh();
+    }
+
+    void toggleTerrorbirdBattleReady()
+    {
+        if (!mounted || !config.enabled() || config.mountType() != MountType.TERRORBIRD
+            || config.ridingPose() != RidingPose.STANDARD)
+        {
+            return;
+        }
+        terrorbirdBattleReady = !terrorbirdBattleReady;
+        mountStablePanel.refresh();
+    }
+
+    boolean isTerrorbirdBattleReady()
+    {
+        return terrorbirdBattleReady;
     }
 
     boolean isMounted()
@@ -784,7 +843,39 @@ public class RapidUrsaMountsPlugin extends Plugin
             && holsterSettings.holstered() && isMountedHolsterCompatible();
         setHolsterHandoff(mountedHolsterActive);
 
-        if (config.pauseForActions())
+        // Keep only the Terrorbird mounted while the real player fights.
+        // The server still owns every attack, target and hit; this is visual.
+        boolean terrorbirdFighting = config.mountType() == MountType.TERRORBIRD
+            && config.terrorbirdMountedCombat()
+            && player.getInteracting() != null;
+        if (terrorbirdFighting)
+        {
+            actionResumeTicks = 0;
+            terrorbirdCombatGraceTicks = 3;
+        }
+        else
+        {
+            lastTerrorbirdAttackFrame = -1;
+        }
+        boolean finishingTerrorbirdAttack = config.mountType() == MountType.TERRORBIRD
+            && config.terrorbirdMountedCombat() && terrorbirdCombatGraceTicks > 0;
+        boolean manualBattleReady = terrorbirdBattleReady
+            && config.mountType() == MountType.TERRORBIRD
+            && config.ridingPose() == RidingPose.STANDARD;
+        terrorbirdCombatActive = terrorbirdFighting || finishingTerrorbirdAttack
+            || manualBattleReady;
+        terrorbirdAttackAnimation = (terrorbirdFighting || finishingTerrorbirdAttack)
+            ? player.getAnimation() : -1;
+        if (terrorbirdAttackAnimation >= 0)
+        {
+            terrorbirdHeldCombatAnimation = terrorbirdAttackAnimation;
+        }
+        else if (!terrorbirdCombatActive)
+        {
+            terrorbirdHeldCombatAnimation = -1;
+        }
+
+        if (config.pauseForActions() && !terrorbirdFighting && !finishingTerrorbirdAttack)
         {
             if (player.getAnimation() != -1 || player.getInteracting() != null)
             {
@@ -1181,8 +1272,41 @@ public class RapidUrsaMountsPlugin extends Plugin
                 rider.setLocation(riderPoint, plane);
                 rider.setZ(Perspective.getTileHeight(client, riderPoint, plane) - riderHeight);
                 rider.setOrientation(orientation);
+                boolean twoHandReadyPose = terrorbirdAttackAnimation < 0
+                    && manualBattleReady && player.getIdlePoseAnimation() >= 0
+                    && useTerrorbirdTwoHandReadyPose(player);
+                boolean oneHandReadyPose = terrorbirdAttackAnimation < 0
+                    && terrorbirdCombatActive
+                    && !twoHandReadyPose
+                    && (manualBattleReady || useTerrorbirdOneHandReadyPose(player));
+                int combatUpperAnimation = terrorbirdAttackAnimation >= 0
+                    ? terrorbirdAttackAnimation
+                    : oneHandReadyPose
+                        ? TERRORBIRD_ONE_HAND_READY_ANIMATION
+                        : twoHandReadyPose
+                            ? player.getIdlePoseAnimation()
+                            : terrorbirdHeldCombatAnimation;
+                boolean splitCombatRider = terrorbirdCombatActive
+                    && combatUpperAnimation >= 0
+                    && terrorbirdLowerModel != null && terrorbirdUpperModel != null
+                    && terrorbirdUpperRider != null;
+                if (splitCombatRider != terrorbirdSplitVisible)
+                {
+                    rider.setModel(splitCombatRider ? terrorbirdLowerModel : builtRiderModel);
+                    terrorbirdSplitVisible = splitCombatRider;
+                }
+                if (splitCombatRider)
+                {
+                    LocalPoint upperRiderPoint = offsetFromPlayer(riderPoint, orientation,
+                        TERRORBIRD_COMBAT_UPPER_FORWARD, 0);
+                    terrorbirdUpperRider.setLocation(upperRiderPoint, plane);
+                    terrorbirdUpperRider.setZ(
+                        Perspective.getTileHeight(client, riderPoint, plane) - riderHeight
+                            + TERRORBIRD_COMBAT_UPPER_OVERLAP);
+                    terrorbirdUpperRider.setOrientation(orientation);
+                }
 
-                if (mountedHolsterActive)
+                if (mountedHolsterActive && !terrorbirdCombatActive)
                 {
                     mountedHolsterRenderer.refresh(player, riderPoint, plane,
                         orientation, Perspective.getTileHeight(client, riderPoint, plane) - riderHeight,
@@ -1208,6 +1332,11 @@ public class RapidUrsaMountsPlugin extends Plugin
                                     : config.extraWideIdleAnimationId())
                                 : RIDER_ANIMATION_ID;
                     int wantedRiderFrame = widePose ? WIDE_RIDER_FRAME : -1;
+                    int playerAttackFrame = terrorbirdAttackAnimation >= 0
+                        ? player.getAnimationFrame() : -1;
+                    boolean restartedAttack = playerAttackFrame >= 0
+                        && (lastTerrorbirdAttackFrame < 0
+                            || playerAttackFrame < lastTerrorbirdAttackFrame);
                     if (wantedRiderAnimation != activeRiderAnimation
                         || wantedRiderFrame != activeRiderFrame)
                     {
@@ -1223,6 +1352,65 @@ public class RapidUrsaMountsPlugin extends Plugin
                         activeRiderAnimation = wantedRiderAnimation;
                         activeRiderFrame = wantedRiderFrame;
                     }
+                    if (splitCombatRider)
+                    {
+                        if (activeTerrorbirdUpperAnimation != combatUpperAnimation
+                            || activeTerrorbirdUpperReadyPose != oneHandReadyPose
+                            || activeTerrorbirdUpperTwoHandReadyPose != twoHandReadyPose
+                            || restartedAttack)
+                        {
+                            AnimationController upperAttack;
+                            if (oneHandReadyPose)
+                            {
+                                Animation readyAnimation = client.loadAnimation(combatUpperAnimation);
+                                if (readyAnimation == null)
+                                {
+                                    upperAttack = null;
+                                }
+                                else
+                                {
+                                    int lastFrame = (readyAnimation.isMayaAnim()
+                                        ? readyAnimation.getDuration() : readyAnimation.getNumFrames()) - 1;
+                                    upperAttack = frozenAnimation(combatUpperAnimation, lastFrame);
+                                }
+                            }
+                            else if (twoHandReadyPose)
+                            {
+                                upperAttack = loopingAnimation(combatUpperAnimation);
+                            }
+                            else
+                            {
+                                upperAttack = new AnimationController(client, combatUpperAnimation);
+                                upperAttack.setOnFinished(finished ->
+                                {
+                                    if (finished.getAnimation() != null)
+                                    {
+                                        finished.setFrame(Math.max(0,
+                                            finished.getAnimation().getNumFrames() - 1));
+                                    }
+                                });
+                            }
+                            // Seed the controller once if combat was detected after
+                            // frame zero, then let it advance itself. Reapplying the
+                            // actor's integer frame every render prevents RuneLite's
+                            // animation interpolation and makes the torso judder.
+                            if (upperAttack != null && !oneHandReadyPose && playerAttackFrame > 0)
+                            {
+                                upperAttack.setFrame(playerAttackFrame);
+                            }
+                            terrorbirdUpperRider.setAnimationController(upperAttack);
+                            activeTerrorbirdUpperAnimation = combatUpperAnimation;
+                            activeTerrorbirdUpperReadyPose = oneHandReadyPose;
+                            activeTerrorbirdUpperTwoHandReadyPose = twoHandReadyPose;
+                        }
+                    }
+                    else
+                    {
+                        activeTerrorbirdUpperAnimation = -1;
+                        activeTerrorbirdUpperReadyPose = false;
+                        activeTerrorbirdUpperTwoHandReadyPose = false;
+                    }
+                    lastTerrorbirdAttackFrame = playerAttackFrame;
                 }
                 else if (activeRiderAnimation != -1)
                 {
@@ -1245,11 +1433,20 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (riderReady)
         {
             activate(rider);
+            if (terrorbirdSplitVisible)
+            {
+                activate(terrorbirdUpperRider);
+            }
+            else
+            {
+                deactivate(terrorbirdUpperRider);
+            }
             mountedRenderReady = unicorn.isActive() && rider.isActive();
         }
         else
         {
             deactivate(rider);
+            deactivate(terrorbirdUpperRider);
             mountedRenderReady = false;
         }
         if (!mountedRenderReady && mountedHolsterRenderer != null)
@@ -1290,6 +1487,46 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
     }
 
+    private boolean useTerrorbirdOneHandReadyPose(Player player)
+    {
+        if (player.getPlayerComposition() == null)
+        {
+            return false;
+        }
+
+        Outfit equipment = Outfit.from(player.getPlayerComposition());
+        if (equipment.isItem(KitType.SHIELD))
+        {
+            return true;
+        }
+        if (!equipment.isItem(KitType.WEAPON))
+        {
+            return false;
+        }
+
+        ItemStats weapon = itemManager.getItemStats(equipment.itemId(KitType.WEAPON));
+        return weapon != null && weapon.getEquipment() != null
+            && weapon.getEquipment().getSlot() == KitType.WEAPON.getIndex()
+            && !weapon.getEquipment().isTwoHanded();
+    }
+
+    private boolean useTerrorbirdTwoHandReadyPose(Player player)
+    {
+        if (player.getPlayerComposition() == null)
+        {
+            return false;
+        }
+
+        Outfit equipment = Outfit.from(player.getPlayerComposition());
+        if (!equipment.isItem(KitType.WEAPON) || equipment.isItem(KitType.SHIELD))
+        {
+            return false;
+        }
+        ItemStats weapon = itemManager.getItemStats(equipment.itemId(KitType.WEAPON));
+        return weapon != null && weapon.getEquipment() != null
+            && weapon.getEquipment().isTwoHanded();
+    }
+
     private Model buildRiderModel(Player player)
     {
         if (player.getPlayerComposition() == null)
@@ -1307,7 +1544,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
 
         Outfit currentOutfit = Outfit.from(player.getPlayerComposition());
-        if (config.hideHeldEquipment())
+        if (config.hideHeldEquipment() && !terrorbirdCombatActive)
         {
             currentOutfit.clear(KitType.WEAPON);
             currentOutfit.clear(KitType.SHIELD);
@@ -1322,6 +1559,17 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (builtRiderModel == null || !currentOutfit.equals(builtRiderOutfit))
         {
             builtRiderModel = appearanceComposer.compose(currentOutfit);
+            if (config.mountType() == MountType.TERRORBIRD && terrorbirdUpperRider != null)
+            {
+                terrorbirdLowerModel = appearanceComposer.composeSelected(currentOutfit,
+                    java.util.EnumSet.of(KitType.LEGS, KitType.BOOTS));
+                terrorbirdUpperModel = appearanceComposer.composeSelected(currentOutfit,
+                    java.util.EnumSet.complementOf(java.util.EnumSet.of(KitType.LEGS, KitType.BOOTS)));
+                if (terrorbirdUpperModel != null)
+                {
+                    terrorbirdUpperRider.setModel(terrorbirdUpperModel);
+                }
+            }
             builtRiderOutfit = builtRiderModel == null ? null : currentOutfit;
             if (builtRiderModel != null)
             {
@@ -1330,6 +1578,7 @@ public class RapidUrsaMountsPlugin extends Plugin
             rider.setAnimationController(null);
             activeRiderAnimation = -1;
             activeRiderFrame = -1;
+            terrorbirdSplitVisible = false;
         }
         return builtRiderModel;
     }
@@ -1362,6 +1611,18 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             despawn();
             return false;
+        }
+
+        if (config.mountType() == MountType.TERRORBIRD)
+        {
+            terrorbirdUpperRider = client.createRuneLiteObject();
+            if (terrorbirdUpperRider == null)
+            {
+                despawn();
+                return false;
+            }
+            terrorbirdUpperRider.setRenderMode(Renderable.RENDERMODE_SORTED_NO_DEPTH);
+            terrorbirdUpperRider.setDrawFrontTilesFirst(true);
         }
 
         unicorn.setModel(unicornModel);
@@ -5903,6 +6164,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         setHolsterHandoff(false);
         if (mountedHolsterRenderer != null) mountedHolsterRenderer.clear();
         deactivate(rider);
+        deactivate(terrorbirdUpperRider);
         deactivate(unicorn);
         deactivate(saddle);
         deactivate(artioShield);
@@ -5925,12 +6187,17 @@ public class RapidUrsaMountsPlugin extends Plugin
     private void despawn()
     {
         mountedRenderReady = false;
+        terrorbirdCombatGraceTicks = 0;
+        terrorbirdAttackAnimation = -1;
+        terrorbirdHeldCombatAnimation = -1;
+        terrorbirdCombatActive = false;
         lastPlayerLocalX = Integer.MIN_VALUE;
         lastPlayerLocalY = Integer.MIN_VALUE;
         lastPlayerMovementNanos = 0L;
         setHolsterHandoff(false);
         if (mountedHolsterRenderer != null) mountedHolsterRenderer.clear();
         deactivate(rider);
+        deactivate(terrorbirdUpperRider);
         deactivate(unicorn);
         deactivate(saddle);
         deactivate(artioShield);
@@ -5941,6 +6208,13 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
         mountParts.clear();
         rider = null;
+        terrorbirdUpperRider = null;
+        terrorbirdLowerModel = null;
+        terrorbirdUpperModel = null;
+        terrorbirdSplitVisible = false;
+        activeTerrorbirdUpperAnimation = -1;
+        activeTerrorbirdUpperReadyPose = false;
+        activeTerrorbirdUpperTwoHandReadyPose = false;
         unicorn = null;
         saddle = null;
         artioShield = null;

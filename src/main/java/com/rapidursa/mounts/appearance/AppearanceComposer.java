@@ -129,6 +129,12 @@ public class AppearanceComposer
 	 */
 	public Model compose(Outfit outfit)
 	{
+		return composeSelected(outfit, java.util.EnumSet.allOf(KitType.class));
+	}
+
+	/** Composes whole equipment slots so separately animated parts stay intact. */
+	public Model composeSelected(Outfit outfit, java.util.Set<KitType> selected)
+	{
 		if (!repository.isLoaded())
 		{
 			return null;
@@ -143,6 +149,10 @@ public class AppearanceComposer
 
 		for (KitType slot : KitType.values())
 		{
+			if (!selected.contains(slot))
+			{
+				continue;
+			}
 			int raw = resolved.getRaw(slot);
 			if (raw == 0)
 			{

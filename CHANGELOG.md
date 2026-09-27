@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.4.0-preview.3 — Smooth split-rider combat prototype
+
+- Keeps the seated legs and attacking torso as separate models.
+- Lets the upper-body attack controller interpolate instead of snapping to the player's integer frame every render.
+
+## 2.4.0-preview.1 — Terrorbird combat prototype
+
+- Keep the Terrorbird, saddle, and rider drawn while fighting a target.
+- Replay the real player's attack animation on the rider and briefly show the
+  equipped weapon while keeping Rapid Holster's mounted handoff active.
+- Restrict this experimental visual behaviour to the Terrorbird; preserve
+  action pausing on other mounts and noncombat actions.
+
 ## 2.3.0 — TzRek-Zuk
 
 - Add the scaled TzRek-Zuk pet mount with its idle (7975) and walking (7977)

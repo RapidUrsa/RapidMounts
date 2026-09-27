@@ -5,6 +5,17 @@ grew from there! I'm so happy so many people seem to like it! I'm always looking
 for new pose suggestions and mounts, so please send requests and I'll see what
 I can do :)
 
+## v2.4.0 — Battle-Ready Terrorbird
+
+The Battle-Ready Terrorbird keeps its rider visible while the player fights.
+The rider uses the player's attack animation and holds the equipped weapon.
+Between attacks, one-handed weapons and shields use a seated ready pose;
+two-handed weapons use their normal idle stance when Battle Ready is selected.
+The separate, movable **Battle Ready** button appears only while mounted on the
+Battle-Ready Terrorbird in the Standard pose. Press it to draw the weapon outside
+combat, and press it again to return to riding. Other mounts still pause for
+actions. Combat, targeting, timing and damage remain controlled by the game.
+
 ## v2.3.0 — TzRek-Zuk
 
 This release adds the TzRek-Zuk form of the Jal-Nib-Rek pet as a scaled
@@ -26,7 +37,7 @@ in-game fitting values.
 ## v2.2.0 — More mounts and riding polish
 
 This release adds Big wolf, Catablepon, and Sheep? to the Mount Stable. It also
-adds fitted tack and reins for the Terrorbird and updates rider movement to
+adds fitted tack and reins for the Battle-Ready Terrorbird and updates rider movement to
 follow the bird's animated back. Sheep?, Catablepon, and Big wolf have Extra Wide riding
 poses, with individual rider and mounted weapon positions.
 
@@ -39,19 +50,20 @@ height, and forward adjustments in that mount's settings section. These controls
 do not change Rapid Holster's on-foot placements.
 
 Rapid Mounts is a visual-only RuneLite plugin that lets your local player ride
-eleven cosmetic mounts:
+twelve cosmetic mounts:
 
-- Terrorbird
+- Battle-Ready Terrorbird
 - Sheep?
 - Catablepon
 - Big wolf
 - Black unicorn
 - Gryphon
-- Battle Bear
+- Callisto
 - Vorkath
 - Lava dragon
 - Araxxor
 - Battle turtle
+- TzRek-Zuk
 
 The plugin changes only what is drawn by your own RuneLite client. Other
 players cannot see the mount, and it does not change movement, pathing, speed,
@@ -59,22 +71,22 @@ clicks, combat, or any other gameplay.
 
 ## Features
 
-- Animated idle and walking cycles for all eleven mounts.
+- Animated idle and walking cycles for all twelve mounts.
 - A reconstructed rider that keeps the local player's equipment and appearance.
 - Selectable Standard, Wide, Extra Wide, and Cross-legged riding poses, with
   mount-specific positioning controls.
-- Fitted, animated tack for the Black unicorn, Terrorbird, Gryphon, Battle turtle, and Battle Bear.
-- A sidebar toggle for showing or hiding supported saddle-and-reins sets.
+- Fitted, animated tack for the Black unicorn, Battle-Ready Terrorbird, Gryphon, Battle turtle, and Callisto.
+- Fitted saddle and reins on supported mounts and riding poses.
 - Weapons and shields are hidden from the cosmetic rider by default for a cleaner seated pose.
 - Optional cape hiding and position adjustments to reduce clipping while mounted.
 - Individually tuned scale, seat position, idle bounce, and walking motion.
-- A movable mount/dismount button with a mount-specific icon.
+- A movable mount/dismount button with a mount-specific icon, plus the separate
+  Battle Ready button for the Battle-Ready Terrorbird's Standard pose.
 - A Mount Stable sidebar panel for selecting mounts, choosing the riding pose,
   and mounting or dismounting.
 - Optional keyboard shortcut for mounting and dismounting.
 - A cosmetic dark-smoke effect when mounting or dismounting.
-- Automatic action pause, revealing the normal player during combat, skilling,
-  teleports, ladders, and other actions before remounting.
+- Automatic action pause for skilling, teleports, ladders and combat on other mounts.
 - Safe fallback behaviour: the original player remains visible unless both the
   cosmetic mount and reconstructed rider are ready.
 
@@ -83,17 +95,17 @@ clicks, combat, or any other gameplay.
 1. Open the horseshoe button in the RuneLite sidebar.
 2. Select a mount and choose **Standard**, **Wide**, **Extra Wide**, or
    **Cross-legged**.
-3. For a supported mount, use the sidebar tack toggle to show or hide its fitted
-   saddle or saddle-and-reins set.
-4. Use the panel or the on-screen button to mount or dismount.
-5. Hold **Alt** and drag the on-screen button to reposition it.
+3. Use the panel or the on-screen button to mount or dismount.
+4. With the Battle-Ready Terrorbird in Standard pose, press **Battle Ready** to
+   switch the rider's stance outside combat; press it again to return to riding.
+5. Hold **Alt** and drag either on-screen button to position it independently.
 6. Optionally assign a **Mount/dismount hotkey** in the plugin settings.
 
 The tested positions are supplied as defaults. Advanced rider and mount-specific
 tuning is available in collapsed settings sections.
 
 Each pose uses its own tuned rider position where required, so changing pose
-does not overwrite the fit of the others. Battle Bear also switches to its
+does not overwrite the fit of the others. Callisto also switches to its
 dedicated ribbed saddle and handlebars when Extra Wide is selected.
 
 **Hide held equipment** affects only the cosmetic rider. The real player,
@@ -129,7 +141,7 @@ no network functionality and writes no files at runtime.
 - Rider sideways: 0
 - Idle bounce: 2
 
-### Terrorbird
+### Battle-Ready Terrorbird
 
 - Scale: 100%
 - Rider height: 43
