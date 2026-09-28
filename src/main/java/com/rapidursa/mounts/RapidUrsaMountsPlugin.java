@@ -204,18 +204,19 @@ public class RapidUrsaMountsPlugin extends Plugin
     private final RiderAnchorState bigWolfRiderAnchor = new RiderAnchorState();
     private final RiderAnchorState sheepRiderAnchor = new RiderAnchorState();
     private final RiderAnchorState zukShoulderAnchor = new RiderAnchorState();
+    private final RiderAnchorState flyingDragonRiderAnchor = new RiderAnchorState();
     private static final int TERRORBIRD_WALK_SEAT_BACK = 55;
     // The combat rider is rendered as seated legs plus an attacking upper body.
     // Sink the upper half slightly into the legs so animation frames cannot
     // expose a seam at the waist.
     private static final int TERRORBIRD_COMBAT_UPPER_OVERLAP = 10;
-    private static final int TERRORBIRD_COMBAT_UPPER_FORWARD = 7;
     private static final int TERRORBIRD_ONE_HAND_READY_ANIMATION = AnimationID.HUMAN_SPECIAL_VOIDWAKER;
     private final RiderAnchorState terrorbirdRiderAnchor = new RiderAnchorState();
     private Model[] saddleMotionModels;
     private int activeSaddleMotionFrame = -1;
     private final List<RuneLiteObject> mountParts = new ArrayList<>();
     private RuneLiteObject rider;
+    private RuneLiteObject terrorbirdReins;
     private RuneLiteObject terrorbirdUpperRider;
     private Model terrorbirdLowerModel;
     private Model terrorbirdUpperModel;
@@ -567,7 +568,11 @@ public class RapidUrsaMountsPlugin extends Plugin
             || "catableponScale".equals(event.getKey())
             || "sheepScale".equals(event.getKey())
             || "zukNpcId".equals(event.getKey())
-            || "zukScale".equals(event.getKey()))
+            || "zukScale".equals(event.getKey())
+            || "flyingDragonNpcId".equals(event.getKey())
+            || "flyingDragonScale".equals(event.getKey())
+            || "flyingDragonIdleAnimation".equals(event.getKey())
+            || "flyingDragonWalkAnimation".equals(event.getKey()))
         {
             despawn();
         }
@@ -751,6 +756,12 @@ public class RapidUrsaMountsPlugin extends Plugin
             || "zukExtraWideRiderSideways".equals(event.getKey()))
         {
             zukShoulderAnchor.reset();
+        }
+        else if ("flyingDragonRiderForward".equals(event.getKey())
+            || "flyingDragonRiderHeight".equals(event.getKey())
+            || "flyingDragonRiderSideways".equals(event.getKey()))
+        {
+            flyingDragonRiderAnchor.reset();
         }
         else if ("hideCape".equals(event.getKey())
             || "capeBackwardOffset".equals(event.getKey())
@@ -941,7 +952,8 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
 
         unicorn.setLocation(mountPoint, plane);
-        unicorn.setZ(terrainZ);
+        unicorn.setZ(terrainZ - (config.mountType() == MountType.FLYING_DRAGON
+            ? config.flyingDragonMountHeight() : 0));
         unicorn.setOrientation(orientation);
         for (RuneLiteObject part : mountParts)
         {
@@ -1036,6 +1048,13 @@ public class RapidUrsaMountsPlugin extends Plugin
             saddle.setZ(Perspective.getTileHeight(client, saddlePoint, plane)
                 - saddleHeight);
             saddle.setOrientation(orientation);
+            if (terrorbirdReins != null)
+            {
+                terrorbirdReins.setLocation(saddlePoint, plane);
+                terrorbirdReins.setZ(Perspective.getTileHeight(client, saddlePoint, plane)
+                    - saddleHeight);
+                terrorbirdReins.setOrientation(orientation);
+            }
             if (artioShield != null)
             {
                 artioShield.setLocation(saddlePoint, plane);
@@ -1108,6 +1127,13 @@ public class RapidUrsaMountsPlugin extends Plugin
             updateSheepRiderAnchor(zukShoulderAnchor,
                 currentRiderSideways(), currentRiderHeight(), currentRiderForward());
         }
+        else if (config.mountType() == MountType.FLYING_DRAGON)
+        {
+            // The fitted rider is well above the dragon's body. Probing at
+            // rider height can select a wing instead of the central back.
+            updateSheepRiderAnchor(flyingDragonRiderAnchor,
+                0, 65, 0);
+        }
 
         if (saddle != null && saddleMotionModels != null)
         {
@@ -1170,7 +1196,9 @@ public class RapidUrsaMountsPlugin extends Plugin
                     riderForward += TERRORBIRD_WALK_SEAT_BACK;
                 }
                 int riderSideways = currentRiderSideways() + linkedSeatSideways;
-                int riderHeight = currentRiderHeight() + linkedSeatHeight;
+                int riderHeight = currentRiderHeight() + linkedSeatHeight
+                    + (config.mountType() == MountType.FLYING_DRAGON
+                        ? config.flyingDragonMountHeight() : 0);
                 if (config.mountType() == MountType.TERRORBIRD
                     && config.ridingPose() == RidingPose.STANDARD)
                 {
@@ -1241,6 +1269,12 @@ public class RapidUrsaMountsPlugin extends Plugin
                     riderSideways += zukShoulderAnchor.sideways;
                     riderHeight += zukShoulderAnchor.height;
                 }
+                if (config.mountType() == MountType.FLYING_DRAGON)
+                {
+                    riderForward += flyingDragonRiderAnchor.forward;
+                    riderSideways += flyingDragonRiderAnchor.sideways;
+                    riderHeight += flyingDragonRiderAnchor.height;
+                }
                 if (config.mountType() == MountType.TERRORBIRD && moving && terrorbirdRiderAnchor.moving)
                 {
                     riderForward += terrorbirdRiderAnchor.forward;
@@ -1249,6 +1283,7 @@ public class RapidUrsaMountsPlugin extends Plugin
                 }
                 if (config.mountType() != MountType.BLACK_UNICORN
                     && config.mountType() != MountType.GRYPHON
+                    && config.mountType() != MountType.FLYING_DRAGON
                     && !(config.mountType() == MountType.TERRORBIRD && terrorbirdRiderAnchor.moving) && moving)
                 {
                     riderForward += currentWalkForwardAdjustment();
@@ -1260,6 +1295,7 @@ public class RapidUrsaMountsPlugin extends Plugin
                 }
                 else if (config.mountType() != MountType.BLACK_UNICORN
                     && config.mountType() != MountType.GRYPHON
+                    && config.mountType() != MountType.FLYING_DRAGON
                     && !moving)
                 {
                     riderHeight += currentIdleBounce();
@@ -1297,9 +1333,10 @@ public class RapidUrsaMountsPlugin extends Plugin
                 }
                 if (splitCombatRider)
                 {
-                    LocalPoint upperRiderPoint = offsetFromPlayer(riderPoint, orientation,
-                        TERRORBIRD_COMBAT_UPPER_FORWARD, 0);
-                    terrorbirdUpperRider.setLocation(upperRiderPoint, plane);
+                    // Keep both rider pieces on the same scene tile. Offsetting
+                    // the upper object's location can send it across a tile
+                    // boundary and make only the torso disappear there.
+                    terrorbirdUpperRider.setLocation(riderPoint, plane);
                     terrorbirdUpperRider.setZ(
                         Perspective.getTileHeight(client, riderPoint, plane) - riderHeight
                             + TERRORBIRD_COMBAT_UPPER_OVERLAP);
@@ -1466,6 +1503,20 @@ public class RapidUrsaMountsPlugin extends Plugin
                 && !isNoSaddlePose()))
         {
             activate(saddle);
+            if (config.mountType() == MountType.TERRORBIRD)
+            {
+                // The split combat rider needs two independent objects. Give
+                // both rider halves priority over the optional rein mesh on
+                // crowded tiles; the saddle itself remains visible.
+                if (!terrorbirdSplitVisible && lastTerrorbirdReinAnchors != null)
+                {
+                    activate(terrorbirdReins);
+                }
+                else
+                {
+                    deactivate(terrorbirdReins);
+                }
+            }
             if (config.mountType() == MountType.ARTIO)
             {
                 if (!isExtraWidePose())
@@ -1482,6 +1533,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         else
         {
             deactivate(saddle);
+            deactivate(terrorbirdReins);
             deactivate(artioShield);
             deactivate(artioWarspears);
         }
@@ -1672,6 +1724,14 @@ public class RapidUrsaMountsPlugin extends Plugin
                 saddle.setModel(saddleModel);
                 saddle.setRenderMode(Renderable.RENDERMODE_SORTED_NO_DEPTH);
                 saddle.setDrawFrontTilesFirst(true);
+                // Keep the seat's model stable while only the animated reins
+                // receive replacement meshes during walking.
+                terrorbirdReins = client.createRuneLiteObject();
+                if (terrorbirdReins != null)
+                {
+                    terrorbirdReins.setRenderMode(Renderable.RENDERMODE_SORTED_NO_DEPTH);
+                    terrorbirdReins.setDrawFrontTilesFirst(true);
+                }
             }
         }
         else if (config.mountType() == MountType.GRYPHON)
@@ -2118,10 +2178,10 @@ public class RapidUrsaMountsPlugin extends Plugin
     /** Purpose-built low-poly siege saddle for the Battle turtle. */
     private Model buildTerrorbirdSaddleModel()
     {
-        return buildTerrorbirdSaddleModel(null);
+        return buildTerrorbirdSaddleModel(null, false);
     }
 
-    private Model buildTerrorbirdSaddleModel(int[] reinAnchors)
+    private Model buildTerrorbirdSaddleModel(int[] reinAnchors, boolean reinsOnly)
     {
         ModelData template = client.loadModelData(FALLBACK_BODY_MODEL);
         if (template == null)
@@ -2161,33 +2221,36 @@ public class RapidUrsaMountsPlugin extends Plugin
         short mouthBarColor = (short) 6840;
         int vertex = 0;
         int face = 0;
-        face = addSaddleArch(x, y, z, face1, face2, face3, colors,
-            vertex, face,
-            new int[]{-24, -18, 0, 18, 24},
-            new int[]{-8, -13, -15, -13, -8},
-            new int[]{-1, -4, -5, -4, -1},
-            -22, 24, green);
-        vertex += 20;
-        face = addSaddleBox(x, y, z, face1, face2, face3, colors,
-            vertex, face, -24, 24, -7, -4, -24, -20, orange);
-        vertex += 8;
-        face = addSaddleBox(x, y, z, face1, face2, face3, colors,
-            vertex, face, -23, 23, -7, -4, 21, 26, orange);
-        vertex += 8;
+        if (!reinsOnly)
+        {
+            face = addSaddleArch(x, y, z, face1, face2, face3, colors,
+                vertex, face,
+                new int[]{-24, -18, 0, 18, 24},
+                new int[]{-8, -13, -15, -13, -8},
+                new int[]{-1, -4, -5, -4, -1},
+                -22, 24, green);
+            vertex += 20;
+            face = addSaddleBox(x, y, z, face1, face2, face3, colors,
+                vertex, face, -24, 24, -7, -4, -24, -20, orange);
+            vertex += 8;
+            face = addSaddleBox(x, y, z, face1, face2, face3, colors,
+                vertex, face, -23, 23, -7, -4, 21, 26, orange);
+            vertex += 8;
 
-        // The rear support is thin, tapered and low enough to read as tack.
-        face = addSaddleBox(x, y, z, face1, face2, face3, colors,
-            vertex, face, -22, 22, -43, -7, 23, 28, darkGreen);
-        vertex += 8;
-        face = addSaddleBox(x, y, z, face1, face2, face3, colors,
-            vertex, face, -21, 21, -45, -42, 22, 29, orange);
-        vertex += 8;
-        face = addSaddleBox(x, y, z, face1, face2, face3, colors,
-            vertex, face, -28, -25, -3, 11, -16, 16, darkGreen);
-        vertex += 8;
-        face = addSaddleBox(x, y, z, face1, face2, face3, colors,
-            vertex, face, 25, 28, -3, 11, -16, 16, darkGreen);
-        vertex += 8;
+            // The rear support is thin, tapered and low enough to read as tack.
+            face = addSaddleBox(x, y, z, face1, face2, face3, colors,
+                vertex, face, -22, 22, -43, -7, 23, 28, darkGreen);
+            vertex += 8;
+            face = addSaddleBox(x, y, z, face1, face2, face3, colors,
+                vertex, face, -21, 21, -45, -42, 22, 29, orange);
+            vertex += 8;
+            face = addSaddleBox(x, y, z, face1, face2, face3, colors,
+                vertex, face, -28, -25, -3, 11, -16, 16, darkGreen);
+            vertex += 8;
+            face = addSaddleBox(x, y, z, face1, face2, face3, colors,
+                vertex, face, 25, 28, -3, 11, -16, 16, darkGreen);
+            vertex += 8;
+        }
 
         if (reinAnchors != null && reinAnchors.length == 6)
         {
@@ -3446,6 +3509,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private void updateTerrorbirdSaddle(boolean moving)
     {
+        if (terrorbirdReins == null)
+        {
+            return;
+        }
         Model mountModel = unicorn == null ? null : unicorn.getModel();
         if (mountModel == null || mountModel.getVerticesCount() == 0)
         {
@@ -3524,10 +3591,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             return;
         }
-        Model model = buildTerrorbirdSaddleModel(anchors);
+        Model model = buildTerrorbirdSaddleModel(anchors, true);
         if (model != null)
         {
-            saddle.setModel(model);
+            terrorbirdReins.setModel(model);
             lastTerrorbirdReinAnchors = anchors;
         }
     }
@@ -4002,8 +4069,26 @@ public class RapidUrsaMountsPlugin extends Plugin
             float[] x = selectionModel.getVerticesX();
             float[] y = selectionModel.getVerticesY();
             float[] z = selectionModel.getVerticesZ();
+            boolean dragonTorso = state == flyingDragonRiderAnchor;
+            boolean hasTorsoVertices = false;
+            if (dragonTorso)
+            {
+                for (int vertex = 0; vertex < Math.min(vertexCount, selectionModel.getVerticesCount()); vertex++)
+                {
+                    if (Math.abs(x[vertex]) <= 55 && Math.abs(z[vertex]) <= 80)
+                    {
+                        hasTorsoVertices = true;
+                        break;
+                    }
+                }
+            }
             for (int vertex = 0; vertex < Math.min(vertexCount, selectionModel.getVerticesCount()); vertex++)
             {
+                if (dragonTorso && hasTorsoVertices
+                    && (Math.abs(x[vertex]) > 55 || Math.abs(z[vertex]) > 80))
+                {
+                    continue;
+                }
                 double dx = x[vertex] - seatSideways;
                 double dy = y[vertex] + seatHeight;
                 double dz = z[vertex] + seatForward;
@@ -4054,7 +4139,34 @@ public class RapidUrsaMountsPlugin extends Plugin
         };
         if (state.base == null)
         {
-            state.base = anchor.clone();
+            if (state == flyingDragonRiderAnchor && selectionModel != mountModel)
+            {
+                float[] baseX = selectionModel.getVerticesX();
+                float[] baseY = selectionModel.getVerticesY();
+                float[] baseZ = selectionModel.getVerticesZ();
+                double sumX = 0;
+                double sumY = 0;
+                double sumZ = 0;
+                int baseCount = 0;
+                for (int vertex : state.vertices)
+                {
+                    if (vertex >= 0 && vertex < selectionModel.getVerticesCount())
+                    {
+                        sumX += baseX[vertex];
+                        sumY += baseY[vertex];
+                        sumZ += baseZ[vertex];
+                        baseCount++;
+                    }
+                }
+                state.base = baseCount == 0 ? anchor.clone() : new int[]{
+                    (int) Math.round(sumX / baseCount),
+                    (int) Math.round(sumY / baseCount),
+                    (int) Math.round(sumZ / baseCount)};
+            }
+            else
+            {
+                state.base = anchor.clone();
+            }
         }
         state.sideways = anchor[0] - state.base[0];
         state.height = -(anchor[1] - state.base[1]);
@@ -4942,6 +5054,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             npcId = config.zukNpcId();
         }
+        else if (config.mountType() == MountType.FLYING_DRAGON)
+        {
+            npcId = config.flyingDragonNpcId();
+        }
         NPCComposition composition = client.getNpcDefinition(npcId);
         int[] ids = null;
         if (composition != null)
@@ -5057,6 +5173,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (config.mountType() == MountType.TZREK_ZUK)
         {
             return moving ? config.zukWalkAnimation() : config.zukIdleAnimation();
+        }
+        if (config.mountType() == MountType.FLYING_DRAGON)
+        {
+            return moving ? config.flyingDragonWalkAnimation() : config.flyingDragonIdleAnimation();
         }
         return moving ? AnimationID.UNICORN_REWORK_WALK : AnimationID.UNICORN_REWORK_READY;
     }
@@ -5406,6 +5526,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             return config.zukScale();
         }
+        if (config.mountType() == MountType.FLYING_DRAGON)
+        {
+            return config.flyingDragonScale();
+        }
         if (isWidePose())
         {
             if (config.mountType() == MountType.GRYPHON)
@@ -5443,6 +5567,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderHeight()
     {
+        if (config.mountType() == MountType.FLYING_DRAGON)
+        {
+            return config.flyingDragonRiderHeight();
+        }
         if (config.mountType() == MountType.TZREK_ZUK)
         {
             if (config.ridingPose() == RidingPose.CROSS_LEGGED)
@@ -5516,6 +5644,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderForward()
     {
+        if (config.mountType() == MountType.FLYING_DRAGON)
+        {
+            return config.flyingDragonRiderForward();
+        }
         if (config.mountType() == MountType.TZREK_ZUK)
         {
             if (config.ridingPose() == RidingPose.CROSS_LEGGED)
@@ -5589,6 +5721,10 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private int currentRiderSideways()
     {
+        if (config.mountType() == MountType.FLYING_DRAGON)
+        {
+            return config.flyingDragonRiderSideways();
+        }
         if (config.mountType() == MountType.TZREK_ZUK)
         {
             if (config.ridingPose() == RidingPose.CROSS_LEGGED)
@@ -6042,6 +6178,7 @@ public class RapidUrsaMountsPlugin extends Plugin
             case CATABLEPON: return config.catableponMountedHolsterSideways();
             case SHEEP: return config.sheepMountedHolsterSideways();
             case TZREK_ZUK: return config.zukMountedHolsterSideways();
+            case FLYING_DRAGON: return config.flyingDragonMountedHolsterSideways();
             default: return 0;
         }
     }
@@ -6072,6 +6209,7 @@ public class RapidUrsaMountsPlugin extends Plugin
             case CATABLEPON: return config.catableponMountedHolsterHeight();
             case SHEEP: return config.sheepMountedHolsterHeight();
             case TZREK_ZUK: return config.zukMountedHolsterHeight();
+            case FLYING_DRAGON: return config.flyingDragonMountedHolsterHeight();
             default: return -55;
         }
     }
@@ -6102,6 +6240,7 @@ public class RapidUrsaMountsPlugin extends Plugin
             case CATABLEPON: return config.catableponMountedHolsterForward();
             case SHEEP: return config.sheepMountedHolsterForward();
             case TZREK_ZUK: return config.zukMountedHolsterForward();
+            case FLYING_DRAGON: return config.flyingDragonMountedHolsterForward();
             default: return 0;
         }
     }
@@ -6167,6 +6306,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         deactivate(terrorbirdUpperRider);
         deactivate(unicorn);
         deactivate(saddle);
+        deactivate(terrorbirdReins);
         deactivate(artioShield);
         deactivate(artioWarspears);
         for (RuneLiteObject part : mountParts)
@@ -6200,6 +6340,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         deactivate(terrorbirdUpperRider);
         deactivate(unicorn);
         deactivate(saddle);
+        deactivate(terrorbirdReins);
         deactivate(artioShield);
         deactivate(artioWarspears);
         for (RuneLiteObject part : mountParts)
@@ -6217,6 +6358,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         activeTerrorbirdUpperTwoHandReadyPose = false;
         unicorn = null;
         saddle = null;
+        terrorbirdReins = null;
         artioShield = null;
         artioWarspears = null;
         lastGryphonReinAnchors = null;
@@ -6248,6 +6390,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         bigWolfRiderAnchor.reset();
         sheepRiderAnchor.reset();
         zukShoulderAnchor.reset();
+        flyingDragonRiderAnchor.reset();
         baseArtioArmourAnchors = null;
         lastArtioArmourAnchors = null;
         artioReinHeadVertices[0] = -1;

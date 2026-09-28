@@ -27,6 +27,7 @@ final class MountToggleOverlay extends Overlay implements MouseListener
     private static final int WOLF_MASK_ITEM_ID = 23407;
     private static final int TECU_SALAMANDER_ITEM_ID = 28834;
     private static final int TZREK_ZUK_ITEM_ID = 22319;
+    private static final int RED_DRAGONHIDE_ITEM_ID = 1749;
     private RapidUrsaMountsPlugin plugin;
     private final ClientThread clientThread;
     private final RapidUrsaMountsConfig config;
@@ -42,6 +43,7 @@ final class MountToggleOverlay extends Overlay implements MouseListener
     private final BufferedImage catableponIcon;
     private final BufferedImage sheepIcon;
     private final BufferedImage zukIcon;
+    private final BufferedImage flyingDragonIcon;
 
     @Inject
     MountToggleOverlay(
@@ -63,6 +65,7 @@ final class MountToggleOverlay extends Overlay implements MouseListener
         this.catableponIcon = itemManager.getImage(TECU_SALAMANDER_ITEM_ID);
         this.sheepIcon = itemManager.getImage(ItemID.WOOL);
         this.zukIcon = itemManager.getImage(TZREK_ZUK_ITEM_ID);
+        this.flyingDragonIcon = itemManager.getImage(RED_DRAGONHIDE_ITEM_ID);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
         setPosition(OverlayPosition.TOP_LEFT);
     }
@@ -131,6 +134,10 @@ final class MountToggleOverlay extends Overlay implements MouseListener
         else if (config.mountType() == MountType.TZREK_ZUK)
         {
             icon = zukIcon;
+        }
+        else if (config.mountType() == MountType.FLYING_DRAGON)
+        {
+            icon = flyingDragonIcon;
         }
 
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

@@ -3,7 +3,7 @@ package com.rapidursa.mounts;
 public enum MountType
 {
     BLACK_UNICORN("Black unicorn"),
-    TERRORBIRD("BR-Terrorbird"),
+    TERRORBIRD("Battle-Ready Terrorbird"),
     LAVA_DRAGON("Lava dragon"),
     GRYPHON("Gryphon"),
     BATTLE_TURTLE("Battle turtle"),
@@ -13,7 +13,8 @@ public enum MountType
     BIG_WOLF("Big wolf"),
     CATABLEPON("Catablepon"),
     SHEEP("Sheep?"),
-    TZREK_ZUK("TzRek-Zuk");
+    TZREK_ZUK("TzRek-Zuk"),
+    FLYING_DRAGON("Flying dragon");
 
     private final String displayName;
 

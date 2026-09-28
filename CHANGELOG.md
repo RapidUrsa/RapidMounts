@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.5.0 — Flying dragon
+
+- Add the Flying dragon mount with its Extra Wide rider pose, animated rider
+  anchor, red dragonhide quick summon, and side-profile stable artwork.
+- Bake the tuned dragon and mounted weapon positions into their defaults.
+- Add a dark scrollbar to the mount sidebar.
+- Keep the Battle-Ready Terrorbird saddle visible while walking and improve
+  rider visibility over affected tiles.
+
 ## 2.4.0-preview.3 — Smooth split-rider combat prototype
 
 - Keeps the seated legs and attacking torso as separate models.

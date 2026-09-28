@@ -25,6 +25,7 @@ public interface RapidUrsaMountsConfig extends Config
     String CATABLEPON = "catablepon";
     String SHEEP = "sheep";
     String TZREK_ZUK = "tzrekZuk";
+    String FLYING_DRAGON = "flyingDragon";
     // Keep the existing constant as an alias so saved saddle keys retain
     // their identity while the controls live inside Black unicorn settings.
     String SADDLE = UNICORN;
@@ -132,6 +133,43 @@ public interface RapidUrsaMountsConfig extends Config
 
     @ConfigSection(name = "TzRek-Zuk", description = "Pet Zuk model, animations and shoulder rider fitting", position = 13, closedByDefault = true)
     String zukSection = TZREK_ZUK;
+
+    @ConfigSection(name = "Flying dragon", description = "Flying dragon appearance and rider position", position = 14, closedByDefault = true)
+    String flyingDragonSection = FLYING_DRAGON;
+
+    @Range(min = 1, max = 30000)
+    @ConfigItem(keyName = "flyingDragonNpcId", name = "Dragon NPC ID", description = "Dragon model to test", section = FLYING_DRAGON)
+    default int flyingDragonNpcId() { return 8075; }
+    @Range(min = 30, max = 200)
+    @ConfigItem(keyName = "flyingDragonScale", name = "Dragon scale (%)", description = "Scale the flying dragon", section = FLYING_DRAGON)
+    default int flyingDragonScale() { return 75; }
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "flyingDragonIdleAnimation", name = "Idle flight animation ID", description = "Flying idle animation; -1 shows the base model", section = FLYING_DRAGON)
+    default int flyingDragonIdleAnimation() { return 7870; }
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "flyingDragonWalkAnimation", name = "Moving flight animation ID", description = "Flying movement animation; -1 shows the base model", section = FLYING_DRAGON)
+    default int flyingDragonWalkAnimation() { return 7870; }
+    @Range(min = -250, max = 400)
+    @ConfigItem(keyName = "flyingDragonMountHeight", name = "Flight height", description = "Raise the dragon and rider together above the player tile", section = FLYING_DRAGON)
+    default int flyingDragonMountHeight() { return 30; }
+    @Range(min = -350, max = 350)
+    @ConfigItem(keyName = "flyingDragonRiderForward", name = "Rider forward/back", description = "Position the rider between the wings", section = FLYING_DRAGON)
+    default int flyingDragonRiderForward() { return -56; }
+    @Range(min = -350, max = 500)
+    @ConfigItem(keyName = "flyingDragonRiderHeight", name = "Rider height", description = "Position the rider above the dragon's back", section = FLYING_DRAGON)
+    default int flyingDragonRiderHeight() { return 73; }
+    @Range(min = -350, max = 350)
+    @ConfigItem(keyName = "flyingDragonRiderSideways", name = "Rider sideways", description = "Position the rider across the dragon's back", section = FLYING_DRAGON)
+    default int flyingDragonRiderSideways() { return 0; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "flyingDragonMountedHolsterForward", name = "Mounted weapon forward/back", description = "Position Rapid Holster relative to the dragon rider", section = FLYING_DRAGON)
+    default int flyingDragonMountedHolsterForward() { return 29; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "flyingDragonMountedHolsterHeight", name = "Mounted weapon height", description = "Position Rapid Holster relative to the dragon rider", section = FLYING_DRAGON)
+    default int flyingDragonMountedHolsterHeight() { return -55; }
+    @Range(min = -250, max = 250)
+    @ConfigItem(keyName = "flyingDragonMountedHolsterSideways", name = "Mounted weapon sideways", description = "Position Rapid Holster relative to the dragon rider", section = FLYING_DRAGON)
+    default int flyingDragonMountedHolsterSideways() { return 0; }
 
     @Range(min = 1, max = 30000)
     @ConfigItem(keyName = "zukNpcId", name = "Pet NPC ID", description = "TzRek-Zuk form of Jal-Nib-Rek", section = TZREK_ZUK)

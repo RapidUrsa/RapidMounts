@@ -5,6 +5,27 @@ grew from there! I'm so happy so many people seem to like it! I'm always looking
 for new pose suggestions and mounts, so please send requests and I'll see what
 I can do :)
 
+## v2.5.0 — Flying dragon
+
+The Flying dragon mount uses NPC 8075 and animation 7870 for both idle and
+movement. The Extra Wide rider pose follows the dragon's animated back during
+idle and movement. The rider anchor samples the central body around the back
+rather than the wing tips. Dragon scale, flight height, rider position,
+and mounted Rapid Holster position have adjustable controls in the Flying dragon
+section. The stable shows a side view of the red dragon below Lava dragon, and
+the quick button uses red dragonhide. The stable sidebar scrolls. The dragon
+has no custom saddle.
+
+The tested flying dragon defaults are NPC 8075, 75% scale, flight height 30,
+idle and moving animation 7870, rider forward -56 / height 73 / sideways 0,
+and mounted weapon forward 29 / height -55 / sideways 0.
+
+The stable scrollbar uses a black thumb. The Battle-Ready Terrorbird keeps its
+saddle mesh in place while the animated reins update separately, avoiding a
+full saddle model replacement every walking frame.
+During the split combat pose, the upper and lower rider share a scene tile and
+the separate reins yield to the rider so the upper body stays visible.
+
 ## v2.4.0 — Battle-Ready Terrorbird
 
 The Battle-Ready Terrorbird keeps its rider visible while the player fights.
@@ -50,7 +71,7 @@ height, and forward adjustments in that mount's settings section. These controls
 do not change Rapid Holster's on-foot placements.
 
 Rapid Mounts is a visual-only RuneLite plugin that lets your local player ride
-twelve cosmetic mounts:
+thirteen cosmetic mounts:
 
 - Battle-Ready Terrorbird
 - Sheep?
@@ -61,6 +82,7 @@ twelve cosmetic mounts:
 - Callisto
 - Vorkath
 - Lava dragon
+- Flying dragon
 - Araxxor
 - Battle turtle
 - TzRek-Zuk
@@ -71,7 +93,7 @@ clicks, combat, or any other gameplay.
 
 ## Features
 
-- Animated idle and walking cycles for all twelve mounts.
+- Animated idle and walking cycles for all thirteen mounts.
 - A reconstructed rider that keeps the local player's equipment and appearance.
 - Selectable Standard, Wide, Extra Wide, and Cross-legged riding poses, with
   mount-specific positioning controls.

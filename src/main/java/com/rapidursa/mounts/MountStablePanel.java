@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.EnumMap;
 import java.util.Map;
@@ -19,8 +20,12 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JScrollBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.plaf.basic.BasicScrollBarUI;
+import java.awt.Graphics;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
@@ -89,8 +94,8 @@ final class MountStablePanel extends PluginPanel
         JPanel cards = new JPanel(new GridLayout(0, 1, 0, 8));
         cards.setBackground(ColorScheme.DARK_GRAY_COLOR);
         cards.setAlignmentX(LEFT_ALIGNMENT);
-        cards.add(createMountButton(MountType.TERRORBIRD, terrorbird));
         cards.add(createMountButton(MountType.BLACK_UNICORN, unicorn));
+        cards.add(createMountButton(MountType.TERRORBIRD, terrorbird));
         cards.add(createMountButton(MountType.SHEEP, loadPreview("sheep-preview.png")));
         cards.add(createMountButton(MountType.CATABLEPON, loadPreview("catablepon-preview.png")));
         cards.add(createMountButton(MountType.BIG_WOLF, loadPreview("big-wolf-preview.png")));
@@ -98,6 +103,7 @@ final class MountStablePanel extends PluginPanel
         cards.add(createMountButton(MountType.ARTIO, artio));
         cards.add(createMountButton(MountType.VORKATH, vorkath));
         cards.add(createMountButton(MountType.LAVA_DRAGON, lavaDragon));
+        cards.add(createMountButton(MountType.FLYING_DRAGON, loadPreview("red-dragon-preview.png")));
         cards.add(createMountButton(MountType.ARAXXOR, araxxor));
         cards.add(createMountButton(MountType.BATTLE_TURTLE, battleTurtle));
         cards.add(createMountButton(MountType.TZREK_ZUK, loadPreview("tzrek-zuk-preview.png")));
@@ -142,8 +148,57 @@ final class MountStablePanel extends PluginPanel
         });
         content.add(mountedButton);
         content.add(Box.createVerticalGlue());
-        add(content, BorderLayout.NORTH);
+        JScrollPane scroller = new JScrollPane(content,
+            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroller.setBorder(BorderFactory.createEmptyBorder());
+        scroller.getViewport().setBackground(ColorScheme.DARK_GRAY_COLOR);
+        JScrollBar scrollBar = scroller.getVerticalScrollBar();
+        scrollBar.setUnitIncrement(16);
+        scrollBar.setPreferredSize(new Dimension(10, 0));
+        scrollBar.setUI(new BasicScrollBarUI()
+        {
+            @Override
+            protected void paintTrack(Graphics graphics, javax.swing.JComponent component, Rectangle bounds)
+            {
+                graphics.setColor(new Color(44, 44, 44));
+                graphics.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+            }
+
+            @Override
+            protected void paintThumb(Graphics graphics, javax.swing.JComponent component, Rectangle bounds)
+            {
+                if (!scrollbar.isEnabled() || bounds.isEmpty())
+                {
+                    return;
+                }
+                graphics.setColor(Color.BLACK);
+                graphics.fillRoundRect(bounds.x + 1, bounds.y, bounds.width - 2, bounds.height, 6, 6);
+            }
+
+            @Override
+            protected JButton createDecreaseButton(int orientation)
+            {
+                return emptyScrollButton();
+            }
+
+            @Override
+            protected JButton createIncreaseButton(int orientation)
+            {
+                return emptyScrollButton();
+            }
+        });
+        add(scroller, BorderLayout.CENTER);
         refresh();
+    }
+
+    private static JButton emptyScrollButton()
+    {
+        JButton button = new JButton();
+        button.setPreferredSize(new Dimension(0, 0));
+        button.setMinimumSize(new Dimension(0, 0));
+        button.setMaximumSize(new Dimension(0, 0));
+        return button;
     }
 
     private JButton createMountButton(MountType type, BufferedImage image)
