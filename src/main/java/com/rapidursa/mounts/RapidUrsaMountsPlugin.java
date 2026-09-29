@@ -149,6 +149,7 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     @Inject
     private BattleReadyOverlay battleReadyButton;
+    @Inject private DragonLandingOverlay dragonLandingButton;
 
     @Inject
     private ArtioAnchorOverlay artioAnchorOverlay;
@@ -225,6 +226,14 @@ public class RapidUrsaMountsPlugin extends Plugin
     private int builtSaddleScale = -1;
     private MountType builtMountType;
     private int activeUnicornAnimation = -1;
+    private boolean mountMoving;
+    private boolean dragonLanded = true;
+    private boolean dragonTransitioning;
+    private boolean dragonDescending;
+    private boolean dragonDismountPending;
+    private boolean dragonRemountFlying;
+    private long dragonTransitionStartNanos;
+    private static final long DRAGON_TRANSITION_NANOS = 480_000_000L;
     private int activeRiderAnimation = -1;
     private int terrorbirdAttackAnimation = -1;
     private int terrorbirdHeldCombatAnimation = -1;
@@ -238,6 +247,8 @@ public class RapidUrsaMountsPlugin extends Plugin
     private int activeRiderFrame = -1;
     private Outfit builtRiderOutfit;
     private Model builtRiderModel;
+    private Outfit lastLiveSkinOutfit;
+    private int lastLiveSkinSignature = Integer.MIN_VALUE;
     private boolean mountedRenderReady;
     private boolean mounted = true;
     private int lastPlayerLocalX = Integer.MIN_VALUE;
@@ -286,8 +297,13 @@ public class RapidUrsaMountsPlugin extends Plugin
         migrateV19FittedDefaults();
         hooks.registerRenderableDrawListener(drawListener);
         mounted = true;
+        dragonLanded = true;
+        dragonTransitioning = false;
+        dragonDismountPending = false;
+        dragonRemountFlying = false;
         mountButton.bind(this);
         battleReadyButton.bind(this);
+        dragonLandingButton.bind(this);
         artioAnchorOverlay.bind(this);
         mountStablePanel.bind(this);
         stableNavigation = NavigationButton.builder()
@@ -299,9 +315,11 @@ public class RapidUrsaMountsPlugin extends Plugin
         clientToolbar.addNavigation(stableNavigation);
         overlayManager.add(mountButton);
         overlayManager.add(battleReadyButton);
+        overlayManager.add(dragonLandingButton);
         overlayManager.add(artioAnchorOverlay);
         mouseManager.registerMouseListener(mountButton);
         mouseManager.registerMouseListener(battleReadyButton);
+        mouseManager.registerMouseListener(dragonLandingButton);
         keyManager.registerKeyListener(mountHotkey);
     }
 
@@ -514,15 +532,20 @@ public class RapidUrsaMountsPlugin extends Plugin
         keyManager.unregisterKeyListener(mountHotkey);
         mouseManager.unregisterMouseListener(mountButton);
         mouseManager.unregisterMouseListener(battleReadyButton);
+        mouseManager.unregisterMouseListener(dragonLandingButton);
         overlayManager.remove(mountButton);
         overlayManager.remove(battleReadyButton);
+        overlayManager.remove(dragonLandingButton);
         overlayManager.remove(artioAnchorOverlay);
         artioAnchorOverlay.unbind();
         mountButton.unbind();
         battleReadyButton.unbind();
+        dragonLandingButton.unbind();
         despawn();
         clearEffects();
         mounted = false;
+        dragonDismountPending = false;
+        dragonRemountFlying = false;
     }
 
     @Subscribe
@@ -530,6 +553,9 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (event.getGameState() != GameState.LOGGED_IN)
         {
+            dragonDismountPending = false;
+            dragonTransitioning = false;
+            dragonLanded = true;
             despawn();
             clearEffects();
         }
@@ -541,6 +567,13 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (!RapidUrsaMountsConfig.GROUP.equals(event.getGroup()))
         {
             return;
+        }
+        if ("mountType".equals(event.getKey()))
+        {
+            dragonDismountPending = false;
+            dragonTransitioning = false;
+            dragonLanded = true;
+            dragonRemountFlying = false;
         }
 
         if (!config.enabled()
@@ -572,7 +605,11 @@ public class RapidUrsaMountsPlugin extends Plugin
             || "flyingDragonNpcId".equals(event.getKey())
             || "flyingDragonScale".equals(event.getKey())
             || "flyingDragonIdleAnimation".equals(event.getKey())
-            || "flyingDragonWalkAnimation".equals(event.getKey()))
+            || "flyingDragonWalkAnimation".equals(event.getKey())
+            || "landedDragonNpcId".equals(event.getKey())
+            || "landedDragonScale".equals(event.getKey())
+            || "landedDragonIdleAnimation".equals(event.getKey())
+            || "landedDragonWalkAnimation".equals(event.getKey()))
         {
             despawn();
         }
@@ -799,14 +836,137 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     void toggleMounted()
     {
-        playMountEffect();
-        mounted = !mounted;
-        if (!mounted)
+        if (mounted && config.mountType() == MountType.FLYING_DRAGON
+            && (!dragonLanded || dragonTransitioning))
         {
-            terrorbirdBattleReady = false;
-            despawn();
+            dragonDismountPending = true;
+            dragonRemountFlying = true;
+            if (!dragonTransitioning)
+            {
+                toggleDragonLanding();
+            }
+            return;
+        }
+        if (mounted)
+        {
+            dragonRemountFlying = false;
+            finishDismount();
+            return;
+        }
+        playMountEffect();
+        mounted = true;
+        if (dragonRemountFlying && config.mountType() == MountType.FLYING_DRAGON)
+        {
+            dragonRemountFlying = false;
+            dragonLanded = true;
+            toggleDragonLanding();
         }
         mountStablePanel.refresh();
+    }
+
+    private void finishDismount()
+    {
+        playMountEffect();
+        mounted = false;
+        terrorbirdBattleReady = false;
+        dragonLanded = true;
+        dragonTransitioning = false;
+        dragonDismountPending = false;
+        despawn();
+        mountStablePanel.refresh();
+    }
+
+    void toggleDragonLanding()
+    {
+        if (!mounted || !config.enabled() || config.mountType() != MountType.FLYING_DRAGON)
+        {
+            return;
+        }
+        if (dragonTransitioning || (dragonDismountPending && dragonLanded))
+        {
+            return;
+        }
+        dragonDescending = !dragonLanded;
+        dragonTransitioning = true;
+        dragonTransitionStartNanos = System.nanoTime();
+        if (!dragonDescending)
+        {
+            // Switch to the flying model on the ground, then raise it.
+            dragonLanded = false;
+            flyingDragonRiderAnchor.reset();
+            despawn();
+        }
+    }
+
+    boolean isDragonLanded()
+    {
+        return dragonLanded;
+    }
+
+    boolean isDragonTransitioning()
+    {
+        return dragonTransitioning;
+    }
+
+    private int currentDragonFlightHeight()
+    {
+        if (config.mountType() != MountType.FLYING_DRAGON)
+        {
+            return 0;
+        }
+        if (!dragonTransitioning)
+        {
+            return dragonLanded ? 0 : config.flyingDragonMountHeight();
+        }
+        double progress = Math.min(1.0,
+            (double) (System.nanoTime() - dragonTransitionStartNanos) / DRAGON_TRANSITION_NANOS);
+        double eased = progress * progress * (3.0 - 2.0 * progress);
+        int flightHeight = config.flyingDragonMountHeight();
+        // Both NPC objects occupy the player's tile at terrainZ at the swap.
+        // The rider has its own placement interpolation below.
+        int landingHeight = 0;
+        return (int) Math.round(dragonDescending
+            ? flightHeight + (landingHeight - flightHeight) * eased
+            : landingHeight + (flightHeight - landingHeight) * eased);
+    }
+
+    private int currentDragonBodyHeight()
+    {
+        if (config.mountType() != MountType.FLYING_DRAGON || !dragonTransitioning)
+        {
+            return currentDragonFlightHeight();
+        }
+        // The two NPC meshes have different vertical origins. Let the flying
+        // body reach the visible ground-model position without changing the
+        // already matched rider trajectory or the ground model's terrain Z.
+        double groundFraction = dragonLandingMatchFraction();
+        return (int) Math.round(config.flyingDragonMountHeight()
+            + (config.flyingDragonLandingBodyHeight()
+                - config.flyingDragonMountHeight()) * groundFraction);
+    }
+
+    private double dragonLandingMatchFraction()
+    {
+        if (!dragonTransitioning || config.mountType() != MountType.FLYING_DRAGON)
+        {
+            return 0;
+        }
+        double progress = Math.min(1.0,
+            (double) (System.nanoTime() - dragonTransitionStartNanos) / DRAGON_TRANSITION_NANOS);
+        double eased = progress * progress * (3.0 - 2.0 * progress);
+        return dragonDescending ? eased : 1.0 - eased;
+    }
+
+    private int currentDragonMatchForward()
+    {
+        return (int) Math.round((config.landedDragonRiderForward()
+            - config.flyingDragonRiderForward()) * dragonLandingMatchFraction());
+    }
+
+    private int currentDragonMatchSideways()
+    {
+        return (int) Math.round((config.landedDragonRiderSideways()
+            - config.flyingDragonRiderSideways()) * dragonLandingMatchFraction());
     }
 
     void toggleTerrorbirdBattleReady()
@@ -846,6 +1006,31 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             setHolsterHandoff(false);
             return;
+        }
+
+        if (dragonTransitioning
+            && System.nanoTime() - dragonTransitionStartNanos >= DRAGON_TRANSITION_NANOS)
+        {
+            dragonTransitioning = false;
+            if (dragonDescending)
+            {
+                // The flying body has reached the ground; now show NPC 8079.
+                dragonLanded = true;
+                flyingDragonRiderAnchor.reset();
+                if (dragonDismountPending)
+                {
+                    dragonDismountPending = false;
+                    finishDismount();
+                    return;
+                }
+                despawn();
+            }
+            else if (dragonDismountPending)
+            {
+                // A dismount pressed during takeoff waits for the ascent to
+                // finish, then plays the full landing before dismissing.
+                toggleDragonLanding();
+            }
         }
 
         // Claim the weapon before either plugin draws this frame. Holster's
@@ -912,7 +1097,8 @@ public class RapidUrsaMountsPlugin extends Plugin
         int orientation = player.getCurrentOrientation();
         int zukMountForward = config.mountType() == MountType.TZREK_ZUK
             ? config.zukMountForward() : 0;
-        LocalPoint mountPoint = zukMountForward == 0 ? playerPoint
+        LocalPoint mountPoint = zukMountForward == 0
+            ? playerPoint
             : offsetFromPlayer(playerPoint, orientation, zukMountForward, 0);
         int terrainZ = Perspective.getTileHeight(client, mountPoint, plane);
         // Rapid Holster temporarily replaces the player's pose set while it owns
@@ -920,6 +1106,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         // handoff and report "walking" after the player has stopped. Track real
         // local movement instead so mount, rider, and weapon share one state.
         boolean moving = isPlayerMoving(playerPoint);
+        mountMoving = moving;
 
         // The custom saddle and rider are separate RuneLite objects, so give them
         // one shared seat transform to keep them visually locked together.
@@ -952,8 +1139,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
 
         unicorn.setLocation(mountPoint, plane);
-        unicorn.setZ(terrainZ - (config.mountType() == MountType.FLYING_DRAGON
-            ? config.flyingDragonMountHeight() : 0));
+        unicorn.setZ(terrainZ - currentDragonBodyHeight());
         unicorn.setOrientation(orientation);
         for (RuneLiteObject part : mountParts)
         {
@@ -1127,7 +1313,7 @@ public class RapidUrsaMountsPlugin extends Plugin
             updateSheepRiderAnchor(zukShoulderAnchor,
                 currentRiderSideways(), currentRiderHeight(), currentRiderForward());
         }
-        else if (config.mountType() == MountType.FLYING_DRAGON)
+        else if (config.mountType() == MountType.FLYING_DRAGON && !dragonLanded)
         {
             // The fitted rider is well above the dragon's body. Probing at
             // rider height can select a wing instead of the central back.
@@ -1190,15 +1376,19 @@ public class RapidUrsaMountsPlugin extends Plugin
             Model playerModel = buildRiderModel(player);
             if (playerModel != null)
             {
-                int riderForward = currentRiderForward() + linkedSeatForward;
+                int riderForward = currentRiderForward() + linkedSeatForward + currentDragonMatchForward();
                 if (config.mountType() == MountType.TERRORBIRD && moving)
                 {
                     riderForward += TERRORBIRD_WALK_SEAT_BACK;
                 }
-                int riderSideways = currentRiderSideways() + linkedSeatSideways;
+                int riderSideways = currentRiderSideways() + linkedSeatSideways + currentDragonMatchSideways();
                 int riderHeight = currentRiderHeight() + linkedSeatHeight
-                    + (config.mountType() == MountType.FLYING_DRAGON
-                        ? config.flyingDragonMountHeight() : 0);
+                    + currentDragonFlightHeight();
+                if (config.mountType() == MountType.FLYING_DRAGON && dragonTransitioning)
+                {
+                    riderHeight += (int) Math.round((config.landedDragonRiderHeight()
+                        - config.flyingDragonRiderHeight()) * dragonLandingMatchFraction());
+                }
                 if (config.mountType() == MountType.TERRORBIRD
                     && config.ridingPose() == RidingPose.STANDARD)
                 {
@@ -1269,11 +1459,16 @@ public class RapidUrsaMountsPlugin extends Plugin
                     riderSideways += zukShoulderAnchor.sideways;
                     riderHeight += zukShoulderAnchor.height;
                 }
-                if (config.mountType() == MountType.FLYING_DRAGON)
+                if (config.mountType() == MountType.FLYING_DRAGON && !dragonLanded)
                 {
-                    riderForward += flyingDragonRiderAnchor.forward;
-                    riderSideways += flyingDragonRiderAnchor.sideways;
-                    riderHeight += flyingDragonRiderAnchor.height;
+                    // Keep following the same animated back patch while descending.
+                    // Fade the local bob to zero at the ground-model handoff so
+                    // the rider arrives at the ground rider's exact coordinates.
+                    double anchorWeight = dragonTransitioning
+                        ? 1.0 - dragonLandingMatchFraction() : 1.0;
+                    riderForward += (int) Math.round(flyingDragonRiderAnchor.forward * anchorWeight);
+                    riderSideways += (int) Math.round(flyingDragonRiderAnchor.sideways * anchorWeight);
+                    riderHeight += (int) Math.round(flyingDragonRiderAnchor.height * anchorWeight);
                 }
                 if (config.mountType() == MountType.TERRORBIRD && moving && terrorbirdRiderAnchor.moving)
                 {
@@ -1596,6 +1791,23 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
 
         Outfit currentOutfit = Outfit.from(player.getPlayerComposition());
+        // Follower Buddy and similar appearance plugins can recolour the live
+        // player without changing PlayerComposition#getColors(). Read the skin
+        // replacement from that live model before hiding held gear for riding.
+        Model livePlayerModel = player.getModel();
+        if (livePlayerModel != null && livePlayerModel.getFaceColors1() != null)
+        {
+            int skinSignature = java.util.Arrays.hashCode(livePlayerModel.getFaceColors1());
+            if (skinSignature != lastLiveSkinSignature
+                || !currentOutfit.equals(lastLiveSkinOutfit))
+            {
+                appearanceComposer.setLiveSkinColor(
+                    appearanceComposer.detectLiveSkinColor(currentOutfit, livePlayerModel));
+                lastLiveSkinSignature = skinSignature;
+                lastLiveSkinOutfit = Outfit.from(player.getPlayerComposition());
+                builtRiderModel = null;
+            }
+        }
         if (config.hideHeldEquipment() && !terrorbirdCombatActive)
         {
             currentOutfit.clear(KitType.WEAPON);
@@ -5056,7 +5268,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
         else if (config.mountType() == MountType.FLYING_DRAGON)
         {
-            npcId = config.flyingDragonNpcId();
+            npcId = dragonLanded ? config.landedDragonNpcId() : config.flyingDragonNpcId();
         }
         NPCComposition composition = client.getNpcDefinition(npcId);
         int[] ids = null;
@@ -5176,6 +5388,10 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
         if (config.mountType() == MountType.FLYING_DRAGON)
         {
+            if (dragonLanded)
+            {
+                return moving ? config.landedDragonWalkAnimation() : config.landedDragonIdleAnimation();
+            }
             return moving ? config.flyingDragonWalkAnimation() : config.flyingDragonIdleAnimation();
         }
         return moving ? AnimationID.UNICORN_REWORK_WALK : AnimationID.UNICORN_REWORK_READY;
@@ -5211,6 +5427,16 @@ public class RapidUrsaMountsPlugin extends Plugin
 
     private AnimationController loopingMountAnimation(int animationId)
     {
+        if (config.mountType() == MountType.FLYING_DRAGON && !dragonLanded)
+        {
+            AnimationController controller = new DragonTailFollowAnimationController(
+                client,
+                animationId,
+                () -> mountMoving,
+                config::flyingDragonTailLift);
+            controller.setOnFinished(AnimationController::reset);
+            return controller;
+        }
         if (config.mountType() == MountType.SHEEP
             && animationId == config.sheepIdleAnimation())
         {
@@ -5528,7 +5754,7 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
         if (config.mountType() == MountType.FLYING_DRAGON)
         {
-            return config.flyingDragonScale();
+            return dragonLanded ? config.landedDragonScale() : config.flyingDragonScale();
         }
         if (isWidePose())
         {
@@ -5569,7 +5795,7 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (config.mountType() == MountType.FLYING_DRAGON)
         {
-            return config.flyingDragonRiderHeight();
+            return dragonLanded ? config.landedDragonRiderHeight() : config.flyingDragonRiderHeight();
         }
         if (config.mountType() == MountType.TZREK_ZUK)
         {
@@ -5646,7 +5872,7 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (config.mountType() == MountType.FLYING_DRAGON)
         {
-            return config.flyingDragonRiderForward();
+            return dragonLanded ? config.landedDragonRiderForward() : config.flyingDragonRiderForward();
         }
         if (config.mountType() == MountType.TZREK_ZUK)
         {
@@ -5723,7 +5949,7 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (config.mountType() == MountType.FLYING_DRAGON)
         {
-            return config.flyingDragonRiderSideways();
+            return dragonLanded ? config.landedDragonRiderSideways() : config.flyingDragonRiderSideways();
         }
         if (config.mountType() == MountType.TZREK_ZUK)
         {

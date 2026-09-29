@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.5.1 — Dragon landing and appearance
+
+- Add a Land/Fly button for the flying dragon and a ground red dragon form.
+- Animate the flying dragon into the ground form before switching models,
+  and switch to the flying model before takeoff.
+- Land before dismounting in flight; the next summon plays takeoff.
+- Start on the ground and use the red dragon mask for quick summon.
+- Follow the flying dragon's animated back and adjust its moving tail.
+- Carry live skin recolours into the mounted rider model.
+
 ## 2.5.0 — Flying dragon
 
 - Add the Flying dragon mount with its Extra Wide rider pose, animated rider

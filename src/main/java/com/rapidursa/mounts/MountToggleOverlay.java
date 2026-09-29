@@ -27,7 +27,7 @@ final class MountToggleOverlay extends Overlay implements MouseListener
     private static final int WOLF_MASK_ITEM_ID = 23407;
     private static final int TECU_SALAMANDER_ITEM_ID = 28834;
     private static final int TZREK_ZUK_ITEM_ID = 22319;
-    private static final int RED_DRAGONHIDE_ITEM_ID = 1749;
+    private static final int RED_DRAGON_MASK_ITEM_ID = 12522;
     private RapidUrsaMountsPlugin plugin;
     private final ClientThread clientThread;
     private final RapidUrsaMountsConfig config;
@@ -65,7 +65,7 @@ final class MountToggleOverlay extends Overlay implements MouseListener
         this.catableponIcon = itemManager.getImage(TECU_SALAMANDER_ITEM_ID);
         this.sheepIcon = itemManager.getImage(ItemID.WOOL);
         this.zukIcon = itemManager.getImage(TZREK_ZUK_ITEM_ID);
-        this.flyingDragonIcon = itemManager.getImage(RED_DRAGONHIDE_ITEM_ID);
+        this.flyingDragonIcon = itemManager.getImage(RED_DRAGON_MASK_ITEM_ID);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
         setPosition(OverlayPosition.TOP_LEFT);
     }

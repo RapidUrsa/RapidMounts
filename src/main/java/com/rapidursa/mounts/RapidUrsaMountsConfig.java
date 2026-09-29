@@ -149,9 +149,36 @@ public interface RapidUrsaMountsConfig extends Config
     @Range(min = -1, max = 30000)
     @ConfigItem(keyName = "flyingDragonWalkAnimation", name = "Moving flight animation ID", description = "Flying movement animation; -1 shows the base model", section = FLYING_DRAGON)
     default int flyingDragonWalkAnimation() { return 7870; }
+    @Range(min = 0, max = 50)
+    @ConfigItem(keyName = "flyingDragonTailLift", name = "Moving tail lift", description = "Lift the tail into line with the body while moving; 0 disables the correction", section = FLYING_DRAGON)
+    default int flyingDragonTailLift() { return 28; }
+    @Range(min = 1, max = 30000)
+    @ConfigItem(keyName = "landedDragonNpcId", name = "Landed dragon NPC ID", description = "Ground model used by the Land button", section = FLYING_DRAGON)
+    default int landedDragonNpcId() { return 8079; }
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "landedDragonIdleAnimation", name = "Landed idle animation ID", description = "-1 uses the unanimated ground model until the correct ID is confirmed", section = FLYING_DRAGON)
+    default int landedDragonIdleAnimation() { return -1; }
+    @Range(min = -1, max = 30000)
+    @ConfigItem(keyName = "landedDragonWalkAnimation", name = "Landed walking animation ID", description = "-1 uses the unanimated ground model until the correct ID is confirmed", section = FLYING_DRAGON)
+    default int landedDragonWalkAnimation() { return -1; }
+    @Range(min = 25, max = 300)
+    @ConfigItem(keyName = "landedDragonScale", name = "Landed dragon scale (%)", description = "Size of the ground model", section = FLYING_DRAGON)
+    default int landedDragonScale() { return 75; }
+    @Range(min = -350, max = 350)
+    @ConfigItem(keyName = "landedDragonRiderForward", name = "Landed rider forward/back", description = "Independent rider placement on the ground dragon", section = FLYING_DRAGON)
+    default int landedDragonRiderForward() { return -56; }
+    @Range(min = -200, max = 400)
+    @ConfigItem(keyName = "landedDragonRiderHeight", name = "Landed rider height", description = "Independent rider placement on the ground dragon", section = FLYING_DRAGON)
+    default int landedDragonRiderHeight() { return 73; }
+    @Range(min = -350, max = 350)
+    @ConfigItem(keyName = "landedDragonRiderSideways", name = "Landed rider sideways", description = "Independent rider placement on the ground dragon", section = FLYING_DRAGON)
+    default int landedDragonRiderSideways() { return 0; }
     @Range(min = -250, max = 400)
     @ConfigItem(keyName = "flyingDragonMountHeight", name = "Flight height", description = "Raise the dragon and rider together above the player tile", section = FLYING_DRAGON)
     default int flyingDragonMountHeight() { return 30; }
+    @Range(min = -350, max = 0)
+    @ConfigItem(keyName = "flyingDragonLandingBodyHeight", name = "Landing body height", description = "Adjust where the flying dragon's body meets the ground model before the switch; more negative lowers it", section = FLYING_DRAGON)
+    default int flyingDragonLandingBodyHeight() { return -150; }
     @Range(min = -350, max = 350)
     @ConfigItem(keyName = "flyingDragonRiderForward", name = "Rider forward/back", description = "Position the rider between the wings", section = FLYING_DRAGON)
     default int flyingDragonRiderForward() { return -56; }

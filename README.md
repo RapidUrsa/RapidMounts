@@ -5,6 +5,20 @@ grew from there! I'm so happy so many people seem to like it! I'm always looking
 for new pose suggestions and mounts, so please send requests and I'll see what
 I can do :)
 
+## v2.5.1 — Dragon landing and appearance
+
+The Flying dragon starts in its landed red dragon form. Use the separate
+**Fly/Land** button to take off or land. Landing lowers the flying body before
+switching to the ground model; takeoff switches at ground level before rising.
+Quick dismount during flight lands first and then dismisses the mount. The
+next summon plays takeoff. Quick summon uses the red dragon mask icon.
+
+The rider follows the flying dragon's animated back. Mounted riders also
+pick up skin recolours applied to the visible player model by appearance
+plugins such as Follower Buddy. The ground model's animation IDs remain
+adjustable and default to -1 until a suitable ground animation is selected.
+These mounts are client-side visuals only.
+
 ## v2.5.0 — Flying dragon
 
 The Flying dragon mount uses NPC 8075 and animation 7870 for both idle and
@@ -13,7 +27,7 @@ idle and movement. The rider anchor samples the central body around the back
 rather than the wing tips. Dragon scale, flight height, rider position,
 and mounted Rapid Holster position have adjustable controls in the Flying dragon
 section. The stable shows a side view of the red dragon below Lava dragon, and
-the quick button uses red dragonhide. The stable sidebar scrolls. The dragon
+the quick button uses the red dragon mask. The stable sidebar scrolls. The dragon
 has no custom saddle.
 
 The tested flying dragon defaults are NPC 8075, 75% scale, flight height 30,

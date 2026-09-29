@@ -54,6 +54,12 @@ public class AppearanceComposer
 	 * take the place of the palette-index recolouring in {@link #applyBodyColors}.
 	 */
 	private final java.util.Map<Short, Short> exactPairs = new java.util.LinkedHashMap<>();
+	private Short liveSkinColor;
+
+	public void setLiveSkinColor(Short color)
+	{
+		liveSkinColor = color;
+	}
 
 	public void setExactPairs(java.util.Map<Short, Short> pairs)
 	{
@@ -425,6 +431,20 @@ public class AppearanceComposer
 	public List<String> comparePalette(Outfit outfit, Model clientModel,
 		java.util.Map<Short, Short> collect)
 	{
+		return comparePalette(outfit, clientModel, collect, false);
+	}
+
+	/** Read only the skin replacement from another plugin's live player model. */
+	public Short detectLiveSkinColor(Outfit outfit, Model clientModel)
+	{
+		java.util.Map<Short, Short> matches = new java.util.HashMap<>();
+		comparePalette(outfit, clientModel, matches, true);
+		return matches.get(GamePalette.SKIN_FIND);
+	}
+
+	private List<String> comparePalette(Outfit outfit, Model clientModel,
+		java.util.Map<Short, Short> collect, boolean skinOnly)
+	{
 		List<String> out = new ArrayList<>();
 		if (!repository.isLoaded() || clientModel == null)
 		{
@@ -543,6 +563,10 @@ public class AppearanceComposer
 		for (java.util.Map.Entry<Short, List<Integer>> group : groups.entrySet())
 		{
 			short find = group.getKey();
+			if (skinOnly && find != GamePalette.SKIN_FIND)
+			{
+				continue;
+			}
 			List<Integer> faces = group.getValue();
 
 			// Any non-hidden face's lit colour carries the replacement's hue+sat.
@@ -732,12 +756,14 @@ public class AppearanceComposer
 		{
 			short[] table = GamePalette.table(slot);
 			int index = colorIndices[slot];
-			if (table == null || index < 0 || index >= table.length)
+			if (table == null || index < 0
+				|| (index >= table.length && !(slot == 4 && liveSkinColor != null)))
 			{
 				continue;
 			}
 
-			merged.recolor(GamePalette.find(slot), table[index]);
+			merged.recolor(GamePalette.find(slot),
+				slot == 4 && liveSkinColor != null ? liveSkinColor : table[index]);
 			if (slot == 0 && index < GamePalette.HAIR_HIGHLIGHT.length)
 			{
 				// The highlight is its own authored colour with its own table entry,
