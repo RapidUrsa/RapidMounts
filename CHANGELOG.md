@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.5.2 — Dragon interactions and final fitting
+
+- Land before talking to NPCs or using stairs and common agility shortcuts.
+- Hold the landed state through approach, dialogue and action, then take off.
+- Preserve the approved combat transition and map-loading flight state.
+- Bake in the final flying and landed dragon model, animation, rider, and holster values.
+
+## 2.5.2-preview.3 — Earlier combat landing
+
+- Begin descending as soon as a combat target is engaged, ahead of the first
+  attack frame.
+- Show the landed form briefly before pausing cosmetic mounts for combat.
+
+## 2.5.2-preview.2 — Combat landing test
+
+- While flying, the dragon lands when an attack animation starts against a
+  combat target, then follows the normal action pause during combat.
+- After combat and the configured resume delay, the dragon takes off again.
+- Preserve flight state across map loads from the previous preview.
+
+## 2.5.2-preview.1 — Preserve flight during map loads
+
+- Keep the dragon's flying or landed state through region and instance loading.
+- Reset to the landed form only when returning to the login screen.
+
 ## 2.5.1 — Dragon landing and appearance
 
 - Add a Land/Fly button for the flying dragon and a ground red dragon form.

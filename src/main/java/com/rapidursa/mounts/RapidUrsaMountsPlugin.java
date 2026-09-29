@@ -14,6 +14,7 @@ import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.Model;
 import net.runelite.api.ModelData;
+import net.runelite.api.MenuAction;
 import net.runelite.api.NPCComposition;
 import net.runelite.api.Perspective;
 import net.runelite.api.Player;
@@ -23,6 +24,8 @@ import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.events.BeforeRender;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.api.gameval.AnimationID;
 import net.runelite.api.gameval.SpotanimID;
 import net.runelite.api.kit.KitType;
@@ -232,6 +235,9 @@ public class RapidUrsaMountsPlugin extends Plugin
     private boolean dragonDescending;
     private boolean dragonDismountPending;
     private boolean dragonRemountFlying;
+    private boolean dragonCombatReturnToFlight;
+    private long dragonCombatGroundVisibleUntilNanos;
+    private long dragonInteractionPendingUntilNanos;
     private long dragonTransitionStartNanos;
     private static final long DRAGON_TRANSITION_NANOS = 480_000_000L;
     private int activeRiderAnimation = -1;
@@ -295,12 +301,16 @@ public class RapidUrsaMountsPlugin extends Plugin
         migrateZukPreviewDefaults();
         migrateExtraWideAnimationDefaults();
         migrateV19FittedDefaults();
+        migrateDragonReleaseDefaults();
         hooks.registerRenderableDrawListener(drawListener);
         mounted = true;
         dragonLanded = true;
         dragonTransitioning = false;
         dragonDismountPending = false;
         dragonRemountFlying = false;
+        dragonCombatReturnToFlight = false;
+        dragonCombatGroundVisibleUntilNanos = 0L;
+        dragonInteractionPendingUntilNanos = 0L;
         mountButton.bind(this);
         battleReadyButton.bind(this);
         dragonLandingButton.bind(this);
@@ -420,6 +430,38 @@ public class RapidUrsaMountsPlugin extends Plugin
             configManager.setConfiguration(
                 RapidUrsaMountsConfig.GROUP, "extraWideWalkAnimationId", 1462);
         }
+    }
+
+    /** Replace only persisted values from the dragon preview builds. */
+    private void migrateDragonReleaseDefaults()
+    {
+        final String migrationKey = "dragonV252DefaultsApplied";
+        if (configManager.getConfiguration(RapidUrsaMountsConfig.GROUP, migrationKey) != null)
+        {
+            return;
+        }
+        String[][] changes =
+        {
+            {"flyingDragonScale", "75", "80"},
+            {"landedDragonScale", "75", "80"},
+            {"flyingDragonTailLift", "28", "27"},
+            {"landedDragonIdleAnimation", "-1", "90"},
+            {"landedDragonWalkAnimation", "-1", "79"},
+            {"landedDragonRiderForward", "-56", "-41"},
+            {"flyingDragonRiderForward", "-56", "-41"},
+            {"flyingDragonRiderHeight", "73", "82"},
+            {"flyingDragonMountedHolsterSideways", "0", "3"}
+        };
+        for (String[] change : changes)
+        {
+            if (change[1].equals(configManager.getConfiguration(
+                RapidUrsaMountsConfig.GROUP, change[0])))
+            {
+                configManager.setConfiguration(
+                    RapidUrsaMountsConfig.GROUP, change[0], change[2]);
+            }
+        }
+        configManager.setConfiguration(RapidUrsaMountsConfig.GROUP, migrationKey, true);
     }
 
     /**
@@ -546,6 +588,8 @@ public class RapidUrsaMountsPlugin extends Plugin
         mounted = false;
         dragonDismountPending = false;
         dragonRemountFlying = false;
+        dragonCombatReturnToFlight = false;
+        dragonCombatGroundVisibleUntilNanos = 0L;
     }
 
     @Subscribe
@@ -553,9 +597,19 @@ public class RapidUrsaMountsPlugin extends Plugin
     {
         if (event.getGameState() != GameState.LOGGED_IN)
         {
-            dragonDismountPending = false;
-            dragonTransitioning = false;
-            dragonLanded = true;
+            // Region/instance loads pass through LOADING. Keep flight and any
+            // queued landing intact so rebuilding the RuneLite objects after
+            // the map loads does not silently swap the dragon to ground form.
+            if (event.getGameState() == GameState.LOGIN_SCREEN)
+            {
+                dragonDismountPending = false;
+                dragonRemountFlying = false;
+                dragonCombatReturnToFlight = false;
+                dragonCombatGroundVisibleUntilNanos = 0L;
+                dragonInteractionPendingUntilNanos = 0L;
+                dragonTransitioning = false;
+                dragonLanded = true;
+            }
             despawn();
             clearEffects();
         }
@@ -574,6 +628,9 @@ public class RapidUrsaMountsPlugin extends Plugin
             dragonTransitioning = false;
             dragonLanded = true;
             dragonRemountFlying = false;
+            dragonCombatReturnToFlight = false;
+            dragonCombatGroundVisibleUntilNanos = 0L;
+            dragonInteractionPendingUntilNanos = 0L;
         }
 
         if (!config.enabled()
@@ -834,6 +891,49 @@ public class RapidUrsaMountsPlugin extends Plugin
         }
     }
 
+    @Subscribe
+    public void onMenuOptionClicked(MenuOptionClicked event)
+    {
+        if (!mounted || !config.enabled() || config.mountType() != MountType.FLYING_DRAGON
+            || dragonDismountPending || client.getGameState() != GameState.LOGGED_IN)
+        {
+            return;
+        }
+
+        MenuAction action = event.getMenuAction();
+        String option = event.getMenuOption();
+        if (action == null || option == null)
+        {
+            return;
+        }
+
+        // Only world interactions that need the rider on the ground. Ordinary
+        // walking, examining, inventory clicks and combat retain their own path.
+        boolean npcConversation = action.name().startsWith("NPC_")
+            && (option.equalsIgnoreCase("Talk-to") || option.equalsIgnoreCase("Speak-to"));
+        boolean objectTraversal = action.name().startsWith("GAME_OBJECT_")
+            || action.name().startsWith("WALL_OBJECT_");
+        objectTraversal &= option.equalsIgnoreCase("Climb")
+            || option.equalsIgnoreCase("Climb-up") || option.equalsIgnoreCase("Climb-down")
+            || option.equalsIgnoreCase("Cross") || option.equalsIgnoreCase("Jump")
+            || option.equalsIgnoreCase("Squeeze-through") || option.equalsIgnoreCase("Crawl-through")
+            || option.equalsIgnoreCase("Swing-across") || option.equalsIgnoreCase("Scale")
+            || option.equalsIgnoreCase("Enter") || option.equalsIgnoreCase("Go-through");
+        if (!npcConversation && !objectTraversal)
+        {
+            return;
+        }
+
+        dragonCombatReturnToFlight = true;
+        // Keep the dragon grounded while walking toward the clicked target;
+        // the action animation or conversation then takes over the hold.
+        dragonInteractionPendingUntilNanos = System.nanoTime() + 8_000_000_000L;
+        if (!dragonLanded && !dragonTransitioning)
+        {
+            toggleDragonLanding();
+        }
+    }
+
     void toggleMounted()
     {
         if (mounted && config.mountType() == MountType.FLYING_DRAGON
@@ -841,6 +941,8 @@ public class RapidUrsaMountsPlugin extends Plugin
         {
             dragonDismountPending = true;
             dragonRemountFlying = true;
+            dragonCombatReturnToFlight = false;
+            dragonInteractionPendingUntilNanos = 0L;
             if (!dragonTransitioning)
             {
                 toggleDragonLanding();
@@ -850,6 +952,8 @@ public class RapidUrsaMountsPlugin extends Plugin
         if (mounted)
         {
             dragonRemountFlying = false;
+            dragonCombatReturnToFlight = false;
+            dragonInteractionPendingUntilNanos = 0L;
             finishDismount();
             return;
         }
@@ -872,6 +976,9 @@ public class RapidUrsaMountsPlugin extends Plugin
         dragonLanded = true;
         dragonTransitioning = false;
         dragonDismountPending = false;
+        dragonCombatReturnToFlight = false;
+        dragonCombatGroundVisibleUntilNanos = 0L;
+        dragonInteractionPendingUntilNanos = 0L;
         despawn();
         mountStablePanel.refresh();
     }
@@ -1008,6 +1115,21 @@ public class RapidUrsaMountsPlugin extends Plugin
             return;
         }
 
+        // Engage before the first swing so the visible descent finishes before
+        // the normal action pause hides the cosmetic rider during combat.
+        net.runelite.api.Actor target = player.getInteracting();
+        boolean combatTarget = target instanceof Player
+            || (target instanceof net.runelite.api.NPC
+                && ((net.runelite.api.NPC) target).getComposition() != null
+                && ((net.runelite.api.NPC) target).getComposition().getCombatLevel() > 0);
+        if (config.mountType() == MountType.FLYING_DRAGON && !dragonLanded
+            && !dragonTransitioning && !dragonDismountPending
+            && combatTarget)
+        {
+            dragonCombatReturnToFlight = true;
+            toggleDragonLanding();
+        }
+
         if (dragonTransitioning
             && System.nanoTime() - dragonTransitionStartNanos >= DRAGON_TRANSITION_NANOS)
         {
@@ -1017,6 +1139,12 @@ public class RapidUrsaMountsPlugin extends Plugin
                 // The flying body has reached the ground; now show NPC 8079.
                 dragonLanded = true;
                 flyingDragonRiderAnchor.reset();
+                if (dragonCombatReturnToFlight)
+                {
+                    // Show at least a few frames of the ground form at the
+                    // end of the descent before yielding to the real attack.
+                    dragonCombatGroundVisibleUntilNanos = System.nanoTime() + 300_000_000L;
+                }
                 if (dragonDismountPending)
                 {
                     dragonDismountPending = false;
@@ -1071,9 +1199,28 @@ public class RapidUrsaMountsPlugin extends Plugin
             terrorbirdHeldCombatAnimation = -1;
         }
 
-        if (config.pauseForActions() && !terrorbirdFighting && !finishingTerrorbirdAttack)
+        boolean dialogueOpen = client.getWidget(WidgetInfo.DIALOG_NPC_TEXT) != null
+            && !client.getWidget(WidgetInfo.DIALOG_NPC_TEXT).isHidden();
+        dialogueOpen |= client.getWidget(WidgetInfo.DIALOG_PLAYER_TEXT) != null
+            && !client.getWidget(WidgetInfo.DIALOG_PLAYER_TEXT).isHidden();
+        dialogueOpen |= client.getWidget(WidgetInfo.DIALOG_OPTION) != null
+            && !client.getWidget(WidgetInfo.DIALOG_OPTION).isHidden();
+        if (dragonCombatReturnToFlight && (player.getAnimation() != -1 || dialogueOpen))
         {
-            if (player.getAnimation() != -1 || player.getInteracting() != null)
+            dragonInteractionPendingUntilNanos = 0L;
+        }
+        boolean landingForCombat = dragonCombatReturnToFlight
+            && (dragonTransitioning && dragonDescending
+                || System.nanoTime() < dragonCombatGroundVisibleUntilNanos);
+        if (dragonCombatReturnToFlight
+            && (target != null || player.getAnimation() != -1 || dialogueOpen))
+        {
+            actionResumeTicks = config.actionResumeDelay();
+        }
+        if ((config.pauseForActions() || dragonCombatReturnToFlight)
+            && !terrorbirdFighting && !finishingTerrorbirdAttack && !landingForCombat)
+        {
+            if (player.getAnimation() != -1 || player.getInteracting() != null || dialogueOpen)
             {
                 actionResumeTicks = config.actionResumeDelay();
                 suspendCosmetics();
@@ -1084,6 +1231,18 @@ public class RapidUrsaMountsPlugin extends Plugin
                 suspendCosmetics();
                 return;
             }
+        }
+
+        if (dragonCombatReturnToFlight && dragonLanded && !dragonTransitioning
+            && target == null && player.getAnimation() == -1 && !dialogueOpen
+            && actionResumeTicks == 0
+            && System.nanoTime() >= dragonInteractionPendingUntilNanos
+            && System.nanoTime() >= dragonCombatGroundVisibleUntilNanos)
+        {
+            dragonCombatReturnToFlight = false;
+            dragonCombatGroundVisibleUntilNanos = 0L;
+            dragonInteractionPendingUntilNanos = 0L;
+            toggleDragonLanding();
         }
 
         if (!ensureObjects())
