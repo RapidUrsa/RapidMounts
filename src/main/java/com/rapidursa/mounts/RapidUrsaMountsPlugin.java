@@ -25,7 +25,8 @@ import net.runelite.api.events.BeforeRender;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuOptionClicked;
-import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.api.gameval.InterfaceID;
+import net.runelite.api.widgets.Widget;
 import net.runelite.api.gameval.AnimationID;
 import net.runelite.api.gameval.SpotanimID;
 import net.runelite.api.kit.KitType;
@@ -1199,12 +1200,12 @@ public class RapidUrsaMountsPlugin extends Plugin
             terrorbirdHeldCombatAnimation = -1;
         }
 
-        boolean dialogueOpen = client.getWidget(WidgetInfo.DIALOG_NPC_TEXT) != null
-            && !client.getWidget(WidgetInfo.DIALOG_NPC_TEXT).isHidden();
-        dialogueOpen |= client.getWidget(WidgetInfo.DIALOG_PLAYER_TEXT) != null
-            && !client.getWidget(WidgetInfo.DIALOG_PLAYER_TEXT).isHidden();
-        dialogueOpen |= client.getWidget(WidgetInfo.DIALOG_OPTION) != null
-            && !client.getWidget(WidgetInfo.DIALOG_OPTION).isHidden();
+        Widget npcDialogue = client.getWidget(InterfaceID.ChatLeft.TEXT);
+        Widget playerDialogue = client.getWidget(InterfaceID.ChatRight.TEXT);
+        Widget dialogueOptions = client.getWidget(InterfaceID.Chatmenu.OPTIONS);
+        boolean dialogueOpen = (npcDialogue != null && !npcDialogue.isHidden())
+            || (playerDialogue != null && !playerDialogue.isHidden())
+            || (dialogueOptions != null && !dialogueOptions.isHidden());
         if (dragonCombatReturnToFlight && (player.getAnimation() != -1 || dialogueOpen))
         {
             dragonInteractionPendingUntilNanos = 0L;
