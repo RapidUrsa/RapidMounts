@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.3 — Armour cache parsing
+
+- Handle item opcodes 99, 161 and 251 from RuneLite current cache loader.
+- Prevent these fields from rejecting worn armour definitions.
+
+
 ## 2.5.2 — Dragon interactions and final fitting
 
 - Land before talking to NPCs or using stairs and common agility shortcuts.
